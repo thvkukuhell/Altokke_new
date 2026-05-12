@@ -10,8 +10,8 @@ Tener instalado:
 ## Instalación paso a paso
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/TU_USUARIO/altokke.git
-cd altokke
+git clone https://github.com/thvkukuhell/Altokke_new.git
+cd Altokke_new
 ```
 
 ### 2. Instalar dependencias PHP
