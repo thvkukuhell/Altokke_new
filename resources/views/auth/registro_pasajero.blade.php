@@ -1,3 +1,6 @@
+@extends('layouts.main')
+@section('contenido')
+
 <main>
     <img src="{{ asset('assets/img/login_client_icon.png') }}"
          alt="Imagen pasajero"
@@ -76,3 +79,5 @@
     @endif
  
 </main>
+
+@endsection

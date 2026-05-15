@@ -1,3 +1,6 @@
+@extends('layouts.main')
+@section('contenido')
+
 <div class="pagina-conductor">
     <div class="perfil-layout">
  
@@ -71,3 +74,5 @@
         </div>
     </div>
 </div>
+
+@endsection

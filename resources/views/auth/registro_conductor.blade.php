@@ -1,3 +1,6 @@
+@extends('layouts.main')
+@section('contenido')
+
 <main class="registro">
     <h1>Registro conductor</h1>
  
@@ -132,3 +135,5 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+
+@endsection

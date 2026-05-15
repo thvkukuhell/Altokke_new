@@ -1,3 +1,6 @@
+@extends('layouts.main')
+@section('contenido')
+
 <div class="pagina-pasajero">
     <div class="calificar-wrap">
  
@@ -75,3 +78,5 @@
         </form>
     </div>
 </div>
+
+@endsection

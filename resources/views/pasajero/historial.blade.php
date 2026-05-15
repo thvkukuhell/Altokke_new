@@ -1,3 +1,6 @@
+@extends('layouts.main')
+@section('contenido')
+
 <div class="pagina-pasajero">
     <h1 class="titulo-pagina">Mis viajes</h1>
     <p class="subtitulo-pagina">Historial completo de tus viajes en mototaxi</p>
@@ -59,3 +62,5 @@
     @endif
  
 </div>
+
+@endsection

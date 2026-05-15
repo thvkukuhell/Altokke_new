@@ -1,3 +1,6 @@
+@extends('layouts.main')
+@section('contenido')
+
 <div class="pagina-pasajero">
     <div class="perfil-layout">
  
@@ -123,3 +126,5 @@
         </div>
     </div>
 </div>
+
+@endsection

@@ -1,3 +1,6 @@
+@extends('layouts.main')
+@section('contenido')
+
 <div class="pagina-pasajero">
     <div class="buscando-centro">
  
@@ -50,3 +53,5 @@
  
     </div>
 </div>
+
+@endsection
