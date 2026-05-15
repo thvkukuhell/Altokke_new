@@ -11,7 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'es_pasajero'  => \App\Http\Middleware\EsPasajero::class,
+            'es_conductor' => \App\Http\Middleware\EsConductor::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

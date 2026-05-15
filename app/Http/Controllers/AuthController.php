@@ -62,7 +62,7 @@ class AuthController extends Controller
 
         // Redirigir según tipo
         return match($user->tipo_usuario) {
-            'pasajero'  => redirect()->route('pasajero.inicio'),
+            'pasajero'  => redirect()->route('pasajero.solicitarViaje'),
             'conductor' => redirect()->route('conductor.dashboard'),
             default     => redirect('/'),
         };
@@ -115,7 +115,7 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
-        return redirect()->route('pasajero.inicio');
+        return redirect()->route('pasajero.solicitarViaje');
     }
 
     // ── Registro Conductor ─────────────────────────────

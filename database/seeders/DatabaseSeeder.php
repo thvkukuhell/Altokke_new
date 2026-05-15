@@ -3,20 +3,26 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Pasajero;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     public function run(): void
     {
-        User::create([
+        $user = User::create([
             'nombre_completo' => 'María Altamirano',
-            'email' => 'pasajero@test.com',
+            'email'           => 'pasajero@test.com',
             'contrasena_hash' => Hash::make('password123'),
-            'tipo_usuario' => 'pasajero',
+            'tipo_usuario'    => 'pasajero',
+            'activo'          => 1,
+        ]);
+
+        // Crear también el registro en tabla pasajeros
+        Pasajero::create([
+            'id_pasajero'          => $user->id_usuario,
+            'metodo_pago_preferido' => 'efectivo',
         ]);
     }
 }

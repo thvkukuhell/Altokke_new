@@ -1,27 +1,29 @@
 <?php
+
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InicioController;
 use App\Http\Controllers\PasajeroController;
 use App\Http\Controllers\ConductorController;
 
-// ── Inicio ─────────────────────────────────────
-Route::get('/',                  [InicioController::class, 'index'])->name('inicio');
-Route::get('/inicio',            [InicioController::class, 'index']);
-Route::get('/inicio/como_funciona',   [InicioController::class, 'como_funciona'])->name('como_funciona');
-Route::get('/inicio/sobre_nosotros',  [InicioController::class, 'sobre_nosotros'])->name('sobre_nosotros');
+// ── Inicio (público) ────────────────────────────────────
+Route::get('/',                         [InicioController::class, 'index'])->name('inicio');
+Route::get('/inicio',                   [InicioController::class, 'index']);
+Route::get('/inicio/como_funciona',     [InicioController::class, 'como_funciona'])->name('como_funciona');
+Route::get('/inicio/sobre_nosotros',    [InicioController::class, 'sobre_nosotros'])->name('sobre_nosotros');
 
-// ── Auth ────────────────────────────────────────
-Route::get( '/auth/login',                  [AuthController::class, 'login'])->name('login');
-Route::post('/auth/login',                  [AuthController::class, 'login_proceso'])->name('login.proceso');
-Route::get( '/auth/eleccion_registro',      [AuthController::class, 'eleccion_registro'])->name('eleccion_registro');
-Route::get( '/auth/registro_pasajero',      [AuthController::class, 'registro_pasajero'])->name('registro_pasajero');
-Route::post('/auth/registro_pasajero',      [AuthController::class, 'proc_regist_pasajero'])->name('proc_regist_pasajero');
-Route::get( '/auth/registro_conductor',     [AuthController::class, 'registro_conductor'])->name('registro_conductor');
-Route::post('/auth/registro_conductor',     [AuthController::class, 'proc_regist_conductor'])->name('proc_regist_conductor');
-Route::post('/auth/logout',                 [AuthController::class, 'logout'])->name('logout');
+// ── Auth (público) ──────────────────────────────────────
+Route::get( '/auth/login',              [AuthController::class, 'login'])->name('login');
+Route::post('/auth/login',              [AuthController::class, 'login_proceso'])->name('login.proceso');
+Route::get( '/auth/eleccion_registro',  [AuthController::class, 'eleccion_registro'])->name('eleccion_registro');
+Route::get( '/auth/registro_pasajero',  [AuthController::class, 'registro_pasajero'])->name('registro_pasajero');
+Route::post('/auth/registro_pasajero',  [AuthController::class, 'proc_regist_pasajero'])->name('proc_regist_pasajero');
+Route::get( '/auth/registro_conductor', [AuthController::class, 'registro_conductor'])->name('registro_conductor');
+Route::post('/auth/registro_conductor', [AuthController::class, 'proc_regist_conductor'])->name('proc_regist_conductor');
+Route::post('/auth/logout',             [AuthController::class, 'logout'])->name('logout');
 
-// ── Pasajero (protegidas) ───────────────────────
-Route::prefix('pasajero')->name('pasajero.')->group(function () {
+// ── Pasajero (protegidas) ───────────────────────────────
+Route::prefix('pasajero')->name('pasajero.')->middleware(['auth', 'es_pasajero'])->group(function () {
     Route::get('/',                          [PasajeroController::class, 'index']);
     Route::get('/solicitarViaje',            [PasajeroController::class, 'solicitarViaje'])->name('solicitarViaje');
     Route::post('/crearViaje',               [PasajeroController::class, 'crearViaje'])->name('crearViaje');
@@ -36,14 +38,16 @@ Route::prefix('pasajero')->name('pasajero.')->group(function () {
     Route::post('/guardarPerfil',            [PasajeroController::class, 'guardarPerfil'])->name('guardarPerfil');
 });
 
-// ── Conductor (protegidas) ──────────────────────
-Route::prefix('conductor')->name('conductor.')->group(function () {
-    Route::get('/',                          [ConductorController::class, 'index'])->name('dashboard');
-    Route::get('/perfil',                    [ConductorController::class, 'perfil'])->name('perfil');
-    Route::get('/solicitudes',               [ConductorController::class, 'solicitudes'])->name('solicitudes');
-    Route::post('/aceptarViaje',             [ConductorController::class, 'aceptarViaje'])->name('aceptarViaje');
-    Route::post('/completarViaje',           [ConductorController::class, 'completarViaje'])->name('completarViaje');
-    Route::post('/cancelarViaje',            [ConductorController::class, 'cancelarViaje'])->name('cancelarViaje');
-    Route::get('/historial',                 [ConductorController::class, 'historial'])->name('historial');
-    Route::get('/billetera',                 [ConductorController::class, 'billetera'])->name('billetera');
+// ── Conductor (protegidas) ──────────────────────────────
+Route::prefix('conductor')->name('conductor.')->middleware(['auth', 'es_conductor'])->group(function () {
+    Route::get('/',                [ConductorController::class, 'index'])->name('dashboard');
+    Route::get('/perfil',          [ConductorController::class, 'perfil'])->name('perfil');
+    Route::put('/perfil',          [ConductorController::class, 'actualizarPerfil'])->name('actualizarPerfil');
+    Route::get('/solicitudes',     [ConductorController::class, 'solicitudes'])->name('solicitudes');
+    Route::post('/aceptarViaje',   [ConductorController::class, 'aceptarViaje'])->name('aceptarViaje');
+    Route::post('/completarViaje', [ConductorController::class, 'completarViaje'])->name('completarViaje');
+    Route::post('/cancelarViaje',  [ConductorController::class, 'cancelarViaje'])->name('cancelarViaje');
+    Route::get('/viajeActivo',     [ConductorController::class, 'viajeActivo'])->name('viajeActivo');
+    Route::get('/historial',       [ConductorController::class, 'historial'])->name('historial');
+    Route::get('/billetera',       [ConductorController::class, 'billetera'])->name('billetera');
 });

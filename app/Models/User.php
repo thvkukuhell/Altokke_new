@@ -28,8 +28,10 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    // Le dice a Laravel que el password está en este campo
-    protected string $authPasswordName = 'contrasena_hash';
+    public function getAuthPassword()
+    {
+        return $this->contrasena_hash;
+    }
 
     protected function casts(): array
     {
@@ -59,9 +61,4 @@ class User extends Authenticatable
         );
     }
 
-    // Le dice a Laravel donde está el password
-    public function getAuthPassword(): string
-    {
-        return $this->contrasena_hash;
-    }
 }

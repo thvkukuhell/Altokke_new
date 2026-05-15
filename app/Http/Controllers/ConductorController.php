@@ -10,17 +10,6 @@ use Illuminate\Support\Facades\Auth;
 
 class ConductorController extends Controller
 {
-    public function __construct() // validarConductor() lo reemplaza el middleware 
-    {
-        $this->middleware('auth');
-        $this->middleware(function ($request, $next) {
-            if (Auth::user()->tipo_usuario !== 'conductor') {
-                return redirect()->route('inicio');
-            }
-            return $next($request);
-        });
-    }
-
     // ── Helpers ────────────────────────────────────────
 
     private function calcularIniciales(string $nombre): string
