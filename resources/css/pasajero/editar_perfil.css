@@ -1,0 +1,16 @@
+
+
+.perfil-contenido h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.perfil-acciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}

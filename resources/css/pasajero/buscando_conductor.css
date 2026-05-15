@@ -1,0 +1,124 @@
+
+.buscando-centro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 52px 24px 48px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* Ícono con pulso */
+.icono-buscando {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--p-verde-bg);
+  border: 2px solid #B5D4B3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28px;
+  color: var(--p-verde-mid);
+  position: relative;
+  animation: buscando-pulso 2.4s ease-in-out infinite;
+}
+
+.icono-buscando::before {
+  content: '';
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--p-verde-mid);
+  opacity: 0;
+  animation: buscando-onda 2.4s ease-out infinite;
+}
+
+.icono-buscando::after {
+  content: '';
+  position: absolute;
+  inset: -24px;
+  border-radius: 50%;
+  border: 1px solid var(--p-verde-mid);
+  opacity: 0;
+  animation: buscando-onda 2.4s ease-out 0.4s infinite;
+}
+
+@keyframes buscando-pulso {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(45,106,45,0.18); }
+  50%       { box-shadow: 0 0 0 12px rgba(45,106,45,0); }
+}
+
+@keyframes buscando-onda {
+  0%   { transform: scale(0.85); opacity: 0.5; }
+  100% { transform: scale(1.1);  opacity: 0; }
+}
+
+.buscando-titulo {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.buscando-tiempo {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--p-verde-mid);
+  background: var(--p-verde-bg);
+  border: 1px solid #B5D4B3;
+  padding: 5px 16px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.buscando-desc {
+  font-size: 14px;
+  color: var(--gray);
+  line-height: 1.65;
+  margin-bottom: 36px;
+  max-width: 380px;
+}
+
+/* Barra de progreso */
+.progreso-wrap {
+  width: 100%;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 36px;
+}
+
+.progreso-barra {
+  height: 100%;
+  background: var(--p-verde-mid);
+  border-radius: 2px;
+  animation: progreso-anim 2.8s ease-in-out infinite alternate;
+}
+
+@keyframes progreso-anim {
+  from { width: 12%; }
+  to   { width: 88%; }
+}
+
+/* Tarjeta resumen */
+.tarjeta-viaje {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  width: 100%;
+  margin-bottom: 20px;
+  text-align: left;
+  box-shadow: var(--shadow-sm);
+}
+
+.nota-cancelar {
+  font-size: 12.5px;
+  color: var(--gray);
+  margin-bottom: 18px;
+  line-height: 1.5;
+}

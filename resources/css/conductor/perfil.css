@@ -1,0 +1,188 @@
+.perfil-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Sidebar */
+.perfil-sidebar {
+  background: linear-gradient(180deg, var(--verde), var(--verde-claro));
+  border: none;
+  border-radius: var(--radio);
+  overflow: hidden;
+  box-shadow: var(--sombra-md);
+  position: sticky;
+  top: 16px;
+  padding-bottom: 32px;
+  min-height: calc(100vh - 140px);
+}
+
+/* Cabecera del sidebar */
+.sidebar-cabecera,
+.sidebar-header {
+  background: rgba(0, 0, 0, 0.25); /* Un poco más oscuro para dar profundidad */
+  color: #ffffff;
+  padding: 25px 20px;
+  margin: 15px;
+  border-radius: var(--radio);
+  text-align: center;
+  box-shadow:
+    inset 0 0 20px rgba(0, 0, 0, 0.1),
+    0 4px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  border: 3px solid rgba(255, 255, 255, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 auto 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.sidebar-nombre {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  word-break: break-word;
+  opacity: 0.95;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Hace que el blanco sea más legible */
+  margin-top: 5px;
+}
+
+/* Menú de navegación  */
+.sidebar-menu {
+  display: none;
+}
+
+/* Contenido*/
+.perfil-contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.btn-retirar {
+  margin-top: 18px;
+  width: min(280px, 100%);
+  box-shadow: 0 12px 30px rgba(42, 142, 46, 0.12);
+  border-radius: 100px;
+  padding: 12px 26px;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+
+.btn-retirar:hover {
+  transform: translateY(-1px);
+}
+
+/* Tarjeta de datos personales */
+.perfil-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.perfil-encabezado h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--texto);
+}
+
+/* Grid de campos del perfil  */
+.perfil-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px 40px;
+}
+
+.perfil-campo-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gris);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 5px;
+}
+
+.perfil-campo-valor {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--texto);
+  line-height: 1.4;
+}
+
+.perfil-campo-valor.vacio {
+  color: #bbb;
+  font-weight: 400;
+}
+
+/* Separador de sección */
+.perfil-seccion-titulo {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gris);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  position: relative;
+  margin: 24px 0 18px;
+}
+
+.perfil-seccion-titulo::before,
+.perfil-seccion-titulo::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 36%;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.perfil-seccion-titulo::before {
+  left: 0;
+}
+.perfil-seccion-titulo::after {
+  right: 0;
+}
+
+/* Tarjeta de método de pago preferido */
+.pago-fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--texto);
+  padding: 8px 0;
+}
+
+.pago-icono {
+  font-size: 26px;
+}
+
+@media (max-width: 1024px) {
+  .perfil-layout {
+    grid-template-columns: 1fr;
+  }
+  .perfil-sidebar {
+    position: static;
+  }
+  .perfil-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}

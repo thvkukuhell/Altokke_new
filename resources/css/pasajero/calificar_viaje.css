@@ -1,0 +1,106 @@
+.calificar-wrap {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Encabezado */
+.calificar-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.check-icono {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #DCFCE7;
+  border: 2px solid #86EFAC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+/* Resumen del viaje */
+.resumen-viaje {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #FAFAFA;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.resumen-ruta           { font-size: 13px; color: var(--gray); }
+.resumen-ruta strong    { display: block; font-size: 14.5px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.resumen-precio         { font-size: 22px; font-weight: 800; color: var(--p-verde-mid); letter-spacing: -0.5px; }
+
+/* Card conductor */
+.conductor-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--p-verde-bg);
+  border: 1px solid #B5D4B3;
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  margin-bottom: 24px;
+}
+
+.avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--p-verde-mid);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.conductor-nombre { font-size: 14.5px; font-weight: 700; color: var(--text); }
+.conductor-dato   { font-size: 12.5px; color: var(--gray); margin-top: 2px; }
+
+/* Estrellas CSS  */
+.estrellas-grupo {
+  text-align: center;
+  padding: 24px 20px;
+  background: #FAFAFA;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+}
+
+.estrellas-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 16px;
+}
+
+.estrellas-input {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: center;
+  gap: 6px;
+}
+
+.estrellas-input input[type="radio"] { display: none; }
+
+.estrellas-input label {
+  font-size: 42px;
+  color: #D1D5DB;
+  cursor: pointer;
+  transition: color 0.1s, transform 0.1s;
+  line-height: 1;
+}
+
+.estrellas-input label:hover          { transform: scale(1.12); }
+.estrellas-input label:hover,
+.estrellas-input label:hover ~ label,
+.estrellas-input input:checked ~ label { color: var(--p-dorado); }

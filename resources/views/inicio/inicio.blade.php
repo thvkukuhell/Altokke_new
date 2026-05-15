@@ -1,5 +1,6 @@
-{{-- CSS específico de esta vista --}}
-<link rel="stylesheet" href="{{ asset('assets/css/inicio/inicio.css') }}">
+@extends('layouts.main')
+
+@section('content')
 
 <main class="inicio">
     <div class="principal">
@@ -21,3 +22,5 @@
         </div>
     </div>
 </main>
+
+@endsection

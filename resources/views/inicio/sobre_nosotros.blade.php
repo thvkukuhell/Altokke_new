@@ -1,5 +1,6 @@
-{{-- CSS específico de esta vista --}}
-<link rel="stylesheet" href="{{ asset('assets/css/inicio/sobre_nosotros.css') }}">
+@extends('layouts.main')
+
+@section('content')
 
 <main>
 
@@ -50,3 +51,5 @@
     </section>
 
 </main>
+
+@endsection

@@ -1,0 +1,187 @@
+main {
+  justify-items: center;
+  align-content: center;
+}
+
+.sobre-nosotros {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.sobre,
+.about {
+  text-align: center;
+  padding: 20px 20px;
+  min-height: auto;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.sobre h1,
+.about h1 {
+  margin-bottom: 10px;
+}
+
+.introduccion-sobre,
+.about-intro {
+  max-width: 700px;
+  margin: 0 auto 20px auto;
+  color: var(--gray);
+}
+
+.tarjetas-sobre,
+.about-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 18px;
+  padding: 0 20px;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.tarjeta,
+.card {
+  background: #ffffff;
+  border-left: 6px solid #027b26;
+  padding: 16px;
+  border-radius: 10px;
+  text-align: left;
+  transition: 0.3s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.tarjeta:hover,
+.card:hover {
+  transform: translateY(-5px);
+  background: #f3ddb0;
+}
+
+.tarjeta h3,
+.card h3 {
+  margin-bottom: 10px;
+  color: #027b26;
+}
+
+.tarjeta p,
+.card p {
+  font-size: 14px;
+  color: #333;
+}
+
+/* ===================== RESPONSIVE ===================== */
+
+/* 📱 MÓVIL */
+@media (max-width: 480px) {
+  main {
+    justify-content: flex-start;
+  }
+
+  .sobre,
+  .about {
+    padding: 12px 8px;
+    min-height: auto;
+  }
+
+  .sobre h1,
+  .about h1 {
+    font-size: 1.3rem;
+  }
+
+  .introduccion-sobre,
+  .about-intro {
+    max-width: 100%;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  .tarjetas-sobre,
+  .about-cards {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 0 10px;
+  }
+
+  .tarjeta,
+  .card {
+    padding: 10px;
+  }
+
+  .tarjeta h3,
+  .card h3 {
+    font-size: 1rem;
+  }
+
+  .tarjeta p,
+  .card p {
+    font-size: 13px;
+  }
+}
+
+/* 📲 TABLET */
+@media (min-width: 481px) and (max-width: 1024px) {
+  main {
+    justify-content: flex-start;
+  }
+
+  .sobre,
+  .about {
+    padding: 20px 15px;
+  }
+
+  .sobre h1,
+  .about h1 {
+    font-size: 1.5rem;
+  }
+
+  .introduccion-sobre,
+  .about-intro {
+    max-width: 90%;
+    padding: 0 12px;
+  }
+
+  .tarjetas-sobre,
+  .about-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 0 15px;
+  }
+
+  .tarjeta,
+  .card {
+    padding: 14px;
+  }
+}
+
+/* 💻 LAPTOP / DESKTOP */
+@media (min-width: 1025px) {
+  .sobre,
+  .about {
+    padding: 24px 20px;
+  }
+
+  .sobre h1,
+  .about h1 {
+    font-size: 1.8rem;
+  }
+
+  .introduccion-sobre,
+  .about-intro {
+    max-width: 700px;
+  }
+
+  .tarjetas-sobre,
+  .about-cards {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    gap: 18px;
+    max-width: 1000px;
+    padding: 0 20px;
+  }
+}

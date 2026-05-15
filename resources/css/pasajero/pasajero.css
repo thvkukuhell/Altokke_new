@@ -1,0 +1,253 @@
+/* Variables exclusivas del área pasajero */
+:root {
+  --p-verde: #1e5c1e;
+  --p-verde-mid: #2d6a2d;
+  --p-verde-bg: #eff6ef;
+  --p-dorado: #92660a;
+  --p-rojo: #b91c1c;
+}
+
+/* Header */
+header {
+  background: var(--p-verde-mid) !important;
+  border-bottom: none !important;
+}
+
+.barra-navegacion {
+  padding: 0 32px !important;
+}
+
+.logo-texto {
+  color: #fff !important;
+  font-weight: 700;
+}
+
+.enlaces-nav a {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.enlaces-nav a:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+  color: #fff !important;
+}
+
+.imagen-perfil {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  vertical-align: middle;
+}
+
+/* Contenido */
+main {
+  background: #f1f3f5 !important;
+  display: block !important;
+  height: auto !important;
+}
+
+/* Wraper */
+.pagina-pasajero {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 40px 64px;
+}
+
+/* Encabezado */
+.titulo-pagina {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
+}
+
+.subtitulo-pagina {
+  font-size: 14px;
+  color: var(--gray);
+  margin-bottom: 28px;
+}
+
+/* Tarjeta blanca*/
+.tarjeta {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Botones */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    box-shadow 0.15s,
+    transform 0.1s;
+  line-height: 1.4;
+}
+
+.btn-verde {
+  background: var(--p-verde-mid);
+  color: #fff;
+}
+.btn-verde:hover {
+  background: var(--p-verde);
+  box-shadow: 0 2px 8px rgba(30, 92, 30, 0.25);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid var(--border-mid);
+  color: var(--gray);
+}
+.btn-outline:hover {
+  border-color: var(--p-verde-mid);
+  color: var(--p-verde-mid);
+  background: var(--p-verde-bg);
+}
+
+.btn-rojo {
+  background: var(--p-rojo);
+  color: #fff;
+}
+.btn-rojo:hover {
+  background: #991b1b;
+}
+
+.btn-ancho {
+  width: 100%;
+}
+
+/*Formularios*/
+.campo-label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.campo-input,
+.campo-select {
+  width: 100%;
+  padding: 10px 13px;
+  border: 1.5px solid var(--border-mid);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  background: var(--white);
+  color: var(--text);
+  font-family: inherit;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+  box-sizing: border-box;
+}
+
+.campo-input:focus,
+.campo-select:focus {
+  outline: none;
+  border-color: var(--p-verde-mid);
+  box-shadow: 0 0 0 3px rgba(45, 106, 45, 0.1);
+}
+
+.campo-input::placeholder {
+  color: var(--gray-lite);
+}
+
+.campo-grupo {
+  margin-bottom: 16px;
+}
+
+/* Separador */
+.separador {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 18px 0;
+}
+
+/* Fila dato (label / valor)*/
+.fila-dato {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--gray);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.fila-dato:last-child {
+  border-bottom: none;
+}
+.fila-dato strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Badges  */
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.badge-verde {
+  background: #dcfce7;
+  color: #15803d;
+}
+.badge-rojo {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.badge-gris {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+/* Alerta de errores */
+.alerta-errores {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #991b1b;
+}
+.alerta-errores ul {
+  margin: 6px 0 0 16px;
+}
+
+/* Ajustes responsivos */
+@media (max-width: 1200px) {
+  .pagina-pasajero {
+    padding: 28px 28px 48px;
+  }
+}
+@media (max-width: 768px) {
+  .pagina-pasajero {
+    padding: 20px 16px 40px;
+  }
+  .barra-navegacion {
+    padding: 0 16px !important;
+  }
+  .enlaces-nav a {
+    font-size: 12px !important;
+    padding: 5px 8px !important;
+  }
+}

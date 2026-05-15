@@ -1,0 +1,334 @@
+.viaje-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ── Mapa en curso ── */
+.mapa-viaje {
+  background: linear-gradient(145deg, #b8d4b8 0%, #c8dfc8 50%, #a8c8a8 100%);
+  border: 1px solid #a0bfa0;
+  border-radius: var(--radio);
+  height: 420px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--sombra-md);
+}
+
+.mapa-viaje::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(60, 100, 60, 0.1) 0,
+      rgba(60, 100, 60, 0.1) 1px,
+      transparent 1px,
+      transparent 48px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(60, 100, 60, 0.1) 0,
+      rgba(60, 100, 60, 0.1) 1px,
+      transparent 1px,
+      transparent 48px
+    );
+}
+
+/* Ruta animada en el mapa */
+.mapa-viaje::after {
+  content: "";
+  position: absolute;
+  top: 20%;
+  left: 12%;
+  width: 76%;
+  height: 5px;
+  background: linear-gradient(90deg, var(--verde), rgba(255, 255, 255, 0.8));
+  transform: rotate(-20deg) translateY(60px);
+  border-radius: 3px;
+  box-shadow: 0 0 10px rgba(45, 106, 45, 0.4);
+}
+
+/* Punto de moto animado */
+.moto-punto {
+  position: absolute;
+  top: 48%;
+  left: 45%;
+  width: 44px;
+  height: 44px;
+  background: var(--verde);
+  border-radius: 50%;
+  border: 3px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 3px 12px rgba(45, 106, 45, 0.5);
+  animation: moto-flotar 2s ease-in-out infinite;
+  z-index: 2;
+}
+
+@keyframes moto-flotar {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* ETA flotante */
+.eta-caja {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 10px;
+  padding: 12px 20px;
+  border: 1px solid var(--beige-borde);
+  text-align: center;
+  box-shadow: var(--sombra-md);
+  z-index: 2;
+}
+
+.eta-numero {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--verde);
+  line-height: 1;
+}
+.eta-unidad {
+  font-size: 11px;
+  color: var(--gris);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* Pins en mapa en curso */
+.mapa-pin-origen,
+.mapa-pin-destino {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+}
+
+.mapa-pin-origen {
+  bottom: 25%;
+  left: 12%;
+}
+.mapa-pin-destino {
+  top: 12%;
+  right: 15%;
+}
+
+.dot-origen {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--azul);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+.dot-destino {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--rojo);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.pin-tag {
+  background: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+  margin-top: 4px;
+  border: 1px solid var(--beige-borde);
+  white-space: nowrap;
+  box-shadow: var(--sombra-sm);
+}
+
+/* ── Panel lateral ── */
+.panel-viaje {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Avatar conductor */
+.conductor-fila {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--verde); /* Caja verde que mencionaste */
+  padding: 12px 16px;
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-md);
+  margin-bottom: 10px;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--verde), var(--verde-claro));
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.4); /* Resalta contra el fondo verde */
+}
+
+.conductor-nombre {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff !important;
+} /* Texto blanco sobre la caja */
+.conductor-dato {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 2px;
+}
+
+.placa {
+  background: var(--verde);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 5px;
+  margin-left: auto;
+  letter-spacing: 0.5px;
+  box-shadow: 0 1px 4px rgba(45, 106, 45, 0.3);
+}
+
+/* ── Timeline del estado ── */
+.timeline {
+  padding: 2px 0;
+}
+
+.paso {
+  display: flex;
+  gap: 14px;
+  padding-bottom: 14px;
+  position: relative;
+}
+
+.paso:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 22px;
+  width: 2px;
+  height: calc(100% - 12px);
+  background: #e5e7eb;
+}
+
+.paso.hecho::after {
+  background: var(--verde);
+}
+.paso.activo::after {
+  background: linear-gradient(to bottom, var(--verde), #e5e7eb);
+}
+
+.paso-icono {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  position: relative;
+  z-index: 1;
+}
+
+.paso.hecho .paso-icono {
+  background: var(--verde);
+  color: #fff;
+}
+.paso.activo .paso-icono {
+  background: var(--verde);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(45, 106, 45, 0.2);
+}
+.paso.pendiente .paso-icono {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border: 1.5px solid #e5e7eb;
+}
+
+.paso-titulo {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--texto);
+  margin-top: 1px;
+}
+.paso.pendiente .paso-titulo {
+  color: #9ca3af;
+}
+.paso-sub {
+  font-size: 11px;
+  color: var(--gris);
+  margin-top: 2px;
+}
+
+.texto-centro {
+  text-align: center;
+}
+.tarjeta-espera {
+  display: grid;
+  place-items: center;
+  gap: 14px;
+  padding: 32px 24px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(245, 251, 245, 0.95)
+  );
+  border: 1px solid rgba(102, 153, 102, 0.18);
+  box-shadow: 0 20px 60px rgba(40, 80, 40, 0.08);
+}
+.espera-icono {
+  font-size: 42px;
+  line-height: 1;
+  width: 74px;
+  height: 74px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(70, 146, 76, 0.12);
+  color: var(--verde);
+  box-shadow: inset 0 0 0 2px rgba(70, 146, 76, 0.12);
+}
+.tarjeta-espera h2 {
+  margin: 0;
+  font-size: 24px;
+  color: var(--texto);
+}
+.tarjeta-espera p {
+  margin: 0;
+  color: var(--gris);
+  max-width: 320px;
+}
+
+@media (max-width: 1024px) {
+  .viaje-grid {
+    grid-template-columns: 1fr;
+  }
+  .mapa-viaje {
+    height: 280px;
+  }
+}

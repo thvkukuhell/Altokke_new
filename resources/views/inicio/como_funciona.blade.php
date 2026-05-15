@@ -1,5 +1,6 @@
-{{-- CSS específico de esta vista --}}
-<link rel="stylesheet" href="{{ asset('assets/css/inicio/como_funciona.css') }}">
+@extends('layouts.main')
+
+@section('content')
 
 <main>
     <h1>Tres pasos y listo</h1>
@@ -52,3 +53,5 @@
 
     </section>
 </main>
+
+@endsection

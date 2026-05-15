@@ -1,0 +1,176 @@
+main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 32px 16px;
+  background: var(--bg);
+  height: auto;
+}
+
+.inicio-login {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.inicio {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0;
+}
+
+.inicio h1 {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+
+.inicio p {
+  font-size: 14px;
+  color: var(--gray);
+  margin-bottom: 28px;
+}
+
+/* Formulario */
+.formulario-login {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: var(--shadow-md);
+  text-align: left;
+  margin-bottom: 5px;
+}
+
+.formulario-login h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.formulario-login label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  margin-top: 16px;
+}
+
+.formulario-login label:first-of-type {
+  margin-top: 0;
+}
+
+.formulario-login input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  border: 1.5px solid var(--border-mid);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text);
+  font-family: inherit;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.formulario-login input:focus {
+  outline: none;
+  border-color: var(--primary-mid);
+  box-shadow: 0 0 0 3px rgba(45, 106, 45, 0.1);
+}
+
+.formulario-login button {
+  margin-top: 24px;
+  width: 100%;
+  padding: 11px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--primary-mid);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.18s;
+}
+
+.formulario-login button:hover {
+  background: var(--primary);
+}
+
+.texto-registro {
+  margin-top: 18px;
+  font-size: 13px;
+  text-align: center;
+  color: var(--gray);
+}
+
+.texto-registro a {
+  color: var(--primary-mid);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.texto-registro a:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   MÓVIL
+========================= */
+@media (max-width: 480px) {
+  main {
+    padding: 20px 12px;
+  }
+
+  .inicio h1 {
+    font-size: 22px;
+  }
+
+  .inicio p {
+    font-size: 13px;
+    margin-bottom: 22px;
+  }
+
+  .formulario-login {
+    padding: 24px 20px;
+    max-width: 100%;
+  }
+}
+
+/* =========================
+   TABLET
+========================= */
+@media (max-width: 768px) {
+  .inicio h1 {
+    font-size: 24px;
+  }
+
+  .formulario-login {
+    max-width: 420px;
+  }
+}
+
+/* =========================
+   LAPTOP
+========================= */
+@media (max-width: 1024px) {
+  .formulario-login {
+    max-width: 420px;
+  }
+}

@@ -1,0 +1,211 @@
+.solicitar-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ── Mapa decorativo ── */
+.mapa-decorativo {
+  background: #d0e8cf;
+  border: 1px solid #b2ceb0;
+  border-radius: var(--radius);
+  height: calc(100vh - 220px);
+  min-height: 420px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Cuadrícula de fondo */
+.mapa-decorativo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(40, 80, 40, 0.08) 0,
+      rgba(40, 80, 40, 0.08) 1px,
+      transparent 1px,
+      transparent 52px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(40, 80, 40, 0.08) 0,
+      rgba(40, 80, 40, 0.08) 1px,
+      transparent 1px,
+      transparent 52px
+    );
+}
+
+/* Calles diagonales decorativas */
+.mapa-decorativo::after {
+  content: "";
+  position: absolute;
+  top: 40%;
+  left: -10%;
+  width: 120%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  transform: rotate(-12deg);
+  border-radius: 2px;
+  box-shadow:
+    0 -48px 0 6px rgba(255, 255, 255, 0.35),
+    0 48px 0 5px rgba(255, 255, 255, 0.28);
+}
+
+.mapa-etiqueta {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray);
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Pins de mapa */
+.mapa-pin {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mapa-pin .circulo {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.mapa-pin-etiqueta {
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+  padding: 3px 9px;
+  border-radius: 5px;
+  margin-top: 5px;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+}
+
+.pin-origen {
+  bottom: 28%;
+  left: 20%;
+}
+.pin-destino {
+  top: 14%;
+  right: 20%;
+}
+
+/* ── Panel formulario ── */
+.panel-solicitud {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 76px;
+}
+
+.panel-solicitud h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Selector de ruta */
+.ruta-selector {
+  border: 1.5px solid var(--border-mid);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.ruta-fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  background: var(--white);
+}
+
+.ruta-fila:first-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.punto {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.punto-verde {
+  background: var(--p-verde-mid);
+}
+.punto-rojo {
+  background: var(--p-rojo);
+}
+
+.ruta-fila input {
+  border: none;
+  outline: none;
+  font-size: 14px;
+  width: 100%;
+  color: var(--text);
+  background: transparent;
+  font-family: inherit;
+}
+.ruta-fila input::placeholder {
+  color: var(--gray-lite);
+}
+
+/* Tarifa estimada */
+.tarifa-caja {
+  background: var(--p-verde-mid);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  padding: 18px 20px;
+  text-align: center;
+  margin: 18px 0 20px;
+}
+
+.tarifa-numero {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.tarifa-label {
+  font-size: 12px;
+  opacity: 0.82;
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+@media (max-width: 1024px) {
+  .solicitar-grid {
+    grid-template-columns: 1fr;
+  }
+  .panel-solicitud {
+    position: static;
+  }
+  .mapa-decorativo {
+    height: 280px;
+    min-height: 280px;
+  }
+}
