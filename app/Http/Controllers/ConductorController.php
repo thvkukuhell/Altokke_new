@@ -50,10 +50,17 @@ class ConductorController extends Controller
         $iniciales     = $this->calcularIniciales($conductor->user->nombre_completo ?? '');
         $seccionActiva = 'inicio';
 
-        return view('conductor.inicio', compact(
-            'conductor', 'vehiculo', 'viajeActivo',
-            'ganancias', 'iniciales', 'seccionActiva'
-        ));
+        return view('conductor.inicio', [
+            'header'       => 'header_conductor',
+            'footer'       => 'footer',
+            'css'          => ['conductor/perfil.css'],
+            'conductor'    => $conductor,
+            'vehiculo'     => $vehiculo,
+            'viajeActivo'  => $viajeActivo,
+            'ganancias'    => $ganancias,
+            'iniciales'    => $iniciales,
+            'seccionActiva'=> $seccionActiva,
+        ]);
     }
 
     // ── Perfil ─────────────────────────────────────────
@@ -65,9 +72,15 @@ class ConductorController extends Controller
         $iniciales     = $this->calcularIniciales($conductor->user->nombre_completo ?? '');
         $seccionActiva = 'perfil';
 
-        return view('conductor.perfil', compact(
-            'conductor', 'vehiculo', 'iniciales', 'seccionActiva'
-        ));
+        return view('conductor.perfil', [
+            'header'       => 'header_conductor',
+            'footer'       => 'footer',
+            'css'          => ['conductor/perfil.css'],
+            'conductor'    => $conductor,
+            'vehiculo'     => $vehiculo,
+            'iniciales'    => $iniciales,
+            'seccionActiva'=> $seccionActiva,
+        ]);
     }
 
     public function actualizarPerfil(Request $request)
@@ -110,9 +123,15 @@ class ConductorController extends Controller
         $iniciales     = $this->calcularIniciales($conductor->user->nombre_completo ?? '');
         $seccionActiva = 'solicitudes';
 
-        return view('conductor.solicitudes', compact(
-            'solicitudes', 'conductor', 'iniciales', 'seccionActiva'
-        ));
+        return view('conductor.solicitudes', [
+            'header'       => 'header_conductor',
+            'footer'       => 'footer',
+            'css'          => ['conductor/solicitudes.css'],
+            'conductor'    => $conductor,
+            'iniciales'    => $iniciales,
+            'seccionActiva'=> $seccionActiva,
+            'solicitudes' => $solicitudes,
+        ]);
     }
 
     public function aceptarViaje(Request $request) 
@@ -155,9 +174,15 @@ class ConductorController extends Controller
         $iniciales     = $this->calcularIniciales($conductor->user->nombre_completo ?? '');
         $seccionActiva = 'viaje-activo';
 
-        return view('conductor.viaje_activo', compact(
-            'viaje', 'conductor', 'iniciales', 'seccionActiva'
-        ));
+        return view('conductor.viaje_activo', [
+            'header'       => 'header_conductor',
+            'footer'       => 'footer',
+            'css'          => ['conductor/viaje_activo.css'],
+            'conductor'    => $conductor,
+            'iniciales'    => $iniciales,
+            'seccionActiva'=> $seccionActiva,
+            'viaje' => $viaje,
+        ]);
     }
 
     public function completarViaje(Request $request)
@@ -238,9 +263,16 @@ class ConductorController extends Controller
         $iniciales     = $this->calcularIniciales($conductor->user->nombre_completo ?? '');
         $seccionActiva = 'historial';
 
-        return view('conductor.historial_viajes', compact(
-            'historial', 'ganancias', 'conductor', 'iniciales', 'seccionActiva'
-        ));
+        return view('conductor.historial', [
+            'header'       => 'header_conductor',
+            'footer'       => 'footer',
+            'css'          => ['conductor/historial.css'],
+            'conductor'    => $conductor,
+            'ganancias'    => $ganancias,
+            'iniciales'    => $iniciales,
+            'seccionActiva'=> $seccionActiva,
+            'historial' => $historial,
+        ]);
     }
 
     // ── Billetera ──────────────────────────────────────
@@ -271,8 +303,15 @@ class ConductorController extends Controller
         $iniciales     = $this->calcularIniciales($conductor->user->nombre_completo ?? '');
         $seccionActiva = 'billetera';
 
-        return view('conductor.billetera', compact(
-            'ganancias', 'ultimosViajes', 'conductor', 'iniciales', 'seccionActiva'
-        ));
+        return view('conductor.billetera', [
+            'header'       => 'header_conductor',
+            'footer'       => 'footer',
+            'css'          => ['conductor/billetera.css'],
+            'conductor'    => $conductor,
+            'ganancias'    => $ganancias,
+            'iniciales'    => $iniciales,
+            'seccionActiva'=> $seccionActiva,
+            'ultimosViajes' => $ultimosViajes,
+        ]);
     }
 }

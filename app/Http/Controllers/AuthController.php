@@ -15,22 +15,38 @@ class AuthController extends Controller
 
     public function login()
     {
-        return view('auth.login');
+        return view('auth.login', [
+            'header' => 'header_inicio',
+            'footer' => 'footer_inicio',
+            'css'    => ['auth/login.css'],
+        ]);
     }
 
     public function eleccion_registro()
     {
-        return view('auth.eleccion_registro');
+        return view('auth.eleccion_registro', [
+            'header' => 'header_inicio',
+            'footer' => 'footer_inicio',
+            'css'    => ['auth/eleccion_registro.css'],
+        ]);
     }
 
     public function registro_pasajero()
     {
-        return view('auth.registro_pasajero');
+        return view('auth.registro_pasajero', [
+            'header' => 'header_inicio',
+            'footer' => 'footer_inicio',
+            'css'    => ['auth/registro_pasajero.css'],
+        ]);
     }
 
     public function registro_conductor()
     {
-        return view('auth.registro_conductor');
+        return view('auth.registro_conductor', [
+            'header' => 'header_inicio',
+            'footer' => 'footer_inicio',
+            'css'    => ['auth/registro_conductor.css'],
+        ]);
     }
 
     // ── Login ──────────────────────────────────────────

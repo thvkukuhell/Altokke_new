@@ -18,7 +18,11 @@ class PasajeroController extends Controller {
 
     public function solicitarViaje()
     {
-        return view('pasajero.solicitar_viaje');
+        return view('pasajero.solicitar_viaje', [
+            'header' => 'header_pasajero',
+            'footer' => 'footer',
+            'css'    => ['pasajero/pasajero.css', 'pasajero/solicitar_viaje.css'],
+        ]);
     }
 
     public function crearViaje(Request $request)
@@ -67,7 +71,13 @@ class PasajeroController extends Controller {
             'id' => 0, 'origen' => '—', 'destino' => '—', 'tarifa' => '0.00'
         ];
 
-        return view('pasajero.buscando_conductor', compact('viaje'));
+        return view('pasajero.buscando', [
+            'header'  => 'header_pasajero',
+            'footer'  => 'footer',
+            'css'     => ['pasajero/pasajero.css', 'pasajero/buscando.css'],
+            'viajeRaw'  => $viajeRaw,
+            'viaje' => $viaje,
+        ]);
     }
 
     public function cancelarViaje(Request $request)
@@ -111,7 +121,12 @@ class PasajeroController extends Controller {
             $pasos = $this->construirPasos($viajeRaw->estado_viaje);
         }
 
-        return view('pasajero.viaje_en_curso', compact('viaje', 'conductor', 'iniciales', 'eta', 'pasos'));
+        return view('pasajero.viaje_en_curso', [
+            'header'  => 'header_pasajero',
+            'footer'  => 'footer',
+            'css'     => ['pasajero/pasajero.css', 'pasajero/viaje_en_curso.css'],
+            'viajeRaw'  => $viajeRaw,
+        ]); 
     }
 
     public function calificar (int $viajeId)
@@ -138,7 +153,12 @@ class PasajeroController extends Controller {
             $iniciales = $this->calcularIniciales($viajeRaw->conductor->user->nombre_completo ?? '');
         }
 
-        return view('pasajero.calificar_viaje', compact('viaje', 'conductor', 'iniciales'));
+        return view('pasajero.calificar_viaje', [
+            'header'  => 'header_pasajero',
+            'footer'  => 'footer',
+            'css'     => ['pasajero/pasajero.css', 'pasajero/calificar_viaje.css'],
+            'viajeRaw'  => $viajeRaw,
+        ]);
     }
 
     public function enviarCalificacion(Request $request) 
@@ -213,7 +233,14 @@ class PasajeroController extends Controller {
             ];
         });
 
-        return view('pasajero.historial', compact('viajes', 'filtro', 'filtros'));
+        return view('pasajero.historial', [
+            'header'  => 'header_pasajero',
+            'footer'  => 'footer',
+            'css'     => ['pasajero/pasajero.css', 'pasajero/historial.css'],
+            'viajes'  => $viajes,
+            'filtro'  => $filtro,
+            'filtros' => $filtros,
+        ]);
     }
 
     public function perfil()
@@ -223,7 +250,15 @@ class PasajeroController extends Controller {
         $iniciales = $this->calcularIniciales($user->nombre_completo);
         $seccionActiva = 'perfil';
 
-        return view('pasajero.perfil', compact('user', 'pasajero', 'iniciales', 'seccionActiva'));
+        return view('pasajero.perfil', [
+            'header'       => 'header_pasajero',
+            'footer'       => 'footer',
+            'css'          => ['pasajero/pasajero.css', 'pasajero/perfil.css'],
+            'user'         => $user,
+            'pasajero'     => $pasajero,
+            'iniciales'    => $iniciales,
+            'seccionActiva'=> $seccionActiva,
+        ]);
     }
 
     public function editarPerfil() 
@@ -233,7 +268,15 @@ class PasajeroController extends Controller {
         $iniciales = $this->calcularIniciales($user->nombre_completo);
         $seccionActiva = 'perfil';
 
-        return view('pasajero.editar_perfil', compact('user', 'pasajero', 'iniciales', 'seccionActiva'));
+        return view('pasajero.editar_perfil', [
+            'header'  => 'header_pasajero',
+            'footer'  => 'footer',
+            'css'     => ['pasajero/pasajero.css', 'pasajero/editar_perfil.css'],
+            'user'  => $user,
+            'pasajero'  => $pasajero,
+            'iniciales' => $iniciales,
+            'seccionActiva' => $seccionActiva,
+        ]);
     }
 
     public function guardarPerfil(Request $request)
