@@ -1,5 +1,5 @@
 @extends('layouts.main')
-@section('contenido')
+@section('content')
 
 <div class="pagina-pasajero">
     <div class="buscando-centro">

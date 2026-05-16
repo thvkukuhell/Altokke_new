@@ -1,5 +1,5 @@
 @extends('layouts.main')
-@section('contenido')
+@section('content')
 
 @if ($errors->any())
     <div style="background:#ffe5e5; padding:10px; border-radius:8px; margin-bottom:15px;">

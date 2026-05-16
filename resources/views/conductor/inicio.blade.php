@@ -1,5 +1,5 @@
 @extends('layouts.main')
-@section('contenido')
+@section('content')
 
 <div class="pagina-conductor">
     <div class="perfil-layout">

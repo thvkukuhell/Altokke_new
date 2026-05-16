@@ -1,5 +1,5 @@
 @extends('layouts.main')
-@section('contenido')
+@section('content')
 
 <aside class="perfil-sidebar">
     <div class="sidebar-cabecera">
@@ -9,41 +9,40 @@
             {{ $conductor->user->apellidos ?? '' }}
         </div>
     </div>
- 
+
     <ul class="sidebar-menu">
         <li>
             <a href="{{ route('conductor.dashboard') }}"
-               class="{{ ($seccionActiva ?? '') === 'inicio' ? 'activo' : '' }}">
+                class="{{ ($seccionActiva ?? '') === 'inicio' ? 'activo' : '' }}">
                 Inicio
             </a>
         </li>
         <li>
             <a href="{{ route('conductor.solicitudes') }}"
-               class="{{ ($seccionActiva ?? '') === 'solicitudes' ? 'activo' : '' }}">
+                class="{{ ($seccionActiva ?? '') === 'solicitudes' ? 'activo' : '' }}">
                 Solicitudes
             </a>
         </li>
         <li>
             <a href="{{ route('conductor.viajeActivo') }}"
-               class="{{ ($seccionActiva ?? '') === 'viaje-activo' ? 'activo' : '' }}">
+                class="{{ ($seccionActiva ?? '') === 'viaje-activo' ? 'activo' : '' }}">
                 Viaje Activo
             </a>
         </li>
         <li>
             <a href="{{ route('conductor.historial') }}"
-               class="{{ ($seccionActiva ?? '') === 'historial' ? 'activo' : '' }}">
+                class="{{ ($seccionActiva ?? '') === 'historial' ? 'activo' : '' }}">
                 Historial
             </a>
         </li>
         <li>
             <a href="{{ route('conductor.billetera') }}"
-               class="{{ ($seccionActiva ?? '') === 'billetera' ? 'activo' : '' }}">
+                class="{{ ($seccionActiva ?? '') === 'billetera' ? 'activo' : '' }}">
                 Billetera
             </a>
         </li>
         <li>
-            <a href="{{ route('conductor.perfil') }}"
-               class="{{ ($seccionActiva ?? '') === 'perfil' ? 'activo' : '' }}">
+            <a href="{{ route('conductor.perfil') }}" class="{{ ($seccionActiva ?? '') === 'perfil' ? 'activo' : '' }}">
                 Mi Perfil
             </a>
         </li>
