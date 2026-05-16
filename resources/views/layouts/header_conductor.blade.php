@@ -2,7 +2,7 @@
     <div class="barra-navegacion">
 
         <div class="logo">
-            <img src="{{ asset('assets/img/logoTemporal.png') }}" alt="Logo">
+            <img src="{{ asset('img/logoTemporal.png') }}" alt="Logo">
         </div>
 
         <nav class="enlaces-nav">
@@ -32,7 +32,7 @@
             </a>
 
             <a href="{{ url('/conductor/perfil') }}" class="{{ ($seccionActiva ?? '') === 'perfil' ? 'activo' : '' }}">
-                <img src="{{ asset('assets/img/user.png') }}" class="imagen-perfil" alt="Perfil">
+                <img src="{{ asset('img/user.png') }}" class="imagen-perfil" alt="Perfil">
             </a>
 
             <a href="{{ url('/auth/cerrarSesion') }}" class="btn-cerrar">

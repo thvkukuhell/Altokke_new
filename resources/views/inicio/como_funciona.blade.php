@@ -8,7 +8,7 @@
     <section class="pasos">
 
         <div class="tarjeta-paso">
-            <img src="{{ asset('assets/img/user.png') }}" alt="icon user">
+            <img src="{{ asset('img/user.png') }}" alt="icon user">
 
             <h3>1. Regístrate</h3>
 
@@ -19,7 +19,7 @@
         </div>
 
         <div class="tarjeta-paso">
-            <img src="{{ asset('assets/img/location.png') }}" alt="icon location">
+            <img src="{{ asset('img/location.png') }}" alt="icon location">
 
             <h3>2. Indica tu destino</h3>
 
@@ -30,7 +30,7 @@
         </div>
 
         <div class="tarjeta-paso">
-            <img src="{{ asset('assets/img/logoTemporal.png') }}" alt="icon temp">
+            <img src="{{ asset('img/logoTemporal.png') }}" alt="icon temp">
 
             <h3>3. Tu moto llega</h3>
 
@@ -41,7 +41,7 @@
         </div>
 
         <div class="tarjeta-paso">
-            <img src="{{ asset('assets/img/estrella.png') }}" alt="icon estrella">
+            <img src="{{ asset('img/estrella.png') }}" alt="icon estrella">
 
             <h3>4. Califica tu viaje</h3>
 
