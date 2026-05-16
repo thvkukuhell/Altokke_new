@@ -1,3 +1,7 @@
+@extends('layouts.main')
+@section('contenido')
+
+
 <main>
     <div class="crear-cuenta">
         <h1>Crea tu cuenta</h1>
@@ -20,3 +24,5 @@
  
     </section>
 </main>
+
+@endsection

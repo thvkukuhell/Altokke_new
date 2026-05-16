@@ -1,3 +1,6 @@
+@extends('layouts.main')
+@section('contenido')
+
 <main>
     <div class="inicio">
         <h1>¿Ya tienes cuenta?</h1>
@@ -48,3 +51,5 @@
     @endif
  
 </main>
+
+@endsection

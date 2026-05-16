@@ -34,7 +34,7 @@ class PasajeroController extends Controller {
 
         // Verificar que exista el pasajero
         $pasajero = Pasajero::find(Auth::id());
-        if (!pasajero) {
+        if (!$pasajero) {
             Pasajero::create([
                 'id_pasajero' => Auth::id(),
                 'metodo_pago_preferido' => 'efectivo',
@@ -83,7 +83,7 @@ class PasajeroController extends Controller {
     {
         $viajeRaw = Viaje::with('conductor.user', 'conductor.vehiculo')->find($viajeId);
 
-        if (!$viajeRaw || $viajeRaw->conductor) {
+        if (!$viajeRaw || !$viajeRaw->conductor) {
             $viaje = [
                 'id' => 0, 'origen' => '-', 'destino' => '-',
                 'tarifa' => '0.00', 'metodo_pago' => 'efectivo'
@@ -118,7 +118,7 @@ class PasajeroController extends Controller {
     {
         $viajeRaw = Viaje::with('conductor.user', 'conductor.vehiculo')->find($viajeId);
 
-        if (!$viajeRaw || $viajeRaw->conductor) {
+        if (!$viajeRaw || !$viajeRaw->conductor) {
             $viaje = ['id' => 0, 'origen' => '-', 'destino' => '-', 'tarifa' => '0.00'];
             $conductor = ['id' => 0, 'nombre' => '-', 'placa' => '-', 'calificacion' => 0];
             $inicales = '--';

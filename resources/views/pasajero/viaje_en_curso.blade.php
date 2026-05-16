@@ -1,3 +1,6 @@
+@extends('layouts.main')
+@section('contenido')
+
 <div class="pagina-pasajero">
     <h1 class="titulo-pagina">Viaje en curso</h1>
     <p class="subtitulo-pagina">Estás en camino — mantén la página abierta</p>
@@ -85,3 +88,5 @@
         </div>
     </div>
 </div>
+
+@endsection

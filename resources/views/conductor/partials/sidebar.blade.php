@@ -1,3 +1,6 @@
+@extends('layouts.main')
+@section('contenido')
+
 <aside class="perfil-sidebar">
     <div class="sidebar-cabecera">
         <div class="sidebar-avatar">{{ $iniciales ?? '??' }}</div>
@@ -52,3 +55,5 @@
         </li>
     </ul>
 </aside>
+
+@endsection
