@@ -1,12 +1,21 @@
-/* ── Tus CSS ── */
+
 @import "./global/styles.css";
-@import "./inicio/inicio.css";
-@import "./inicio/como_funciona.css";
-@import "./inicio/sobre_nosotros.css";
+
 @import "./auth/login.css";
 @import "./auth/eleccion_registro.css";
 @import "./auth/registro_pasajero.css";
 @import "./auth/registro_conductor.css";
+
+@import "./inicio/inicio.css";
+
 @import "./pasajero/pasajero.css";
+@import "./pasajero/perfil.css";
+@import "./pasajero/editar_perfil.css";
+@import "./pasajero/solicitar_viaje.css";
+@import "./pasajero/buscando_conductor.css";
+@import "./pasajero/calificar_viaje.css";
+@import "./pasajero/historial.css";
+@import "./pasajero/viaje_en_curso.css";
+
 @import "./conductor/perfil.css";
 @import "./conductor/viaje_activo.css";

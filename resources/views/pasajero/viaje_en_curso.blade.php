@@ -7,7 +7,7 @@
  
     <div class="viaje-grid">
  
-        {{-- Mapa --}}
+        {{-- ── Mapa ── --}}
         <div class="mapa-viaje">
             <div class="eta-caja">
                 <div class="eta-numero">{{ $eta ?? '—' }}</div>
@@ -15,15 +15,15 @@
             </div>
         </div>
  
-        {{-- Panel lateral --}}
+        {{-- ── Panel lateral ── --}}
         <div class="panel-viaje">
  
             {{-- Conductor --}}
             <div class="tarjeta">
-                <p class="campo-label" style="margin-bottom:12px;">Conductor</p>
+                <p class="campo-label" style="margin-bottom:14px;">Tu conductor</p>
                 <div class="conductor-fila">
                     <div class="avatar">{{ $iniciales ?? '—' }}</div>
-                    <div>
+                    <div style="flex:1;">
                         <div class="conductor-nombre">{{ $conductor['nombre'] ?? '—' }}</div>
                         <div class="conductor-dato">
                             ★ {{ number_format($conductor['calificacion'] ?? 0, 1) }}
@@ -45,7 +45,7 @@
                 </div>
                 <div class="fila-dato">
                     <span>Tarifa</span>
-                    <strong style="color:var(--p-verde-dark); font-size:17px;">
+                    <strong style="color:var(--p-verde-mid); font-size:17px; letter-spacing:-0.5px;">
                         S/ {{ $viaje['tarifa'] ?? '0.00' }}
                     </strong>
                 </div>
@@ -57,13 +57,17 @@
  
             {{-- Timeline --}}
             <div class="tarjeta">
-                <p class="campo-label" style="margin-bottom:12px;">Estado del viaje</p>
+                <p class="campo-label" style="margin-bottom:14px;">Estado del viaje</p>
                 <div class="timeline">
                     @foreach($pasos ?? [] as $i => $paso)
                         <div class="paso {{ $paso['estado'] }}">
                             <div class="paso-icono">
-                                @if($paso['estado'] === 'hecho') ✓
-                                @else {{ $i + 1 }}
+                                @if($paso['estado'] === 'hecho')
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                        <path d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                @else
+                                    {{ $i + 1 }}
                                 @endif
                             </div>
                             <div>
@@ -81,12 +85,17 @@
                       onsubmit="return confirm('¿Seguro que quieres cancelar el viaje?')">
                     @csrf
                     <input type="hidden" name="viaje_id" value="{{ $viaje['id'] ?? 0 }}">
-                    <button type="submit" class="btn btn-rojo btn-ancho">Cancelar viaje</button>
+                    <button type="submit" class="btn btn-rojo btn-ancho">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M18 6 6 18M6 6l12 12"/>
+                        </svg>
+                        Cancelar viaje
+                    </button>
                 </form>
             </div>
  
         </div>
     </div>
 </div>
-
+ 
 @endsection

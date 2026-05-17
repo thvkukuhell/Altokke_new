@@ -1,133 +1,220 @@
 @extends('layouts.main')
 @section('content')
 
-<main class="registro">
-    <h1>Registro conductor</h1>
+<div class="auth-layout">
 
-    <form action="{{ route('proc_regist_conductor') }}" method="POST" class="registro-conductor" autocomplete="on"
-        novalidate>
+  {{-- ── Banner ── --}}
+  <div class="auth-banner">
+    <div class="auth-banner-logo">Alto<span>kke</span></div>
+    <div class="auth-banner-cuerpo">
+      <h2>Gana dinero<br>conduciendo.</h2>
+      <p>Regístrate como conductor en Altokke, establece tu horario y empieza a recibir solicitudes de viaje en Bagua.</p>
+    </div>
+    <div class="auth-banner-stats">
+      <div class="auth-banner-stat">
+        <div class="num">Flexible</div>
+        <div class="lbl">Tú pones el horario</div>
+      </div>
+      <div class="auth-banner-stat">
+        <div class="num">Verificado</div>
+        <div class="lbl">Proceso seguro</div>
+      </div>
+    </div>
+  </div>
 
-        @csrf
+  {{-- ── Panel ── --}}
+  <div class="auth-panel">
 
-        {{-- Paso 1: Cuenta --}}
-        <div class="paso-form active" id="paso-1">
-            <h2>Cuenta</h2>
+    <div class="auth-panel-logo">Alto<span>kke</span></div>
 
-            <input required type="text" name="nombre" placeholder="Nombre" value="{{ old('nombre') }}">
-            <input required type="text" name="apellidos" placeholder="Apellidos" value="{{ old('apellidos') }}">
-            <input required type="text" name="dni" placeholder="DNI" value="{{ old('dni') }}">
-            <input required type="text" name="telefono" placeholder="Teléfono" value="{{ old('telefono') }}">
-            <input required type="email" name="email" placeholder="Correo" value="{{ old('email') }}">
-            <input required type="password" name="password" placeholder="Contraseña">
-            <input required type="password" name="password_confirmation" placeholder="Confirmar contraseña">
-            <input type="text" name="numero_licencia" placeholder="Licencia Ej.: LIC-123456"
-                value="{{ old('numero_licencia') }}">
+    <h1 class="auth-titulo">Cuenta de conductor</h1>
+    <p class="auth-sub">Completa tus datos en dos pasos rápidos</p>
 
-            <div class="botones btn-1">
-                <button id="siguienteBtn" type="button">Siguiente</button>
-            </div>
+    {{-- Stepper --}}
+    <div class="auth-stepper">
+      <div class="auth-step activo" id="step-indicator-1">
+        <div class="auth-step-num">1</div>
+        <span>Cuenta</span>
+      </div>
+      <div class="auth-step-linea"></div>
+      <div class="auth-step" id="step-indicator-2">
+        <div class="auth-step-num">2</div>
+        <span>Vehículo</span>
+      </div>
+    </div>
+
+    @if ($errors->any())
+      <div class="auth-errores" id="form-errors">
+        <ul>
+          @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+      </div>
+    @else
+      <div class="auth-errores" id="form-errors" style="display:none;"></div>
+    @endif
+
+    <form action="{{ route('proc_regist_conductor') }}" method="POST" autocomplete="on" novalidate>
+      @csrf
+
+      {{-- Paso 1: Cuenta --}}
+      <div class="paso-form active" id="paso-1">
+
+        <div class="auth-grid-2">
+          <div class="auth-campo">
+            <label>Nombre</label>
+            <input type="text" name="nombre" value="{{ old('nombre') }}" placeholder="Tu nombre" required>
+          </div>
+          <div class="auth-campo">
+            <label>Apellidos</label>
+            <input type="text" name="apellidos" value="{{ old('apellidos') }}" placeholder="Tus apellidos" required>
+          </div>
+          <div class="auth-campo">
+            <label>DNI</label>
+            <input type="text" name="dni" value="{{ old('dni') }}" placeholder="12345678" required>
+          </div>
+          <div class="auth-campo">
+            <label>Teléfono</label>
+            <input type="text" name="telefono" value="{{ old('telefono') }}" placeholder="9XX XXX XXX" required>
+          </div>
         </div>
 
-        {{-- Paso 2: Vehículo --}}
-        <div class="paso-form" id="paso-2">
-            <h2>Vehículo</h2>
-
-            <div class="grid-vehiculo">
-                <input required type="text" name="placa" placeholder="Ej.: ABC-1234" value="{{ old('placa') }}">
-                <input type="text" name="marca" placeholder="Marca" value="{{ old('marca') }}">
-                <input type="text" name="modelo" placeholder="Modelo" value="{{ old('modelo') }}">
-                <input type="text" name="year" placeholder="Año" value="{{ old('year') }}">
-                <input type="text" name="color" placeholder="Color" value="{{ old('color') }}">
-                <input type="text" name="numero_soat" placeholder="Ej.: SOAT-ABC-1234" value="{{ old('numero_soat') }}">
-            </div>
-
-            <div class="botones">
-                <button type="button" id="atrasBtn">Atrás</button>
-                <button type="submit" id="confirmar">Confirmar</button>
-            </div>
+        <div class="auth-campo">
+          <label>Correo electrónico</label>
+          <input type="email" name="email" value="{{ old('email') }}" placeholder="tu@correo.com" required>
         </div>
+
+        <div class="auth-grid-2">
+          <div class="auth-campo">
+            <label>Contraseña</label>
+            <input type="password" name="password" placeholder="Mínimo 8 caracteres" required>
+          </div>
+          <div class="auth-campo">
+            <label>Confirmar contraseña</label>
+            <input type="password" name="password_confirmation" placeholder="Repite la contraseña" required>
+          </div>
+        </div>
+
+        <div class="auth-campo">
+          <label>Número de licencia</label>
+          <input type="text" name="numero_licencia" value="{{ old('numero_licencia') }}" placeholder="Ej.: LIC-123456" required>
+        </div>
+
+        <button type="button" class="btn-auth" id="siguienteBtn">
+          Siguiente: datos del vehículo
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+
+      </div>
+
+      {{-- Paso 2: Vehículo --}}
+      <div class="paso-form" id="paso-2">
+
+        <div class="auth-paso-titulo">Datos del vehículo</div>
+
+        <div class="auth-grid-2">
+          <div class="auth-campo">
+            <label>Placa</label>
+            <input type="text" name="placa" value="{{ old('placa') }}" placeholder="ABC-1234" required>
+          </div>
+          <div class="auth-campo">
+            <label>Marca</label>
+            <input type="text" name="marca" value="{{ old('marca') }}" placeholder="Ej.: Honda">
+          </div>
+          <div class="auth-campo">
+            <label>Modelo</label>
+            <input type="text" name="modelo" value="{{ old('modelo') }}" placeholder="Ej.: Wave 110">
+          </div>
+          <div class="auth-campo">
+            <label>Año</label>
+            <input type="text" name="year" value="{{ old('year') }}" placeholder="Ej.: 2022">
+          </div>
+          <div class="auth-campo">
+            <label>Color</label>
+            <input type="text" name="color" value="{{ old('color') }}" placeholder="Ej.: Rojo">
+          </div>
+          <div class="auth-campo">
+            <label>Número SOAT</label>
+            <input type="text" name="numero_soat" value="{{ old('numero_soat') }}" placeholder="SOAT-ABC-1234">
+          </div>
+        </div>
+
+        <div class="auth-botones-fila">
+          <button type="button" class="btn-auth-outline" id="atrasBtn">
+            ← Atrás
+          </button>
+          <button type="submit" class="btn-auth">
+            Confirmar registro
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <path d="M20 6 9 17l-5-5"/>
+            </svg>
+          </button>
+        </div>
+
+      </div>
 
     </form>
 
-    {{-- Errores del servidor --}}
-    @if ($errors->any())
-    <div class="form-errors" id="form-errors">
-        <ul>
-            @foreach ($errors->all() as $error)
-            <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-    @endif
+    <p class="auth-link-texto">
+      ¿Ya tienes cuenta? <a href="{{ route('login') }}">Iniciar sesión</a>
+    </p>
 
-</main>
+  </div>
+
+</div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const siguiente = document.getElementById('siguienteBtn');
-    const atras = document.getElementById('atrasBtn');
-    const paso1 = document.getElementById('paso-1');
-    const paso2 = document.getElementById('paso-2');
-    const formErrors = document.getElementById('form-errors');
+document.addEventListener('DOMContentLoaded', function () {
+  const paso1 = document.getElementById('paso-1');
+  const paso2 = document.getElementById('paso-2');
+  const formErrors = document.getElementById('form-errors');
+  const step1 = document.getElementById('step-indicator-1');
+  const step2 = document.getElementById('step-indicator-2');
 
-    function mostrarErrores(lista) {
-        if (!formErrors) return;
-        formErrors.style.display = 'block';
-        formErrors.innerHTML = '<ul>' + lista.map(e => '<li>' + e + '</li>').join('') + '</ul>';
-        formErrors.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-        });
-    }
+  function mostrarErrores(lista) {
+    formErrors.style.display = 'block';
+    formErrors.innerHTML = '<ul>' + lista.map(e => '<li>' + e + '</li>').join('') + '</ul>';
+    formErrors.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 
-    if (siguiente) {
-        siguiente.addEventListener('click', function() {
-            const nombre = document.querySelector('input[name="nombre"]').value.trim();
-            const dni = document.querySelector('input[name="dni"]').value.trim();
-            const telefono = document.querySelector('input[name="telefono"]').value.trim();
-            const correo = document.querySelector('input[name="email"]').value.trim();
-            const password = document.querySelector('input[name="password"]').value;
-            const confirmar = document.querySelector('input[name="password_confirmation"]').value;
-            const licencia = document.querySelector('input[name="numero_licencia"]').value.trim();
+  document.getElementById('siguienteBtn').addEventListener('click', function () {
+    const nombre   = document.querySelector('[name="nombre"]').value.trim();
+    const dni      = document.querySelector('[name="dni"]').value.trim();
+    const telefono = document.querySelector('[name="telefono"]').value.trim();
+    const correo   = document.querySelector('[name="email"]').value.trim();
+    const password = document.querySelector('[name="password"]').value;
+    const confirmar = document.querySelector('[name="password_confirmation"]').value;
+    const licencia  = document.querySelector('[name="numero_licencia"]').value.trim();
 
-            const errores = [];
-            if (!nombre) errores.push('El nombre es obligatorio.');
-            if (!dni) errores.push('El DNI es obligatorio.');
-            if (!telefono) errores.push('El teléfono es obligatorio.');
-            if (!correo) errores.push('El correo es obligatorio.');
-            if (password.length < 8) errores.push('La contraseña debe tener al menos 8 caracteres.');
-            if (password !== confirmar) errores.push('Las contraseñas no coinciden.');
-            if (!licencia) errores.push('El número de licencia es obligatorio.');
+    const errores = [];
+    if (!nombre)               errores.push('El nombre es obligatorio.');
+    if (!dni)                  errores.push('El DNI es obligatorio.');
+    if (!telefono)             errores.push('El teléfono es obligatorio.');
+    if (!correo)               errores.push('El correo es obligatorio.');
+    if (password.length < 8)   errores.push('La contraseña debe tener al menos 8 caracteres.');
+    if (password !== confirmar) errores.push('Las contraseñas no coinciden.');
+    if (!licencia)             errores.push('El número de licencia es obligatorio.');
 
-            if (errores.length > 0) {
-                mostrarErrores(errores);
-                return;
-            }
+    if (errores.length > 0) { mostrarErrores(errores); return; }
 
-            if (formErrors) {
-                formErrors.style.display = 'none';
-                formErrors.innerHTML = '';
-            }
+    formErrors.style.display = 'none';
+    formErrors.innerHTML = '';
+    paso1.classList.remove('active');
+    paso2.classList.add('active');
+    step1.classList.remove('activo');
+    step2.classList.add('activo');
+    paso2.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
 
-            paso1.classList.remove('active');
-            paso2.classList.add('active');
-            paso2.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
-        });
-    }
-
-    if (atras) {
-        atras.addEventListener('click', function() {
-            paso2.classList.remove('active');
-            paso1.classList.add('active');
-            paso1.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
-        });
-    }
+  document.getElementById('atrasBtn').addEventListener('click', function () {
+    paso2.classList.remove('active');
+    paso1.classList.add('active');
+    step2.classList.remove('activo');
+    step1.classList.add('activo');
+  });
 });
 </script>
 

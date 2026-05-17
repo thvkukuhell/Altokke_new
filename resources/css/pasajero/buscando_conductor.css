@@ -1,124 +1,114 @@
-
 .buscando-centro {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 52px 24px 48px;
+  padding: 56px 24px 52px;
   max-width: 520px;
   margin: 0 auto;
 }
-
-/* Ícono con pulso */
+ 
 .icono-buscando {
-  width: 96px;
-  height: 96px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   background: var(--p-verde-bg);
-  border: 2px solid #B5D4B3;
+  border: 2px solid var(--p-verde-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 28px;
+  margin-bottom: 30px;
   color: var(--p-verde-mid);
   position: relative;
   animation: buscando-pulso 2.4s ease-in-out infinite;
 }
-
-.icono-buscando::before {
-  content: '';
-  position: absolute;
-  inset: -14px;
-  border-radius: 50%;
-  border: 1.5px solid var(--p-verde-mid);
-  opacity: 0;
-  animation: buscando-onda 2.4s ease-out infinite;
-}
-
+ 
+.icono-buscando::before,
 .icono-buscando::after {
   content: '';
   position: absolute;
-  inset: -24px;
   border-radius: 50%;
-  border: 1px solid var(--p-verde-mid);
+  border: 1.5px solid var(--p-verde-mid);
   opacity: 0;
-  animation: buscando-onda 2.4s ease-out 0.4s infinite;
+  inset: -16px;
+  animation: buscando-onda 2.4s ease-out infinite;
 }
-
+.icono-buscando::after {
+  inset: -28px;
+  animation-delay: 0.4s;
+}
+ 
 @keyframes buscando-pulso {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(45,106,45,0.18); }
-  50%       { box-shadow: 0 0 0 12px rgba(45,106,45,0); }
+  0%,100% { box-shadow: 0 0 0 0 rgba(45,106,45,0.2); }
+  50%      { box-shadow: 0 0 0 14px rgba(45,106,45,0); }
 }
-
 @keyframes buscando-onda {
   0%   { transform: scale(0.85); opacity: 0.5; }
-  100% { transform: scale(1.1);  opacity: 0; }
+  100% { transform: scale(1.12); opacity: 0; }
 }
-
+ 
 .buscando-titulo {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 23px;
+  font-weight: 800;
   color: var(--text);
   margin-bottom: 10px;
+  letter-spacing: -0.4px;
 }
-
+ 
 .buscando-tiempo {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12.5px;
+  font-weight: 700;
   color: var(--p-verde-mid);
   background: var(--p-verde-bg);
-  border: 1px solid #B5D4B3;
-  padding: 5px 16px;
+  border: 1px solid var(--p-verde-border);
+  padding: 5px 18px;
   border-radius: 20px;
   display: inline-block;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
-
+ 
 .buscando-desc {
   font-size: 14px;
   color: var(--gray);
   line-height: 1.65;
-  margin-bottom: 36px;
+  margin-bottom: 40px;
   max-width: 380px;
 }
-
-/* Barra de progreso */
+ 
 .progreso-wrap {
   width: 100%;
   height: 3px;
   background: var(--border);
   border-radius: 2px;
   overflow: hidden;
-  margin-bottom: 36px;
+  margin-bottom: 40px;
 }
-
+ 
 .progreso-barra {
   height: 100%;
-  background: var(--p-verde-mid);
+  background: linear-gradient(90deg, var(--p-verde-mid), var(--p-verde-lite));
   border-radius: 2px;
   animation: progreso-anim 2.8s ease-in-out infinite alternate;
 }
-
 @keyframes progreso-anim {
-  from { width: 12%; }
-  to   { width: 88%; }
+  from { width: 10%; }
+  to   { width: 90%; }
 }
-
-/* Tarjeta resumen */
+ 
 .tarjeta-viaje {
   background: var(--white);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px 24px;
+  border-radius: 14px;
+  padding: 22px 26px;
   width: 100%;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
   text-align: left;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
-
+ 
 .nota-cancelar {
   font-size: 12.5px;
   color: var(--gray);
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   line-height: 1.5;
 }

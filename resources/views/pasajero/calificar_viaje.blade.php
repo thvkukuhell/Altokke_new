@@ -6,8 +6,8 @@
  
         <div class="calificar-header">
             <div class="check-icono">
-                <svg width="30" height="30" viewBox="0 0 20 20" fill="none"
-                     stroke="#16A34A" stroke-width="2.5">
+                <svg width="32" height="32" viewBox="0 0 20 20" fill="none"
+                     stroke="#16a34a" stroke-width="2.5">
                     <path d="M4 10l4 4 8-8"/>
                 </svg>
             </div>
@@ -17,19 +17,19 @@
             </p>
         </div>
  
+        {{-- Resumen --}}
         <div class="resumen-viaje">
             <div class="resumen-ruta">
                 <strong>{{ $viaje['origen'] ?? '—' }}</strong>
                 <span>→ {{ $viaje['destino'] ?? '—' }}</span>
-                <span style="display:block; font-size:11px; margin-top:2px;">Viaje completado</span>
+                <span style="display:block; font-size:11px; margin-top:3px; color:var(--gray-lite);">Viaje completado</span>
             </div>
             <div class="resumen-precio">S/ {{ $viaje['tarifa'] ?? '0.00' }}</div>
         </div>
  
+        {{-- Conductor --}}
         <div class="conductor-card">
-            <div class="avatar" style="background:var(--p-verde); color:#0A0A0A;">
-                {{ $iniciales ?? '—' }}
-            </div>
+            <div class="avatar">{{ $iniciales ?? '—' }}</div>
             <div>
                 <div class="conductor-nombre">{{ $conductor['nombre'] ?? '—' }}</div>
                 <div class="conductor-dato">
@@ -44,6 +44,7 @@
             <input type="hidden" name="viaje_id"     value="{{ $viaje['id'] ?? 0 }}">
             <input type="hidden" name="conductor_id" value="{{ $conductor['id'] ?? 0 }}">
  
+            {{-- Estrellas --}}
             <div class="estrellas-grupo">
                 <p class="estrellas-titulo">¿Cómo fue tu viaje?</p>
                 <div class="estrellas-input">
@@ -55,6 +56,7 @@
                 </div>
             </div>
  
+            {{-- Comentario --}}
             <div class="campo-grupo">
                 <label class="campo-label" for="comentario">Comentario (opcional)</label>
                 <textarea name="comentario"
@@ -71,12 +73,12 @@
  
             <a href="{{ route('pasajero.historial') }}"
                class="btn btn-outline btn-ancho"
-               style="margin-top:8px; display:flex;">
+               style="margin-top:10px; display:flex;">
                 Saltar calificación
             </a>
  
         </form>
     </div>
 </div>
-
+ 
 @endsection

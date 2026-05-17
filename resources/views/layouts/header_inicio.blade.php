@@ -1,23 +1,26 @@
 <header>
     <div class="barra-navegacion">
 
-        <div class="logo">
+        {{-- Te redirige a la raíz y luego sube al inicio --}}
+        <a href="{{ url('/#inicio') }}" class="logo">
             <img src="{{ asset('img/logoTemporal.png') }}" alt="Logo">
-        </div>
+            <span class="logo-texto">Altokke</span>
+        </a>
 
         <nav class="enlaces-nav">
 
-            <a href="{{ url('/inicio') }}">Inicio</a>
+            {{-- Fuerza a ir a la página principal antes de buscar el anclaje --}}
+            <a href="{{ url('/#inicio') }}">Inicio</a>
 
-            <a href="{{ url('/inicio/como_funciona') }}">
+            <a href="{{ url('/#como-funciona') }}">
                 ¿Cómo funciona?
             </a>
 
-            <a href="{{ url('/inicio/sobre_nosotros') }}">
+            <a href="{{ url('/#sobre-nosotros') }}">
                 Sobre nosotros
             </a>
 
-            <a href="{{ url('/auth/login') }}" class="btn-iniciar-sesion">
+            <a href="{{ route('login') }}" class="btn-iniciar-sesion">
                 Iniciar sesión
             </a>
 

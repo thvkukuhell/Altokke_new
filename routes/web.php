@@ -9,8 +9,6 @@ use App\Http\Controllers\ConductorController;
 // ── Inicio (público) ────────────────────────────────────
 Route::get('/',                         [InicioController::class, 'index'])->name('inicio');
 Route::get('/inicio',                   [InicioController::class, 'index']);
-Route::get('/inicio/como_funciona',     [InicioController::class, 'como_funciona'])->name('como_funciona');
-Route::get('/inicio/sobre_nosotros',    [InicioController::class, 'sobre_nosotros'])->name('sobre_nosotros');
 
 // ── Auth (público) ──────────────────────────────────────
 Route::get( '/auth/login',              [AuthController::class, 'login'])->name('login');

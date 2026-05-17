@@ -1,109 +1,100 @@
-/* Barra de filtros */
+.historial-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+ 
 .filtros {
   display: flex;
-  gap: 6px;
+  gap: 7px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
-
+ 
 .filtro-btn {
   padding: 7px 18px;
   border-radius: 22px;
   border: 1.5px solid var(--border-mid);
   background: var(--white);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--gray);
   text-decoration: none;
   transition: all 0.15s;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
-
-.filtro-btn:hover {
-  border-color: var(--p-verde-mid);
-  color: var(--p-verde-mid);
-  background: var(--p-verde-bg);
-}
-
-.filtro-btn.activo {
-  background: var(--p-verde-mid);
-  color: #fff;
-  border-color: var(--p-verde-mid);
-}
-
-/* Lista de viajes */
+.filtro-btn:hover { border-color: var(--p-verde-mid); color: var(--p-verde-mid); background: var(--p-verde-bg); }
+.filtro-btn.activo { background: var(--p-verde-mid); color: #fff; border-color: var(--p-verde-mid); }
+ 
 .viaje-item {
   display: flex;
   align-items: stretch;
   background: var(--white);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 14px;
   margin-bottom: 10px;
   overflow: hidden;
   text-decoration: none;
   color: inherit;
-  transition: box-shadow 0.15s, transform 0.12s, border-color 0.15s;
-  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s, transform 0.12s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
-
 .viaje-item:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.09);
   transform: translateY(-1px);
-  border-color: #D1D5DB;
 }
-
-/* Franja de colo */
-.viaje-borde { width: 4px; flex-shrink: 0; }
+ 
+.viaje-borde  { width: 4px; flex-shrink: 0; }
 .borde-verde  { background: var(--p-verde-mid); }
 .borde-rojo   { background: var(--p-rojo); }
 .borde-dorado { background: var(--p-dorado); }
-
+.borde-gris   { background: #9ca3af; }
+ 
 .viaje-cuerpo {
   flex: 1;
-  padding: 16px 20px;
+  padding: 17px 22px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
 }
-
+ 
 .viaje-ruta {
   font-size: 14.5px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
   margin-bottom: 5px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   flex-wrap: wrap;
+  letter-spacing: -0.2px;
 }
-
+ 
 .viaje-meta {
   font-size: 12px;
   color: var(--gray);
-  margin-bottom: 7px;
-  display: flex;
-  gap: 4px;
+  margin-bottom: 8px;
 }
-
-.viaje-derecha { text-align: right; flex-shrink: 0; }
-.viaje-precio    { font-size: 19px; font-weight: 800; color: var(--text); letter-spacing: -0.4px; }
+ 
+.viaje-derecha   { text-align: right; flex-shrink: 0; }
+.viaje-precio    { font-size: 20px; font-weight: 900; color: var(--text); letter-spacing: -0.6px; }
 .viaje-conductor { font-size: 12px; color: var(--gray); margin-top: 4px; }
 .viaje-estrellas { font-size: 13px; color: var(--p-dorado); margin-top: 3px; }
-
-/* Estado vacío */
+ 
 .estado-vacio {
   text-align: center;
-  padding: 64px 24px;
+  padding: 72px 24px;
 }
-
+.estado-vacio-icono {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.4;
+}
 .estado-vacio p {
   font-size: 15px;
   color: var(--gray);
-  margin-bottom: 20px;
-}
-
-@media (max-width: 640px) {
-  .viaje-cuerpo { flex-direction: column; align-items: flex-start; }
-  .viaje-derecha { text-align: left; }
+  margin-bottom: 22px;
+  line-height: 1.6;
 }
