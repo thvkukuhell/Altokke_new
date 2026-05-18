@@ -25,13 +25,13 @@
             </p>
 
             <div class="hero-botones">
-                <a href="{{ route('login') }}" class="btn-hero-primario">Pedir mototaxi ahora</a>
+                <a href="{{ route('registro_pasajero') }}" class="btn-hero-primario">Pedir mototaxi ahora</a>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                     stroke-linecap="round">
                     <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
                 </a>
-                <a href="{{ route('eleccion_registro') }}" class="btn-hero-secundario">Ser conductor</a>
+                <a href="{{ route('registro_conductor') }}" class="btn-hero-secundario">Ser conductor</a>
             </div>
 
             <div class="hero-prueba">
