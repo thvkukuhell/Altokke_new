@@ -9,22 +9,20 @@
  
         {{-- Mapa decorativo --}}
         <div class="mapa-viaje">
-            <div class="eta-caja">
+            {{-- Contenedor donde Leaflet va a renderizar el mapa --}}
+            <div id="mapa-leaflet-conductor" style="width:100%; height:100%; min-height: 350px; border-radius:16px;"></div>
+            
+            {{-- Caja flotante del ETA --}}
+            <div class="eta-caja" style="position: absolute; top: 15px; left: 15px; z-index: 1000;">
                 <div class="eta-numero">4</div>
                 <div class="eta-unidad">min restantes</div>
             </div>
-            <div class="moto-punto">🏍️</div>
-            <div class="mapa-pin-origen">
-                <div class="dot-origen"></div>
-                <div class="pin-tag">Origen</div>
-            </div>
-            <div class="mapa-pin-destino">
-                <div class="dot-destino"></div>
-                <div class="pin-tag">Destino</div>
-            </div>
-            <div class="mapa-etiqueta">📍 Bagua — En vivo</div>
         </div>
- 
+    
+        {{-- Cargamos las librerías de Leaflet (CSS y JS) --}}
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
         {{-- Panel derecho --}}
         <div class="panel-viaje">
  
@@ -111,5 +109,64 @@
         </div>
     </div>
 </div>
+
+<script>
+    @if($viaje)
+        // 1. Coordenadas iniciales por defecto (Bagua)
+        const LAT_INICIAL = -5.6763;
+        const LNG_INICIAL = -78.5311;
+
+        // 2. Inicializar el mapa en el contenedor del conductor
+        const mapaConductor = L.map('mapa-leaflet-conductor').setView([LAT_INICIAL, LNG_INICIAL], 16);
+
+        // 3. Cargar la capa de diseño de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(mapaConductor);
+
+        // 4. Crear el marcador de la moto que se va a mover
+        let marcadorMoto = L.marker([LAT_INICIAL, LNG_INICIAL], {
+            icon: L.divIcon({
+                html: '<div style="font-size:28px; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3));">🏍️</div>',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            })
+        }).addTo(mapaConductor).bindPopup('Tu ubicación actual');
+
+        // Variables para controlar el envío de GPS al servidor sin saturarlo
+        let ultimaLat = null;
+        let ultimaLng = null;
+
+        // 5. Rastrear el GPS en tiempo real
+        navigator.geolocation.watchPosition((pos) => {
+            ultimaLat = pos.coords.latitude;
+            ultimaLng = pos.coords.longitude;
+
+            // Mover el marcador de la moto en el mapa del conductor INMEDIATAMENTE
+            const nuevaPos = [ultimaLat, ultimaLng];
+            marcadorMoto.setLatLng(nuevaPos);
+            mapaConductor.panTo(nuevaPos);
+
+        }, null, { maximumAge: 0, timeout: 5000, enableHighAccuracy: true });
+
+        // 6. Enviar la ubicación al backend de forma controlada cada 5 segundos
+        setInterval(() => {
+            if (ultimaLat && ultimaLng) {
+                fetch('/conductor/ubicacion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        viaje_id: {{ $viaje->id_viaje }},
+                        lat: ultimaLat,
+                        lng: ultimaLng
+                    })
+                }).catch(err => console.error("Error enviando coordenadas:", err));
+            }
+        }, 5000); 
+    @endif
+</script>
 
 @endsection

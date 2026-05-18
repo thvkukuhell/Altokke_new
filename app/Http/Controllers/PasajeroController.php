@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 // Recibe peticiones HTTP, valida datos, llama al DAO y carga la vista correspondiente
-
 class PasajeroController extends Controller {
 
     public function index()
@@ -54,6 +53,9 @@ class PasajeroController extends Controller {
             'metodo_pago'     => $request->metodo_pago,
             'estado_viaje'    => 'buscando',
         ]);
+
+        // Dispara el evento - Reverb lo transmite a los conductores
+        event(new \App\Events\ViajeCreado($viaje));
 
         return redirect()->route('pasajero.buscando', $viaje->id_viaje);
     }

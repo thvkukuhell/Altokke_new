@@ -1,42 +1,33 @@
+/* CONTENEDOR PRINCIPAL */
 .solicitar-grid {
   display: grid;
-  grid-template-columns: 1fr 360px;
+  grid-template-columns: 1fr 360px; 
   gap: 24px;
-  align-items: start;
+  align-items: stretch; 
 }
  
 /* Mapa decorativo */
 .mapa-decorativo {
-  background: linear-gradient(145deg, #c8e0c6 0%, #d8ead6 50%, #c0d8be 100%);
+  position: relative;
+  height: calc(100vh - 200px);
+  min-height: 480px;
+  width: 100%; /* <-- Ocupa todo el ancho de su columna */
   border: 1px solid var(--p-verde-border);
   border-radius: 16px;
-  height: calc(100vh - 200px);
-  min-height: 460px;
-  position: relative;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  background: #f5f5f5; /* Color gris de fondo mientras carga Leaflet */
 }
- 
-.mapa-decorativo::before {
-  content: "";
+
+#mapa-solicitud-pasajero {
+  width: 100%;
+  height: 100%;
   position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(0deg,   rgba(30,70,30,0.06) 0, rgba(30,70,30,0.06) 1px, transparent 1px, transparent 56px),
-    repeating-linear-gradient(90deg,  rgba(30,70,30,0.06) 0, rgba(30,70,30,0.06) 1px, transparent 1px, transparent 56px);
+  top: 0;
+  left: 0;
+  z-index: 1;
 }
- 
-/* Calles decorativas */
-.mapa-calle {
-  position: absolute;
-  background: rgba(255,255,255,0.55);
-  border-radius: 3px;
-}
-.mapa-calle-h1 { top: 42%; left: -5%; width: 110%; height: 12px; transform: rotate(-8deg); }
-.mapa-calle-h2 { top: 62%; left: -5%; width: 110%; height: 7px;  transform: rotate(-8deg); box-shadow: 0 -40px 0 5px rgba(255,255,255,0.3); }
-.mapa-calle-v1 { top: -5%; left: 35%; width: 8px; height: 110%; transform: rotate(5deg); }
-.mapa-calle-v2 { top: -5%; left: 65%; width: 5px; height: 110%; transform: rotate(5deg); opacity: 0.7; }
- 
+
 .mapa-etiqueta {
   position: absolute;
   bottom: 16px;
@@ -49,70 +40,9 @@
   border-radius: 8px;
   border: 1px solid var(--border);
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  z-index: 1000; /* Obliga a la etiqueta a estar por encima del mapa real */
 }
- 
-/* Pins */
-.mapa-pin {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  animation: pin-entrada 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
-}
- 
-@keyframes pin-entrada {
-  from { transform: translateY(-20px) scale(0.6); opacity: 0; }
-  to   { transform: translateY(0) scale(1); opacity: 1; }
-}
- 
-.mapa-pin .circulo {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 3px solid #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-}
- 
-.mapa-pin-etiqueta {
-  background: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text);
-  padding: 4px 10px;
-  border-radius: 7px;
-  margin-top: 6px;
-  border: 1px solid var(--border);
-  white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
- 
-.pin-origen  { bottom: 30%; left: 22%; animation-delay: 0.1s; }
-.pin-destino { top: 16%; right: 22%; animation-delay: 0.2s; }
- 
-/* Ruta animada decorativa */
-.mapa-ruta-svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
- 
-.mapa-ruta-path {
-  fill: none;
-  stroke: var(--p-verde-mid);
-  stroke-width: 3;
-  stroke-dasharray: 8 5;
-  stroke-linecap: round;
-  opacity: 0.6;
-  animation: ruta-march 1.8s linear infinite;
-}
- 
-@keyframes ruta-march {
-  from { stroke-dashoffset: 0; }
-  to   { stroke-dashoffset: -52; }
-}
- 
+
 /* Panel formulario */
 .panel-solicitud {
   background: var(--white);
@@ -123,7 +53,7 @@
   position: sticky;
   top: 76px;
 }
- 
+
 .panel-solicitud-titulo {
   font-size: 18px;
   font-weight: 800;
@@ -131,14 +61,15 @@
   margin-bottom: 6px;
   letter-spacing: -0.4px;
 }
+
 .panel-solicitud-sub {
   font-size: 13px;
   color: var(--gray);
   margin-bottom: 24px;
   line-height: 1.5;
 }
- 
-/* Selector de ruta — estilo Uber */
+
+/* Selector de Ruta (Origen y Destino) */
 .ruta-selector {
   background: #fafafa;
   border: 1.5px solid var(--border-mid);
@@ -146,7 +77,7 @@
   overflow: hidden;
   margin-bottom: 20px;
 }
- 
+
 .ruta-fila {
   display: flex;
   align-items: center;
@@ -154,18 +85,32 @@
   padding: 14px 16px;
   transition: background 0.12s;
 }
-.ruta-fila:hover { background: #f5f5f5; }
-.ruta-fila:first-child { border-bottom: 1px solid var(--border); }
- 
+
+.ruta-fila:hover { 
+  background: #f5f5f5; 
+}
+
+.ruta-fila:first-child { 
+  border-bottom: 1px solid var(--border); 
+}
+
 .punto {
   width: 11px;
   height: 11px;
   border-radius: 50%;
   flex-shrink: 0;
 }
-.punto-verde { background: var(--p-verde-mid); box-shadow: 0 0 0 3px rgba(45,106,45,0.15); }
-.punto-rojo  { background: var(--p-rojo);      box-shadow: 0 0 0 3px rgba(192,57,43,0.15); }
- 
+
+.punto-verde { 
+  background: var(--p-verde-mid); 
+  box-shadow: 0 0 0 3px rgba(45,106,45,0.15); 
+}
+
+.punto-rojo { 
+  background: var(--p-rojo);      
+  box-shadow: 0 0 0 3px rgba(192,57,43,0.15); 
+}
+
 .ruta-fila input {
   border: none;
   outline: none;
@@ -176,15 +121,18 @@
   background: transparent;
   font-family: inherit;
 }
-.ruta-fila input::placeholder { color: var(--gray-lite); }
- 
-/* Opciones de servicio — chips */
+
+.ruta-fila input::placeholder { 
+  color: var(--gray-lite); 
+}
+
+/* Opciones de Servicio (Chips) */
 .servicio-chips {
   display: flex;
   gap: 8px;
   margin-bottom: 20px;
 }
- 
+
 .servicio-chip {
   flex: 1;
   display: flex;
@@ -199,29 +147,42 @@
   transition: all 0.15s;
   text-align: center;
 }
+
 .servicio-chip:hover {
   border-color: var(--p-verde-mid);
   background: var(--p-verde-bg);
 }
+
 .servicio-chip.seleccionado {
   border-color: var(--p-verde-mid);
   background: var(--p-verde-bg);
   box-shadow: 0 0 0 3px rgba(45,106,45,0.1);
 }
-.servicio-chip input { display: none; }
-.servicio-chip-icono { font-size: 22px; }
+
+.servicio-chip input { 
+  display: none; 
+}
+
+.servicio-chip-icono { 
+  font-size: 22px; 
+}
+
 .servicio-chip-nombre {
   font-size: 12px;
   font-weight: 700;
   color: var(--text-2);
 }
+
 .servicio-chip-precio {
   font-size: 11px;
   color: var(--gray);
 }
-.servicio-chip.seleccionado .servicio-chip-nombre { color: var(--p-verde-mid); }
- 
-/* Tarifa estimada */
+
+.servicio-chip.seleccionado .servicio-chip-nombre { 
+  color: var(--p-verde-mid); 
+}
+
+/* Caja de Tarifa Estimada */
 .tarifa-caja {
   background: linear-gradient(135deg, var(--p-verde-mid), var(--p-verde));
   color: #fff;
@@ -232,22 +193,38 @@
   justify-content: space-between;
   margin: 4px 0 20px;
 }
+
 .tarifa-numero {
   font-size: 32px;
   font-weight: 900;
   line-height: 1;
   letter-spacing: -1.5px;
 }
-.tarifa-right { text-align: right; }
-.tarifa-label { font-size: 11px; opacity: 0.75; font-weight: 500; margin-bottom: 2px; }
-.tarifa-detalle { font-size: 12px; opacity: 0.85; font-weight: 600; }
- 
-/* Pago selector en solicitar */
+
+.tarifa-right { 
+  text-align: right; 
+}
+
+.tarifa-label { 
+  font-size: 11px; 
+  opacity: 0.75; 
+  font-weight: 500; 
+  margin-bottom: 2px; 
+}
+
+.tarifa-detalle { 
+  font-size: 12px; 
+  opacity: 0.85; 
+  font-weight: 600; 
+}
+
+/* Opciones de Método de Pago */
 .pago-opciones {
   display: flex;
   gap: 8px;
   margin-bottom: 20px;
 }
+
 .pago-opcion {
   flex: 1;
   display: flex;
@@ -265,6 +242,14 @@
   text-align: center;
   user-select: none;
 }
-.pago-opcion:hover { border-color: var(--p-verde-mid); color: var(--p-verde-mid); background: var(--p-verde-bg); }
-.pago-opcion.activo { border-color: var(--p-verde-mid); color: var(--p-verde-mid); background: var(--p-verde-bg); }
-.pago-opcion input { display: none; }
+
+.pago-opcion:hover,
+.pago-opcion.activo { 
+  border-color: var(--p-verde-mid); 
+  color: var(--p-verde-mid); 
+  background: var(--p-verde-bg); 
+}
+
+.pago-opcion input { 
+  display: none; 
+}

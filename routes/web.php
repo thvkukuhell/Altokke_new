@@ -35,6 +35,16 @@ Route::prefix('pasajero')->name('pasajero.')->middleware(['auth', 'es_pasajero']
     Route::get('/editarPerfil',              [PasajeroController::class, 'editarPerfil'])->name('editarPerfil');
     Route::post('/guardarPerfil',            [PasajeroController::class, 'guardarPerfil'])->name('guardarPerfil');
 });
+// Rutas de fallback para acceso directo sin ID
+Route::get('/pasajero/buscando', function() {
+    return redirect()->route('pasajero.solicitarViaje');
+});
+Route::get('/pasajero/enCurso', function() {
+    return redirect()->route('pasajero.solicitarViaje');
+});
+Route::get('/pasajero/calificar', function() {
+    return redirect()->route('pasajero.solicitarViaje');
+});
 
 // ── Conductor (protegidas) ──────────────────────────────
 Route::prefix('conductor')->name('conductor.')->middleware(['auth', 'es_conductor'])->group(function () {
@@ -49,3 +59,6 @@ Route::prefix('conductor')->name('conductor.')->middleware(['auth', 'es_conducto
     Route::get('/historial',       [ConductorController::class, 'historial'])->name('historial');
     Route::get('/billetera',       [ConductorController::class, 'billetera'])->name('billetera');
 });
+// web.php
+Route::post('/conductor/ubicacion', [ConductorController::class, 'actualizarUbicacion'])
+     ->middleware(['auth', 'es_conductor']);

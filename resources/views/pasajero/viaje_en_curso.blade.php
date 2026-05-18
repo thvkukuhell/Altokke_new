@@ -9,10 +9,33 @@
  
         {{-- ── Mapa ── --}}
         <div class="mapa-viaje">
-            <div class="eta-caja">
-                <div class="eta-numero">{{ $eta ?? '—' }}</div>
-                <div class="eta-unidad">min restantes</div>
-            </div>
+            <div id="mapa-leaflet" style="width:100%; height:100%; border-radius:16px;"></div>
+
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+            <script>
+                const mapa = L.map('mapa-leaflet').setView([-5.6763, -78.5311], 15);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
+
+                // Marcador del conductor — empieza en Bagua
+                let marcadorConductor = L.marker([-5.6763, -78.5311], {
+                    icon: L.divIcon({
+                        html: '<div style="font-size:28px;">🏍️</div>',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    })
+                }).addTo(mapa).bindPopup('Tu conductor en camino');
+
+                // Escuchar movimiento del conductor en tiempo real
+                window.Echo.channel(`viaje.{{ $viaje['id'] }}`)
+                    .listen('ConductorMovido', (data) => {
+                        const nuevaPos = [data.lat, data.lng];
+                        marcadorConductor.setLatLng(nuevaPos);
+                        mapa.panTo(nuevaPos);
+                    });
+            </script>
         </div>
  
         {{-- ── Panel lateral ── --}}

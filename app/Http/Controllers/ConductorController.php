@@ -155,6 +155,9 @@ class ConductorController extends Controller
             'fecha_inicio' => now(),
         ]);
 
+        // Avisa al pasajero que su viaje fue aceptado
+        event(new \App\Events\ViajeAceptado($viaje->load('conductor.user', 'conductor.vehiculo')));
+
         return redirect()
             ->route('conductor.viajeActivo')
             ->with('mensaje', '¡Viaje aceptado correctamente!');
@@ -313,5 +316,23 @@ class ConductorController extends Controller
             'seccionActiva'=> $seccionActiva,
             'ultimosViajes' => $ultimosViajes,
         ]);
+    }
+
+    public function actualizarUbicacion(Request $request) 
+    {
+        $request->validate([
+            'viaje_id' => 'required|integer',
+            'lat' => 'required|numeric',
+            'lng' => 'required|numeric',
+        ]);
+
+        // Dispara evento - Reverb lo manda al mapa del pasajero
+        event(new \App\Events\ConductorMovido(
+            $request->viaje_id,
+            $request->lat,
+            $request->lng
+        ));
+
+        return response()->json(['ok' => true]);
     }
 }

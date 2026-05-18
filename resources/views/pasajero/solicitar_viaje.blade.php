@@ -15,28 +15,20 @@
  
     <div class="solicitar-grid">
  
-        {{-- Mapa decorativo --}}
+        {{-- Mapa con Leaflet --}}
         <div class="mapa-decorativo">
-            <div class="mapa-calle mapa-calle-h1"></div>
-            <div class="mapa-calle mapa-calle-h2"></div>
-            <div class="mapa-calle mapa-calle-v1"></div>
-            <div class="mapa-calle mapa-calle-v2"></div>
- 
-            <svg class="mapa-ruta-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <path class="mapa-ruta-path" d="M22 70 Q22 45 50 45 Q78 45 78 18" />
-            </svg>
- 
-            <div class="mapa-pin pin-origen">
-                <div class="circulo" style="background:var(--p-verde-mid);"></div>
-                <div class="mapa-pin-etiqueta">Tu ubicación</div>
+            {{-- Contenedor donde se dibuja el mapa real --}}
+            <div id="mapa-solicitud-pasajero"></div>
+            
+            {{-- Etiqueta flotante superior --}}
+            <div class="mapa-etiqueta">
+                📍 Bagua, Amazonas — Tu Ubicación
             </div>
-            <div class="mapa-pin pin-destino">
-                <div class="circulo" style="background:var(--p-rojo);"></div>
-                <div class="mapa-pin-etiqueta">Destino</div>
-            </div>
- 
-            <div class="mapa-etiqueta"> Bagua, Amazonas</div>
         </div>
+
+        {{-- Librerías de Leaflet necesarias --}}
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
  
         {{-- Panel formulario --}}
         <div class="panel-solicitud">
@@ -127,15 +119,54 @@
 </div>
  
 <script>
-    // Chips de servicio
+    // ── CONFIGURACIÓN DEL MAPA REAL ──
+    const LAT_BAGUA = -5.6763;
+    const LNG_BAGUA = -78.5311;
+
+    // Inicializar mapa centrado en Bagua
+    const mapaSolicitud = L.map('mapa-solicitud-pasajero').setView([LAT_BAGUA, LNG_BAGUA], 15);
+
+    // Cargar las calles de OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(mapaSolicitud);
+
+    setTimeout(() => {
+        mapaSolicitud.invalidateSize();
+    }, 100);
+
+    // Crear marcador para la ubicación del pasajero (Verde)
+    const marcadorPasajero = L.marker([LAT_BAGUA, LNG_BAGUA], {
+        icon: L.divIcon({
+            html: '<div style="font-size:30px; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3));">📍</div>',
+            iconSize: [30, 30],
+            iconAnchor: [15, 30]
+        })
+    }).addTo(mapaSolicitud).bindPopup('¿Estás aquí?');
+
+    // Intentar obtener la ubicación real del GPS del Pasajero al cargar
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+            const miLat = pos.coords.latitude;
+            const miLng = pos.coords.longitude;
+            
+            // Mover el mapa y el marcador a su posición GPS real
+            mapaSolicitud.setView([miLat, miLng], 16);
+            marcadorPasajero.setLatLng([miLat, miLng]);
+        }, () => {
+            console.log("El pasajero denegó el GPS o hubo un error, usando Bagua por defecto.");
+        });
+    }
+
+    // ── CHIPS DE SERVICIO (Tu código existente) ──
     document.querySelectorAll('.servicio-chip input').forEach(radio => {
         radio.addEventListener('change', () => {
             document.querySelectorAll('.servicio-chip').forEach(c => c.classList.remove('seleccionado'));
             radio.closest('.servicio-chip').classList.add('seleccionado');
         });
     });
- 
-    // Opciones de pago
+
+    // ── OPCIONES DE PAGO (Tu código existente) ──
     document.querySelectorAll('.pago-opcion input').forEach(radio => {
         radio.addEventListener('change', () => {
             document.querySelectorAll('.pago-opcion').forEach(o => o.classList.remove('activo'));

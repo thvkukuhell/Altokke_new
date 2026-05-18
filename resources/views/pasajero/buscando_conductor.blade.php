@@ -58,5 +58,39 @@
  
     </div>
 </div>
+
+{{-- Leaflet CSS y JS --}} 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // Coordenadas de Bagua como punto inicial
+    const LAT_BAGUA = -5.6763;
+    const LNG_BAGUA = -78.5311;
+
+    // Inicializar mapa
+    const mapa = L.map('mapa-leaflet').setView([LAT_BAGUA, LNG_BAGUA], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(mapa);
+
+    // Marcador del pasajero
+    const marcadorPasajero = L.marker([LAT_BAGUA, LNG_BAGUA], {
+        icon: L.divIcon({
+            html: '<div class="marcador-pasajero">📍</div>',
+            iconSize: [30, 30],
+            iconAnchor: [15, 30]
+        })
+    }).addTo(mapa);
+
+    // Escuchar cuando el conductor acepta el viaje
+    window.Echo.private(`pasajero.{{ auth()->id() }}`)
+        .listen('ViajeAceptado', (data) => {
+            // Usar el ID real que viene del evento disparado por el conductor
+            const viajeId = data.viajeId || data.viaje.id || '{{ $viaje["id"] ?? "" }}';
+            window.location.href = `/pasajero/enCurso/${viajeId}`;
+        });
+</script>
  
 @endsection
