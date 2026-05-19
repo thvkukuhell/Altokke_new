@@ -1,0 +1,82 @@
+/* Estilos para la página del pasajero */
+.pagina-pasajero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+
+/* Estilos para el grid de solicitud */
+.solicitar-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+}
+
+/* Estilos del mapa - solicitar_viaje.css */
+.mapa-decorativo {
+    position: relative;
+    width: 100%;
+    height: 450px;
+    min-height: 450px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+#mapa-solicitud-pasajero {
+    width: 100%;
+    height: 100%;
+    min-height: 450px;
+    background: #e2e8f0;
+}
+
+.leaflet-container {
+    width: 100%;
+    height: 100%;
+    background: #e2e8f0;
+}
+
+.mapa-etiqueta {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 24px;
+    font-size: 13px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: system-ui;
+    pointer-events: none;
+}
+
+.solicitar-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+    align-items: start;
+    padding: 20px;
+}
+
+@media (max-width: 768px) {
+    .solicitar-grid {
+        grid-template-columns: 1fr;
+        padding: 12px;
+    }
+    .mapa-decorativo {
+        height: 350px;
+        min-height: 350px;
+    }
+    #mapa-solicitud-pasajero {
+        min-height: 350px;
+    }
+}

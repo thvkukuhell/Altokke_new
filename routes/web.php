@@ -62,3 +62,8 @@ Route::prefix('conductor')->name('conductor.')->middleware(['auth', 'es_conducto
 // web.php
 Route::post('/conductor/ubicacion', [ConductorController::class, 'actualizarUbicacion'])
      ->middleware(['auth', 'es_conductor']);
+
+Route::middleware(['auth', 'es_pasajero'])->group(function () {
+Route::post('/pasajero/actualizar-ubicacion', [PasajeroController::class, 'actualizarUbicacion'])
+        ->name('pasajero.actualizarUbicacion');
+});
