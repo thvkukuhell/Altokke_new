@@ -73,7 +73,7 @@ class PasajeroController extends Controller {
             'id' => 0, 'origen' => '—', 'destino' => '—', 'tarifa' => '0.00'
         ];
 
-        return view('pasajero.buscando', [
+        return view('pasajero.buscando_conductor', [
             'header'  => 'header_pasajero',
             'footer'  => 'footer',
             'css'     => ['pasajero/pasajero.css', 'pasajero/buscando.css'],
@@ -291,7 +291,7 @@ class PasajeroController extends Controller {
         ]);
 
         $user = Auth::user();
-        $user->update([
+        $user->pasajero->update([
             'nombre_completo' => $request->nombre_completo,
             'apellidos' => $request->apellidos,
             'telefono' => $request->telefono,
