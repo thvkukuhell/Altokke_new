@@ -109,77 +109,56 @@
 </div>
 
 <script>
+const VIAJE_ID = @json($viaje->id_viaje ?? null);
+
 document.addEventListener('DOMContentLoaded', () => {
 
-    @if($viaje)
+    if (VIAJE_ID) {
 
-    // Coordenadas iniciales
-    const LAT_INICIAL = -5.6763;
-    const LNG_INICIAL = -78.5311;
+        const LAT_INICIAL = -5.6763;
+        const LNG_INICIAL = -78.5311;
 
-    const mapaConductor = L.map('mapa-leaflet-conductor')
-        .setView([LAT_INICIAL, LNG_INICIAL], 16);
+        const mapaConductor = L.map('mapa-leaflet-conductor')
+            .setView([LAT_INICIAL, LNG_INICIAL], 16);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-    }).addTo(mapaConductor);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(mapaConductor);
 
-    let marcadorMoto = L.marker([LAT_INICIAL, LNG_INICIAL], {
-        icon: L.divIcon({
-            html: '<div style="font-size:28px;">🏍️</div>',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-        })
-    }).addTo(mapaConductor);
+        let ultimaLat = null;
+        let ultimaLng = null;
 
-    let ultimaLat = null;
-    let ultimaLng = null;
+        navigator.geolocation.watchPosition((pos) => {
 
-    navigator.geolocation.watchPosition((pos) => {
+            ultimaLat = pos.coords.latitude;
+            ultimaLng = pos.coords.longitude;
 
-        ultimaLat = pos.coords.latitude;
-        ultimaLng = pos.coords.longitude;
+            mapaConductor.panTo([ultimaLat, ultimaLng]);
 
-        const nuevaPos = [ultimaLat, ultimaLng];
+        });
 
-        marcadorMoto.setLatLng(nuevaPos);
+        setInterval(() => {
 
-        mapaConductor.panTo(nuevaPos);
+            if (ultimaLat && ultimaLng) {
 
-    }, null, {
-        maximumAge: 0,
-        timeout: 5000,
-        enableHighAccuracy: true
-    });
-
-    setInterval(() => {
-
-        if (ultimaLat && ultimaLng) {
-
-            fetch('/conductor/ubicacion', {
-                method: 'POST',
-
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-
-                body: JSON.stringify({
-                    viaje_id: {
-                        {
-                            $viaje - > id_viaje
-                        }
+                fetch('/conductor/ubicacion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
-                    lat: ultimaLat,
-                    lng: ultimaLng
-                })
-            });
+                    body: JSON.stringify({
+                        viaje_id: VIAJE_ID,
+                        lat: ultimaLat,
+                        lng: ultimaLng
+                    })
+                });
 
-        }
+            }
 
-    }, 5000);
+        }, 5000);
 
-    @endif
+    }
 
 });
 </script>

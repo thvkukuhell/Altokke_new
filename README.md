@@ -62,6 +62,10 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 Altokke_new
 ├─ .editorconfig
 ├─ app
+│  ├─ Events
+│  │  ├─ ConductorMovido.php
+│  │  ├─ ViajeAceptado.php
+│  │  └─ ViajeCreado.php
 │  ├─ Http
 │  │  ├─ Controllers
 │  │  │  ├─ AuthController.php
@@ -70,8 +74,7 @@ Altokke_new
 │  │  │  ├─ InicioController.php
 │  │  │  └─ PasajeroController.php
 │  │  └─ Middleware
-│  │     ├─ EsConductor.php
-│  │     └─ EsPasajero.php
+│  │     └─ CheckRole.php
 │  ├─ Models
 │  │  ├─ Calificacion.php
 │  │  ├─ Conductor.php
@@ -93,16 +96,17 @@ Altokke_new
 ├─ config
 │  ├─ app.php
 │  ├─ auth.php
+│  ├─ broadcasting.php
 │  ├─ cache.php
 │  ├─ database.php
 │  ├─ filesystems.php
 │  ├─ logging.php
 │  ├─ mail.php
 │  ├─ queue.php
+│  ├─ reverb.php
 │  ├─ services.php
 │  └─ session.php
 ├─ database
-│  ├─ database.sqlite
 │  ├─ factories
 │  │  └─ UserFactory.php
 │  ├─ migrations
@@ -132,6 +136,14 @@ Altokke_new
 ├─ public
 │  ├─ .htaccess
 │  ├─ favicon.ico
+│  ├─ img
+│  │  ├─ email.png
+│  │  ├─ estrella.png
+│  │  ├─ icon_phone.jpg
+│  │  ├─ location.png
+│  │  ├─ login_client_icon.png
+│  │  ├─ logoTemporal.png
+│  │  └─ user.png
 │  ├─ index.php
 │  └─ robots.txt
 ├─ README.md
@@ -149,9 +161,7 @@ Altokke_new
 │  │  ├─ global
 │  │  │  └─ styles.css
 │  │  ├─ inicio
-│  │  │  ├─ como_funciona.css
-│  │  │  ├─ inicio.css
-│  │  │  └─ sobre_nosotros.css
+│  │  │  └─ inicio.css
 │  │  └─ pasajero
 │  │     ├─ buscando_conductor.css
 │  │     ├─ calificar_viaje.css
@@ -163,7 +173,8 @@ Altokke_new
 │  │     └─ viaje_en_curso.css
 │  ├─ js
 │  │  ├─ app.js
-│  │  └─ bootstrap.js
+│  │  ├─ bootstrap.js
+│  │  └─ echo.js
 │  └─ views
 │     ├─ auth
 │     │  ├─ eleccion_registro.blade.php
@@ -178,11 +189,9 @@ Altokke_new
 │     │  │  └─ sidebar.blade.php
 │     │  ├─ perfil.blade.php
 │     │  ├─ solicitudes.blade.php
-│     │  └─ viajde_activo.blade.php
+│     │  └─ viaje_activo.blade.php
 │     ├─ inicio
-│     │  ├─ como_funciona.blade.php
-│     │  ├─ inicio.blade.php
-│     │  └─ sobre_nosotros.blade.php
+│     │  └─ inicio.blade.php
 │     ├─ layouts
 │     │  ├─ footer.blade.php
 │     │  ├─ footer_inicio.blade.php
@@ -199,6 +208,7 @@ Altokke_new
 │        ├─ solicitar_viaje.blade.php
 │        └─ viaje_en_curso.blade.php
 ├─ routes
+│  ├─ channels.php
 │  ├─ console.php
 │  └─ web.php
 ├─ storage
@@ -211,12 +221,70 @@ Altokke_new
 │  │  ├─ sessions
 │  │  ├─ testing
 │  │  └─ views
-│  │     ├─ 46963587457c6df0d5982c0a4aab1847.php
-│  │     ├─ 619a479249cd798c8b227c4b7998ebc1.php
-│  │     ├─ 856c75b3a4de0e89401d953f178c5a2d.php
-│  │     ├─ 88e5c13feb2ca001d9ae99e6a57e3b50.php
-│  │     ├─ 9e7e43fece264eb3c20433af4fbee826.php
-│  │     └─ ce09fc6dc0c6bf4dbae3e2ae31bff2d1.php
+│  │     ├─ 01ac1180de98c29bc883e6d7251ffe22.php
+│  │     ├─ 086e8a3079dd1dd23ac4bf1cb73ed8a2.php
+│  │     ├─ 0b384e8b726d5eef90f7097771c9656f.php
+│  │     ├─ 0bf14c9480d1a5e36e64b1e05e17aa1e.php
+│  │     ├─ 10b863c0f93873d90e0cbf875b2e4838.php
+│  │     ├─ 16313211658304dae025509d32cbdd5f.php
+│  │     ├─ 181c4e199cb14e9015aacd6a0461b487.php
+│  │     ├─ 18c2b321fbab193b25a4b5343857c363.php
+│  │     ├─ 1a16b386671b506968ddfdc09b9f9cc3.php
+│  │     ├─ 1ca6dbf68b8a9088b7ae3b197fef593e.php
+│  │     ├─ 1d858acad0c9153e05960a78f92e751b.php
+│  │     ├─ 27e29cd86c798536c4fc90d7dc315e6c.php
+│  │     ├─ 288240d56d8d43201b0c11c3890ea1ba.php
+│  │     ├─ 2b075dba86bb7009f0e76f5635e7e4a9.php
+│  │     ├─ 2bf8f9c2bcf660effbca1189f92a99a5.php
+│  │     ├─ 3158ace2bf9ffc260cfcc15572b28288.php
+│  │     ├─ 31979f4e5810dbfc68150c5a17383a10.php
+│  │     ├─ 41bd7f38da7472d2226e139322a909fa.php
+│  │     ├─ 42cefa4d80b12dbbd2ebe80e79a3fc98.php
+│  │     ├─ 45159b5522524b21ca7846f89b4ad925.php
+│  │     ├─ 4a0fcf6c93a587712d16566d9e75cd83.php
+│  │     ├─ 52e232013ca327670c3b5d1d355eab85.php
+│  │     ├─ 548e879a2b108ca054dc353ec6871eb4.php
+│  │     ├─ 5a6b17977d2c201a25b8dced1760dc79.php
+│  │     ├─ 5be5f90fd6932bd1d81dd04794528b57.php
+│  │     ├─ 5cf19add79ccc138bbec362b6a62f061.php
+│  │     ├─ 662ede64f987b9dfccde5b1b957bd763.php
+│  │     ├─ 6a046b02fe000f68320249c09e8d093c.php
+│  │     ├─ 6b9c37a8b85e7f3ce3e0c210d395ac57.php
+│  │     ├─ 6d71ef274ebfa2661ad93229f6b24163.php
+│  │     ├─ 74d0fbed0987e02602b02b4d235dfe1f.php
+│  │     ├─ 8a0086261f9cbc971f82af8227474b33.php
+│  │     ├─ 8a67137dc392341be4a46bdd9dc3b72d.php
+│  │     ├─ 97f06445bbeaa0526d625cb3f413347b.php
+│  │     ├─ 989782c25d5cde0c2555c648cf6b1bdc.php
+│  │     ├─ 9a3a81532b5fb856bc416e68b6aa4017.php
+│  │     ├─ a06605fcd0333afff86047ed2aab0a71.php
+│  │     ├─ a5bfc576f99288ee4faa01ed7379562b.php
+│  │     ├─ ab366d49355ef6a907dbd9970bcdab7c.php
+│  │     ├─ ab45d995893e62e28d6a092720041f84.php
+│  │     ├─ ab8a8827ba9dcc3467ca1c9cbf7a5c47.php
+│  │     ├─ abff73dfac75cf913c565ee9a27d55ae.php
+│  │     ├─ b18a83b0b2404fdebc8d933681f80a0d.php
+│  │     ├─ b235c0463c06185bd4d026bf9423fd3b.php
+│  │     ├─ b31f94baa37d6919c8b12ff87fe2662e.php
+│  │     ├─ b9d7e27533b3857591c100e73e564e94.php
+│  │     ├─ bab7a086182fefcbeef7f80c38ec86f8.php
+│  │     ├─ cabf26ffa448282f268ebb6e5043c505.php
+│  │     ├─ cf794d118c2ee4fc5c47a8bff23b8ab0.php
+│  │     ├─ d2b03b886fd106920bc610e917238d02.php
+│  │     ├─ d3111a460dcbc3f644e20debefb34b78.php
+│  │     ├─ d3e5b13d83739779449776d03047396c.php
+│  │     ├─ d60d9d5051eb17fe4000fa6ff66c7ad1.php
+│  │     ├─ d61964f7d08515c87359a373d700a544.php
+│  │     ├─ d76ce8073a6e902d5193b84758fb97eb.php
+│  │     ├─ de529c7f710db088a68513aca65bd8ef.php
+│  │     ├─ deaecd7a52f005132229d366b4a77606.php
+│  │     ├─ df87936df939f6efded4931f803f49ac.php
+│  │     ├─ e467ce1d2feabb3b0ec3350257c74a9a.php
+│  │     ├─ e96071b786dc843037f78e4c811a45f1.php
+│  │     ├─ ea33f4df8e141252e5088ebd171e93db.php
+│  │     ├─ ee9f19c9b56f27ec36f4bc284e2c7dee.php
+│  │     ├─ f24ff79d4be93f0ca300a817d6867b19.php
+│  │     └─ f73b703e1354056a27ae63c778ba6e79.php
 │  └─ logs
 ├─ tests
 │  ├─ Feature
