@@ -22,10 +22,33 @@ class ConductorController extends Controller
     }
 
     private function getConductorActual(): Conductor
-{
-    return Conductor::with(['user', 'vehiculo'])
-        ->findOrFail(Auth::id());
-}
+    {
+        return Conductor::with(['user', 'vehiculo'])
+            ->findOrFail(Auth::id());
+    }
+
+    private function construirPasos(string $estadoActual): array
+    {
+        $orden = ['aceptado', 'recogiendo', 'en_curso', 'completado'];
+        $posicion = array_search($estadoActual, $orden, true);
+
+        $definiciones = [
+            'aceptado'   => ['titulo' => 'Viaje aceptado',      'sub' => 'Dirígete al punto de origen'],
+            'recogiendo' => ['titulo' => 'Recogiendo pasajero', 'sub' => 'El pasajero te está esperando'],
+            'en_curso'   => ['titulo' => 'En curso',            'sub' => 'Llevando al pasajero al destino'],
+            'completado' => ['titulo' => 'Completado',          'sub' => 'Has llegado al destino'],
+        ];
+
+        $pasos = [];
+        foreach ($orden as $i => $estado) {
+            $pasos[] = [
+                'titulo' => $definiciones[$estado]['titulo'],
+                'sub'    => $definiciones[$estado]['sub'],
+                'estado' => $i < $posicion ? 'hecho' : ($i === $posicion ? 'activo' : 'pendiente'),
+            ];
+        }
+        return $pasos;
+    }
 
     // ── Dashboard / Inicio ─────────────────────────────
 
@@ -41,9 +64,9 @@ class ConductorController extends Controller
         $ganancias = Viaje::where('id_conductor', Auth::id())
                           ->where('estado_viaje', 'completado')
                           ->selectRaw('
-                              SUM(tarifa_final)        as total,
+                              COALESCE(SUM(tarifa_final), 0) as total,
                               COUNT(*)                  as total_viajes,
-                              SUM(CASE WHEN DATE(fecha_fin) = CURDATE() THEN tarifa_final ELSE 0 END) as hoy
+                              COALESCE(SUM(CASE WHEN DATE(fecha_fin) = CURDATE() THEN tarifa_final ELSE 0 END), 0) as hoy
                           ')
                           ->first();
 
@@ -53,7 +76,7 @@ class ConductorController extends Controller
         return view('conductor.inicio', [
             'header'       => 'header_conductor',
             'footer'       => 'footer',
-            'css'          => ['conductor/perfil.css'],
+            'css'          => ['conductor/inicio.css'], // Se cambió el CSS para la vista de inicio del conductor
             'conductor'    => $conductor,
             'vehiculo'     => $vehiculo,
             'viajeActivo'  => $viajeActivo,
@@ -95,7 +118,7 @@ class ConductorController extends Controller
             'email.unique'             => 'El email ya está en uso.',
         ]);
 
-        Auth::user()->conductor->update([
+        Auth::user()->update([
             'nombre_completo' => $request->nombre_completo,
             'apellidos'       => $request->apellidos,
             'telefono'        => $request->telefono,
@@ -159,7 +182,7 @@ class ConductorController extends Controller
         event(new \App\Events\ViajeAceptado($viaje->load('conductor.user', 'conductor.vehiculo')));
 
         return redirect()
-            ->route('conductor.viajeActivo')
+            ->route('conductor.viaje_activo')
             ->with('mensaje', '¡Viaje aceptado correctamente!');
     }
 
@@ -175,7 +198,9 @@ class ConductorController extends Controller
                       ->first();
 
         $iniciales     = $this->calcularIniciales($conductor->user->nombre_completo ?? '');
-        $seccionActiva = 'viaje_activo';
+        $pasos         = $viaje ? $this->construirPasos($viaje->estado_viaje) : [];
+
+        $seccionActiva = 'viajeActivo';
 
         return view('conductor.viaje_activo', [
             'header'       => 'header_conductor',
@@ -185,6 +210,7 @@ class ConductorController extends Controller
             'iniciales'    => $iniciales,
             'seccionActiva'=> $seccionActiva,
             'viaje' => $viaje,
+            'pasos' => $pasos,
         ]);
     }
 

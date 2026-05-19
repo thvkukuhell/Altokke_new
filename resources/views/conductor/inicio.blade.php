@@ -38,7 +38,7 @@
             @if($viajeActivo)
                 <div class="alert alert-info">
                     <p>Tienes un viaje activo en curso.</p>
-                    <a href="{{ route('conductor.viajeActivo') }}" class="btn btn-verde">
+                    <a href="{{ route('conductor.viaje_activo') }}" class="btn btn-verde">
                         Ir a viaje activo
                     </a>
                 </div>
