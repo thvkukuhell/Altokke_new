@@ -21,11 +21,11 @@ class ConductorController extends Controller
         );
     }
 
-    private function getConductorActual(): Conductor  // reemplaza al DAO porque usa Eloquent con with()
-    {
-        return Conductor::with(['user', 'vehiculo'])
-                        ->findOrFail(Auth::id());
-    }
+    private function getConductorActual(): Conductor
+{
+    return Conductor::with(['user', 'vehiculo'])
+        ->findOrFail(Auth::id());
+}
 
     // ── Dashboard / Inicio ─────────────────────────────
 
@@ -95,7 +95,7 @@ class ConductorController extends Controller
             'email.unique'             => 'El email ya está en uso.',
         ]);
 
-        Auth::user()->update([
+        Auth::user()->conductor->update([
             'nombre_completo' => $request->nombre_completo,
             'apellidos'       => $request->apellidos,
             'telefono'        => $request->telefono,
@@ -175,7 +175,7 @@ class ConductorController extends Controller
                       ->first();
 
         $iniciales     = $this->calcularIniciales($conductor->user->nombre_completo ?? '');
-        $seccionActiva = 'viaje-activo';
+        $seccionActiva = 'viaje_activo';
 
         return view('conductor.viaje_activo', [
             'header'       => 'header_conductor',
@@ -266,7 +266,7 @@ class ConductorController extends Controller
         $iniciales     = $this->calcularIniciales($conductor->user->nombre_completo ?? '');
         $seccionActiva = 'historial';
 
-        return view('conductor.historial', [
+        return view('conductor.historial_viaje', [
             'header'       => 'header_conductor',
             'footer'       => 'footer',
             'css'          => ['conductor/historial.css'],

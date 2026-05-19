@@ -55,8 +55,8 @@ Route::prefix('conductor')->name('conductor.')->middleware(['auth', 'es_conducto
     Route::post('/aceptarViaje',   [ConductorController::class, 'aceptarViaje'])->name('aceptarViaje');
     Route::post('/completarViaje', [ConductorController::class, 'completarViaje'])->name('completarViaje');
     Route::post('/cancelarViaje',  [ConductorController::class, 'cancelarViaje'])->name('cancelarViaje');
-    Route::get('/viajeActivo',     [ConductorController::class, 'viajeActivo'])->name('viajeActivo');
-    Route::get('/historial',       [ConductorController::class, 'historial'])->name('historial');
+    Route::get('/viaje_activo', [ConductorController::class, 'viajeActivo'])->name('viaje_activo');
+    Route::get('/historial', [ConductorController::class, 'historial'])->name('historial');
     Route::get('/billetera',       [ConductorController::class, 'billetera'])->name('billetera');
 });
 // web.php

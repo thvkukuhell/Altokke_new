@@ -16,8 +16,8 @@
                 Solicitudes
             </a>
 
-            <a href="{{ url('/conductor/viaje-activo') }}"
-                class="{{ ($seccionActiva ?? '') === 'viaje-activo' ? 'activo' : '' }}">
+            <a href="{{ url('/conductor/viaje_activo') }}"
+                class="{{ ($seccionActiva ?? '') === 'viaje_activo' ? 'activo' : '' }}">
                 Viaje activo
             </a>
 

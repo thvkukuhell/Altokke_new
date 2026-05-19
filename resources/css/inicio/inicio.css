@@ -24,21 +24,6 @@
     --shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.14);
 }
 
-/* ── Reset ── */
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-html {
-    scroll-behavior: smooth;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-}
 body {
     font-family: var(--font);
     background: var(--blanco);
