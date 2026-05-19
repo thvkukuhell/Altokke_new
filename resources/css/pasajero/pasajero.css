@@ -465,6 +465,29 @@ main {
   letter-spacing: -0.3px;
 }
 
+.nav-viaje-activo {
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.15) !important;
+  color: #fff !important;
+  border-radius: 8px;
+}
+
+.nav-dot-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  flex-shrink: 0;
+  animation: dot-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.75); }
+}
+
 /* Ajustes responsivos */
 @media (max-width: 1200px) {
   .pagina-pasajero { padding: 28px 24px 48px; }

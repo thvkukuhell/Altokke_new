@@ -6,31 +6,47 @@
         </div>
 
         <nav class="enlaces-nav">
-
-            <a href="{{ url('/pasajero/solicitarViaje') }}">
+            {{-- Siempre accesibles --}}
+            <a href="{{ route('pasajero.solicitarViaje') }}"
+               class="{{ Request::is('pasajero/solicitarViaje') ? 'activo' : '' }}">
                 Solicitar viaje
             </a>
 
-            <a href="{{ url('/pasajero/buscando') }}">
-                Buscando conductor
+            <a href="{{ route('pasajero.historial') }}"
+               class="{{ Request::is('pasajero/historial*') ? 'activo' : '' }}">
+                Mis viajes
             </a>
 
-            <a href="{{ url('/pasajero/enCurso') }}">
-                Viaje en curso
-            </a>
+            {{-- Solo aparece si hay un viaje activo --}}
+            @php
+                $viajeActivo = null;
+                if (auth()->check()) {
+                    $viajeActivo = \App\Models\Viaje::where('id_pasajero', auth()->id())
+                        ->whereIn('estado_viaje', ['buscando', 'aceptado', 'recogiendo', 'en_curso'])
+                        ->first();
+                }
+            @endphp
 
-            <a href="{{ url('/pasajero/calificar') }}">
-                Calificar viaje
-            </a>
+            @if($viajeActivo)
+                @if($viajeActivo->estado_viaje === 'buscando')
+                    <a href="{{ route('pasajero.buscando', $viajeActivo->id_viaje) }}"
+                       class="nav-viaje-activo">
+                        <span class="nav-dot-pulse"></span>
+                        Buscando conductor
+                    </a>
+                @else
+                    <a href="{{ route('pasajero.enCurso', $viajeActivo->id_viaje) }}"
+                       class="nav-viaje-activo">
+                        <span class="nav-dot-pulse"></span>
+                        Viaje en curso
+                    </a>
+                @endif
+            @endif
 
-            <a href="{{ url('/pasajero/historial') }}">
-                Historial
-            </a>
-
-            <a href="{{ url('/pasajero/perfil') }}">
+            {{-- Perfil --}}
+            <a href="{{ route('pasajero.perfil') }}">
                 <img src="{{ asset('img/user.png') }}" class="imagen-perfil" alt="Perfil">
             </a>
-
         </nav>
 
     </div>

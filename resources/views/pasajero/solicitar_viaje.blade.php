@@ -10,6 +10,10 @@
         </ul>
     </div>
 @endif
+
+{{-- Librerías de Leaflet necesarias --}}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
  
 <div class="pagina-pasajero">
  
@@ -26,10 +30,6 @@
             </div>
         </div>
 
-        {{-- Librerías de Leaflet necesarias --}}
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
- 
         {{-- Panel formulario --}}
         <div class="panel-solicitud">
             <p class="panel-solicitud-titulo">¿A dónde vamos?</p>
@@ -133,7 +133,7 @@
 
     setTimeout(() => {
         mapaSolicitud.invalidateSize();
-    }, 100);
+    }, 300);
 
     // Crear marcador para la ubicación del pasajero (Verde)
     const marcadorPasajero = L.marker([LAT_BAGUA, LNG_BAGUA], {
