@@ -13,8 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'es_pasajero'  => \App\Http\Middleware\EsPasajero::class,
-            'es_conductor' => \App\Http\Middleware\EsConductor::class,
+            'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
+            'role' => \App\Http\Middleware\CheckRole::class,
+            'redirect.auth.role' => \App\Http\Middleware\RedirectIfAuthenticatedRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

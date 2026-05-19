@@ -16,8 +16,8 @@
                 Solicitudes
             </a>
 
-            <a href="{{ url('/conductor/viaje-activo') }}"
-                class="{{ ($seccionActiva ?? '') === 'viaje-activo' ? 'activo' : '' }}">
+            <a href="{{ url('/conductor/viaje_activo') }}"
+                class="{{ ($seccionActiva ?? '') === 'viaje_activo' ? 'activo' : '' }}">
                 Viaje activo
             </a>
 
@@ -35,9 +35,14 @@
                 <img src="{{ asset('img/user.png') }}" class="imagen-perfil" alt="Perfil">
             </a>
 
-            <a href="{{ url('/auth/cerrarSesion') }}" class="btn-cerrar">
+            <a href="{{ route('logout') }}" class="btn-cerrar"
+                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                 Cerrar sesión
             </a>
+
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
+                @csrf
+            </form>
 
         </nav>
     </div>
