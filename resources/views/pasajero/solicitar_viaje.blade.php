@@ -1,23 +1,21 @@
 @extends('layouts.main')
 @section('content')
 
-<<<<<<< HEAD
 @if ($errors->any())
-    <div class="alerta-errores">
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
+<div class="alerta-errores">
+    <ul>
+        @foreach ($errors->all() as $error)
+        <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+</div>
 @endif
 
 {{-- Librerías de Leaflet necesarias --}}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
- 
-=======
->>>>>>> 397c4be8c03b08f5609e840ef454fe4fa7a79a7f
+
+
 <div class="pagina-pasajero">
     <div class="solicitar-grid">
 
@@ -35,10 +33,7 @@
             </div>
         </div>
 
-<<<<<<< HEAD
         {{-- Panel formulario --}}
-=======
->>>>>>> 397c4be8c03b08f5609e840ef454fe4fa7a79a7f
         <div class="panel-solicitud">
             <p class="panel-solicitud-titulo">¿A dónde vamos?</p>
             <p class="panel-solicitud-sub">Ingresa tu origen y destino para solicitar tu mototaxi</p>
