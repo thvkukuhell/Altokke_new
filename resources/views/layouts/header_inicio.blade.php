@@ -3,7 +3,7 @@
 
         {{-- Te redirige a la raíz y luego sube al inicio --}}
         <a href="{{ url('/#inicio') }}" class="logo">
-            <img src="{{ asset('img/logoTemporal.png') }}" alt="Logo">
+            <img src="{{ asset('img/logo_moto.png') }}" alt="Logo">
             <span class="logo-texto">Altokke</span>
         </a>
 

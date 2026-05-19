@@ -52,7 +52,10 @@ main {
   max-width: 1400px;
   margin: 0 auto;
   padding: 32px 40px 64px;
+  padding-top: 40px !important;
 }
+
+
 
 /* Tipografía de página */
 .titulo-pagina {
@@ -487,6 +490,134 @@ main {
   0%, 100% { opacity: 1; transform: scale(1); }
   50%       { opacity: 0.5; transform: scale(0.75); }
 }
+
+.encabezado-app {
+    background: var(--primary) !important; /* Fuerza el uso de tu verde oscuro principal */
+    border-bottom: none !important;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 200; /* Asegura quedar por encima del mapa */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.barra-navegacion-app {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    width: 100%;
+    height: 100%;
+}
+
+/* Logo e Isotipo */
+.logo-app {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.logo-app img {
+    height: 36px;
+    width: 36px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+}
+
+.logo-texto-app {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: -0.5px;
+}
+
+/* Enlaces de Navegación */
+.enlaces-nav-app {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.enlaces-nav-app .enlace-menu-app {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s, background 0.15s;
+}
+
+.enlaces-nav-app .enlace-menu-app:hover {
+    color: var(--white);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.enlaces-nav-app .enlace-menu-app.activo {
+    color: var(--white);
+    background: var(--primary-mid); /* Mismo estilo de botón activo */
+}
+
+/* Botón Cerrar Sesión */
+.btn-cerrar-sesion-app {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 6px 14px;
+    transition: color 0.15s;
+}
+
+.btn-cerrar-sesion-app:hover {
+    color: #f87171;
+}
+
+/* Contenedor Circular para la foto de Perfil */
+.avatar-circular-app {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    overflow: hidden;
+    margin: 0 10px;
+}
+
+.avatar-circular-app img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Viajes Activos */
+.nav-viaje-activo-app {
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+}
+.nav-viaje-activo-app.buscando { color: #fca5a5; }
+.nav-viaje-activo-app.en-curso { color: #86efac; }
+
+.nav-dot-pulse-app {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.nav-dot-pulse-app.red { background-color: #ef4444; }
+.nav-dot-pulse-app.green { background-color: #22c55e; }
+
 
 /* Ajustes responsivos */
 @media (max-width: 1200px) {

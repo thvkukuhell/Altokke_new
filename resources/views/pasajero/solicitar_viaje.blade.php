@@ -110,7 +110,7 @@ let lineaRuta = null;
 
 const DEFAULT_LOCATION = {
     lat: -5.6763,
-    lng: -78.5311
+    lng: -78.
 };
 
 // ===============================
@@ -623,6 +623,32 @@ function crearAutocomplete(input, tipo) {
         }
     );
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Detectar clics en los tipos de servicio (Normal / Express)
+    const chipsServicio = document.querySelectorAll('.servicio-chip');
+    chipsServicio.forEach(chip => {
+        chip.addEventListener('click', function() {
+            chipsServicio.forEach(c => c.classList.remove('seleccionado'));
+            this.classList.add('seleccionado');
+            
+            const input = this.querySelector('input[type="radio"]');
+            if (input) input.checked = true;
+        });
+    });
+
+    // Detectar clics en los métodos de pago (Efectivo / Yape / Plin)
+    const opcionesPago = document.querySelectorAll('.pago-opcion');
+    opcionesPago.forEach(opcion => {
+        opcion.addEventListener('click', function() {
+            opcionesPago.forEach(o => o.classList.remove('activo'));
+            this.classList.add('activo');
+            
+            const input = this.querySelector('input[type="radio"]');
+            if (input) input.checked = true;
+        });
+    });
+});
 </script>
 
 @endsection

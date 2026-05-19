@@ -128,6 +128,11 @@ class PasajeroController extends Controller {
             'footer'  => 'footer',
             'css'     => ['pasajero/pasajero.css', 'pasajero/viaje_en_curso.css'],
             'viajeRaw'  => $viajeRaw,
+            'viaje' => $viaje,
+            'conductor' => $conductor,
+            'iniciales' => $iniciales,
+            'eta' => $eta,
+            'pasos' => $pasos,
         ]); 
     }
 
@@ -160,6 +165,9 @@ class PasajeroController extends Controller {
             'footer'  => 'footer',
             'css'     => ['pasajero/pasajero.css', 'pasajero/calificar_viaje.css'],
             'viajeRaw'  => $viajeRaw,
+            'viaje' => $viaje,
+            'conductor' => $conductor,
+            'iniciales' => $inicales,
         ]);
     }
 
