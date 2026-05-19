@@ -101,9 +101,6 @@
     </div>
 </div>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
 let mapa;
 
@@ -112,8 +109,8 @@ let marcadorDestino = null;
 let lineaRuta = null;
 
 const DEFAULT_LOCATION = {
-    lat: -5.736426,
-    lng: -78.4277115
+    lat: -5.6763,
+    lng: -78.5311
 };
 
 // ===============================
@@ -159,50 +156,51 @@ function inicializarMapa() {
 }
 
 // ===============================
-// UBICACIÓN ACTUAL
+// UBICACION ACTUAL
 // ===============================
 function obtenerUbicacion() {
 
+    const ubicacionTexto = document.getElementById('ubicacion-texto');
+
     if (!navigator.geolocation) {
+        ubicacionTexto.textContent = 'Tu navegador no permite usar ubicación';
         return;
     }
+
+    ubicacionTexto.textContent = 'Obteniendo tu ubicación...';
 
     navigator.geolocation.getCurrentPosition(
 
         async function(pos) {
 
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
 
-                colocarOrigen(lat, lng);
+            colocarOrigen(lat, lng, true);
 
-                const direccion =
-                    await obtenerDireccion(lat, lng);
+            const direccion =
+                await obtenerDireccion(lat, lng);
 
-                document.getElementById(
-                    'origen-input'
-                ).value = direccion;
+            document.getElementById(
+                'origen-input'
+            ).value = direccion;
 
-                document.getElementById(
-                    'ubicacion-texto'
-                ).innerHTML = `📍 ${direccion}`;
-            },
+            ubicacionTexto.textContent = direccion;
+        },
 
-            function(error) {
+        function(error) {
 
-                console.log(error);
+            console.log(error);
 
-                document.getElementById(
-                        'ubicacion-texto'
-                    ).innerHTML =
-                    '📍 Permite acceso a ubicación';
-            },
+            ubicacionTexto.textContent =
+                'Permite acceso a ubicación para detectar tu origen';
+        },
 
-            {
-                enableHighAccuracy: false,
-                timeout: 10000,
-                maximumAge: 300000
-            }
+        {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+        }
     );
 }
 
@@ -251,7 +249,7 @@ async function obtenerDireccion(lat, lng) {
             direccion += `, ${distrito}`;
         }
 
-        return direccion;
+        return direccion || 'Ubicación actual';
 
     } catch (e) {
 
@@ -264,15 +262,25 @@ async function obtenerDireccion(lat, lng) {
 // ===============================
 // MARCADOR ORIGEN
 // ===============================
-function colocarOrigen(lat, lng) {
+function colocarOrigen(lat, lng, centrarMapa = false) {
 
     if (marcadorOrigen) {
         mapa.removeLayer(marcadorOrigen);
     }
 
-    marcadorOrigen = L.marker(
+     marcadorOrigen = L.marker(
         [lat, lng]
     ).addTo(mapa);
+
+    if (centrarMapa) {
+        mapa.flyTo(
+            [lat, lng],
+            17, {
+                animate: true,
+                duration: 0.8
+            }
+        );
+    }
 
     document.getElementById(
         'origen-lat'
@@ -302,13 +310,9 @@ function colocarDestino(lat, lng) {
 }
 
 // ===============================
-// DIBUJAR RUTA
-// ===============================
-// ===============================
 // DIBUJAR RUTA REAL
 // ===============================
 async function actualizarRuta() {
-
     if (
         !marcadorOrigen ||
         !marcadorDestino
@@ -358,7 +362,6 @@ async function actualizarRuta() {
                     coord[0]
                 ]
             );
-
         // DIBUJAR RUTA
         lineaRuta = L.polyline(
             coordenadas, {
@@ -368,7 +371,6 @@ async function actualizarRuta() {
                 lineJoin: 'round'
             }
         ).addTo(mapa);
-
         // AJUSTAR MAPA
         mapa.fitBounds(
             lineaRuta.getBounds(), {
@@ -507,7 +509,6 @@ function crearAutocomplete(input, tipo) {
             lista.style.display = 'none';
             return;
         }
-
         timeoutBusqueda = setTimeout(async () => {
 
             try {
@@ -579,10 +580,10 @@ function crearAutocomplete(input, tipo) {
                                 'none';
 
                             if (tipo === 'origen') {
-
                                 colocarOrigen(
                                     lat,
-                                    lng
+                                    lng,
+                                    true
                                 );
 
                             } else {
@@ -607,7 +608,6 @@ function crearAutocomplete(input, tipo) {
 
         }, 300);
     });
-
     // CERRAR
     document.addEventListener(
         'click',

@@ -59,6 +59,7 @@ Route::prefix('conductor')->name('conductor.')->middleware(['auth', 'es_conducto
     Route::get('/historial',       [ConductorController::class, 'historial'])->name('historial');
     Route::get('/billetera',       [ConductorController::class, 'billetera'])->name('billetera');
 });
+
 // web.php
 Route::post('/conductor/ubicacion', [ConductorController::class, 'actualizarUbicacion'])
      ->middleware(['auth', 'es_conductor']);
