@@ -49,8 +49,7 @@
                 <div class="ruta-selector">
                     <div class="ruta-fila">
                         <div class="punto punto-verde"></div>
-                        <input type="text" name="origen" id="origen-input" placeholder="Ej: Av. 27 de Octubre, Cajaruro"
-                            required>
+                        <input type="text" name="origen" id="origen-input" placeholder="Origen" required>
                         <input type="hidden" name="origen_lat" id="origen-lat">
                         <input type="hidden" name="origen_lng" id="origen-lng">
                     </div>
@@ -107,244 +106,528 @@
     </div>
 </div>
 
-{{-- Librerías de Leaflet --}}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-
-
 <script>
 let mapa;
-let marcador;
-let circulo;
 
+let marcadorOrigen = null;
+let marcadorDestino = null;
+let lineaRuta = null;
+
+const DEFAULT_LOCATION = {
+    lat: -5.736426,
+    lng: -78.4277115
+};
+
+// ===============================
+// INICIAR
+// ===============================
+window.addEventListener('load', () => {
+
+    inicializarMapa();
+
+});
+
+// ===============================
+// MAPA
+// ===============================
 function inicializarMapa() {
-    const contenedor = document.getElementById('mapa-solicitud-pasajero');
-    if (!contenedor) return;
 
-    mapa = L.map('mapa-solicitud-pasajero').setView([-5.736426, -78.4277115], 13);
+    mapa = L.map('mapa-solicitud-pasajero', {
+        zoomControl: false
+    }).setView(
+        [DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng],
+        15
+    );
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(mapa);
-
-    setTimeout(() => mapa.invalidateSize(), 100);
-
-    const icono = L.divIcon({
-        html: '<div style="font-size: 32px;">📍</div>',
-        iconSize: [32, 32],
-        iconAnchor: [16, 32]
-    });
-
-    marcador = L.marker([-5.736426, -78.4277115], {
-        icon: icono
-    }).addTo(mapa);
-    circulo = L.circle([-5.736426, -78.4277115], {
-        color: '#10b981',
-        fillColor: '#10b981',
-        fillOpacity: 0.1,
-        radius: 100
-    }).addTo(mapa);
-
-    document.getElementById('zoom-in')?.addEventListener('click', () => mapa.zoomIn());
-    document.getElementById('zoom-out')?.addEventListener('click', () => mapa.zoomOut());
-}
-
-async function obtenerDireccionDesdeCoordenadas(lat, lng) {
-    try {
-        const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18`);
-        const data = await response.json();
-
-        if (data && data.display_name) {
-            let direccion = '';
-            if (data.address.road) {
-                direccion = data.address.road;
-                if (data.address.house_number) direccion += ` ${data.address.house_number}`;
-            } else if (data.address.suburb) {
-                direccion = data.address.suburb;
-            } else if (data.address.city) {
-                direccion = data.address.city;
-            } else if (data.address.town) {
-                direccion = data.address.town;
-            } else {
-                direccion = data.display_name.split(',')[0];
-            }
-            return direccion;
+    L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
         }
-        return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-    } catch (e) {
-        return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-    }
+    ).addTo(mapa);
+
+    // BOTONES
+    document.getElementById('zoom-in')
+        ?.addEventListener('click', () => mapa.zoomIn());
+
+    document.getElementById('zoom-out')
+        ?.addEventListener('click', () => mapa.zoomOut());
+
+    document.getElementById('mi-ubicacion')
+        ?.addEventListener('click', () => {
+            obtenerUbicacion();
+        });
+
+    obtenerUbicacion();
 }
 
-function obtenerUbicacionPorGPS() {
-    const origenInput = document.getElementById('origen-input');
-    const latInput = document.getElementById('origen-lat');
-    const lngInput = document.getElementById('origen-lng');
-    const ubicacionSpan = document.getElementById('ubicacion-texto');
+// ===============================
+// UBICACIÓN ACTUAL
+// ===============================
+function obtenerUbicacion() {
 
     if (!navigator.geolocation) {
-        ubicacionSpan.innerHTML = '📍 GPS no soportado';
-        origenInput.placeholder = 'Escribe tu ubicación';
         return;
     }
 
-    ubicacionSpan.innerHTML = '📍 Obteniendo GPS...';
-    origenInput.value = 'Obteniendo ubicación...';
-
     navigator.geolocation.getCurrentPosition(
+
         async function(pos) {
+
                 const lat = pos.coords.latitude;
                 const lng = pos.coords.longitude;
-                const precision = pos.coords.accuracy;
 
-                console.log('📍 GPS:', lat, lng);
-                console.log('📡 Precisión:', precision, 'metros');
+                colocarOrigen(lat, lng);
 
-                // Guardar coordenadas
-                latInput.value = lat;
-                lngInput.value = lng;
+                const direccion =
+                    await obtenerDireccion(lat, lng);
 
-                // Centrar mapa
-                mapa.setView([lat, lng], 16);
-                marcador.setLatLng([lat, lng]);
-                circulo.setLatLng([lat, lng]);
-                circulo.setRadius(Math.min(precision, 150));
+                document.getElementById(
+                    'origen-input'
+                ).value = direccion;
 
-                // Obtener dirección
-                const direccion = await obtenerDireccionDesdeCoordenadas(lat, lng);
-                origenInput.value = direccion;
-                ubicacionSpan.innerHTML = direccion;
-
-                // El usuario puede editar si quiere
-                origenInput.readOnly = false;
-                origenInput.style.background = 'white';
-
-                console.log('📍 Ubicación:', direccion);
-
-                setTimeout(() => mapa.invalidateSize(), 200);
+                document.getElementById(
+                    'ubicacion-texto'
+                ).innerHTML = `📍 ${direccion}`;
             },
-            function(error) {
-                console.error('Error GPS:', error);
-                let msg = '📍 GPS no disponible';
-                if (error.code === 1) msg = '📍 Permiso denegado';
 
-                ubicacionSpan.innerHTML = msg;
-                origenInput.value = '';
-                origenInput.placeholder = 'Escribe tu ubicación';
-                origenInput.readOnly = false;
-                origenInput.style.background = 'white';
-            }, {
-                enableHighAccuracy: true,
-                timeout: 10000
+            function(error) {
+
+                console.log(error);
+
+                document.getElementById(
+                        'ubicacion-texto'
+                    ).innerHTML =
+                    '📍 Permite acceso a ubicación';
+            },
+
+            {
+                enableHighAccuracy: false,
+                timeout: 10000,
+                maximumAge: 300000
             }
     );
 }
 
-async function buscarYActualizarMapa(direccion) {
-    if (!direccion || direccion.length < 5) return false;
+// ===============================
+// DIRECCIÓN HUMANA
+// ===============================
+async function obtenerDireccion(lat, lng) {
 
     try {
+
         const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion)}, Peru&limit=1`
-            );
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1`, {
+                headers: {
+                    'Accept-Language': 'es'
+                }
+            }
+        );
+
         const data = await response.json();
 
-        if (data && data.length > 0) {
-            const lat = parseFloat(data[0].lat);
-            const lng = parseFloat(data[0].lon);
-
-            mapa.setView([lat, lng], 17);
-            marcador.setLatLng([lat, lng]);
-            circulo.setLatLng([lat, lng]);
-
-            document.getElementById('origen-lat').value = lat;
-            document.getElementById('origen-lng').value = lng;
-            document.getElementById('ubicacion-texto').innerHTML = direccion;
-
-            return true;
+        if (!data.address) {
+            return 'Ubicación actual';
         }
-        return false;
+
+        const a = data.address;
+
+        let calle =
+            a.road ||
+            a.residential ||
+            a.pedestrian ||
+            data.name ||
+            '';
+
+        let distrito =
+            a.suburb ||
+            a.city_district ||
+            a.neighbourhood ||
+            a.village ||
+            a.town ||
+            a.city ||
+            '';
+
+        let direccion = calle;
+
+        if (distrito) {
+            direccion += `, ${distrito}`;
+        }
+
+        return direccion;
+
     } catch (e) {
-        return false;
+
+        console.log(e);
+
+        return 'Ubicación actual';
     }
 }
 
-// Inicializar
-window.addEventListener('load', function() {
-    inicializarMapa();
-    obtenerUbicacionPorGPS();
+// ===============================
+// MARCADOR ORIGEN
+// ===============================
+function colocarOrigen(lat, lng) {
 
-    const origenInput = document.getElementById('origen-input');
-    const ubicacionSpan = document.getElementById('ubicacion-texto');
-    let timeoutBusqueda;
+    if (marcadorOrigen) {
+        mapa.removeLayer(marcadorOrigen);
+    }
 
-    // Buscar mientras escribe (si el usuario cambia manualmente)
-    origenInput.addEventListener('input', function() {
-        clearTimeout(timeoutBusqueda);
+    marcadorOrigen = L.marker(
+        [lat, lng]
+    ).addTo(mapa);
 
-        timeoutBusqueda = setTimeout(async () => {
-            if (this.value.length > 5 && !this.value.includes(',')) {
-                ubicacionSpan.innerHTML = '📍 Buscando...';
-                const encontrado = await buscarYActualizarMapa(this.value);
-                if (encontrado) {
-                    ubicacionSpan.innerHTML = '📍 ' + this.value;
-                } else {
-                    ubicacionSpan.innerHTML = '📍 No encontrado - escribe más específico';
-                }
-            }
-        }, 800);
-    });
+    document.getElementById(
+        'origen-lat'
+    ).value = lat;
 
-    // Botón de mi ubicación (forzar GPS)
-    document.getElementById('mi-ubicacion')?.addEventListener('click', () => {
-        obtenerUbicacionPorGPS();
-    });
+    document.getElementById(
+        'origen-lng'
+    ).value = lng;
 
-    window.addEventListener('resize', () => setTimeout(() => mapa?.invalidateSize(), 200));
-});
-
-// Tarifa dinámica
-const destino = document.getElementById('destino-input');
-const tarifaNum = document.getElementById('tarifa-numero');
-const tarifaDet = document.getElementById('tarifa-detalle');
-
-if (destino) {
-    destino.addEventListener('input', function() {
-        if (this.value.length > 3) {
-            const tipo = document.querySelector('input[name="tipo_servicio"]:checked').value;
-            const base = tipo === 'normal' ? 3 : 5;
-            const dist = (Math.random() * 5 + 1).toFixed(1);
-            const total = (base + (dist * 0.5)).toFixed(2);
-            tarifaNum.textContent = `S/ ${total}`;
-            tarifaDet.textContent = `~${dist} km · ${Math.floor(dist * 2.5)} min`;
-        }
-    });
+    actualizarRuta();
 }
 
-// Servicio
-document.querySelectorAll('.servicio-chip input').forEach(radio => {
-    radio.addEventListener('change', function() {
-        document.querySelectorAll('.servicio-chip').forEach(c => c.classList.remove('seleccionado'));
-        this.closest('.servicio-chip').classList.add('seleccionado');
-        if (destino && destino.value.length > 3) {
-            const base = this.value === 'normal' ? 3 : 5;
-            const dist = (Math.random() * 5 + 1).toFixed(1);
-            tarifaNum.textContent = `S/ ${(base + (dist * 0.5)).toFixed(2)}`;
-        } else {
-            tarifaNum.textContent = this.value === 'normal' ? 'S/ 3.00' : 'S/ 5.00';
-        }
-    });
-});
+// ===============================
+// MARCADOR DESTINO
+// ===============================
+function colocarDestino(lat, lng) {
 
-// Pago
-document.querySelectorAll('.pago-opcion input').forEach(radio => {
-    radio.addEventListener('change', function() {
-        document.querySelectorAll('.pago-opcion').forEach(o => o.classList.remove('activo'));
-        this.closest('.pago-opcion').classList.add('activo');
+    if (marcadorDestino) {
+        mapa.removeLayer(marcadorDestino);
+    }
+
+    marcadorDestino = L.marker(
+        [lat, lng]
+    ).addTo(mapa);
+
+    actualizarRuta();
+}
+
+// ===============================
+// DIBUJAR RUTA
+// ===============================
+// ===============================
+// DIBUJAR RUTA REAL
+// ===============================
+async function actualizarRuta() {
+
+    if (
+        !marcadorOrigen ||
+        !marcadorDestino
+    ) {
+        return;
+    }
+
+    const origen =
+        marcadorOrigen.getLatLng();
+
+    const destino =
+        marcadorDestino.getLatLng();
+
+    // BORRAR RUTA ANTERIOR
+    if (lineaRuta) {
+
+        mapa.removeLayer(lineaRuta);
+    }
+
+    try {
+
+        // API ROUTING REAL
+        const response = await fetch(
+            `https://router.project-osrm.org/route/v1/driving/` +
+            `${origen.lng},${origen.lat};${destino.lng},${destino.lat}` +
+            `?overview=full&geometries=geojson`
+        );
+
+        const data =
+            await response.json();
+
+        if (
+            !data.routes ||
+            !data.routes.length
+        ) {
+            return;
+        }
+
+        const ruta =
+            data.routes[0];
+
+        // COORDENADAS DE LA RUTA
+        const coordenadas =
+            ruta.geometry.coordinates.map(
+                coord => [
+                    coord[1],
+                    coord[0]
+                ]
+            );
+
+        // DIBUJAR RUTA
+        lineaRuta = L.polyline(
+            coordenadas, {
+                color: '#16a34a',
+                weight: 6,
+                opacity: 0.9,
+                lineJoin: 'round'
+            }
+        ).addTo(mapa);
+
+        // AJUSTAR MAPA
+        mapa.fitBounds(
+            lineaRuta.getBounds(), {
+                padding: [50, 50]
+            }
+        );
+
+        // DISTANCIA REAL
+        const distanciaKm =
+            ruta.distance / 1000;
+
+        // TIEMPO REAL
+        const tiempoMin =
+            Math.ceil(
+                ruta.duration / 60
+            );
+
+        // TARIFA
+        let tarifa =
+            3 + (distanciaKm * 1.5);
+
+        tarifa =
+            tarifa.toFixed(2);
+
+        document.getElementById(
+                'tarifa-numero'
+            ).innerHTML =
+            `S/ ${tarifa}`;
+
+        document.getElementById(
+                'tarifa-detalle'
+            ).innerHTML =
+            `~${distanciaKm.toFixed(1)} km · ${tiempoMin} min`;
+
+    } catch (e) {
+
+        console.log(e);
+    }
+}
+
+// ===============================
+// DISTANCIA Y TARIFA
+// ===============================
+function calcularTarifa(
+    lat1,
+    lon1,
+    lat2,
+    lon2
+) {
+
+    const R = 6371;
+
+    const dLat =
+        (lat2 - lat1) * Math.PI / 180;
+
+    const dLon =
+        (lon2 - lon1) * Math.PI / 180;
+
+    const a =
+        Math.sin(dLat / 2) *
+        Math.sin(dLat / 2) +
+
+        Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+
+    const c =
+        2 * Math.atan2(
+            Math.sqrt(a),
+            Math.sqrt(1 - a)
+        );
+
+    const distancia = R * c;
+
+    // TARIFA SIMPLE
+    let tarifa =
+        3 + (distancia * 1.5);
+
+    tarifa = tarifa.toFixed(2);
+
+    // TIEMPO APROX
+    const tiempo =
+        Math.ceil(distancia * 3);
+
+    document.getElementById(
+            'tarifa-numero'
+        ).innerHTML =
+        `S/ ${tarifa}`;
+
+    document.getElementById(
+            'tarifa-detalle'
+        ).innerHTML =
+        `~${distancia.toFixed(1)} km · ${tiempo} min`;
+}
+
+// ===============================
+// AUTOCOMPLETE
+// ===============================
+crearAutocomplete(
+    document.getElementById('origen-input'),
+    'origen'
+);
+
+crearAutocomplete(
+    document.getElementById('destino-input'),
+    'destino'
+);
+
+function crearAutocomplete(input, tipo) {
+
+    const lista =
+        document.createElement('div');
+
+    lista.className =
+        'autocomplete-lista';
+
+    lista.style.display = 'none';
+
+    input.parentNode.style.position =
+        'relative';
+
+    input.parentNode.appendChild(lista);
+
+    let timeoutBusqueda;
+
+    input.addEventListener('input', function() {
+
+        clearTimeout(timeoutBusqueda);
+
+        const query = this.value;
+
+        if (query.length < 3) {
+
+            lista.style.display = 'none';
+            return;
+        }
+
+        timeoutBusqueda = setTimeout(async () => {
+
+            try {
+
+                const response = await fetch(
+                    `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`
+                );
+
+                const data =
+                    await response.json();
+
+                lista.innerHTML = '';
+
+                if (
+                    !data.features ||
+                    data.features.length === 0
+                ) {
+
+                    lista.style.display = 'none';
+                    return;
+                }
+
+                data.features.forEach(lugar => {
+
+                    const props =
+                        lugar.properties;
+
+                    const nombre =
+                        props.name ||
+                        props.street ||
+                        props.city ||
+                        'Lugar';
+
+                    const ciudad =
+                        props.city ||
+                        props.state ||
+                        '';
+
+                    const lat =
+                        lugar.geometry.coordinates[1];
+
+                    const lng =
+                        lugar.geometry.coordinates[0];
+
+                    const item =
+                        document.createElement('div');
+
+                    item.className =
+                        'autocomplete-item';
+
+                    item.innerHTML = `
+                        <div class="autocomplete-title">
+                            📍 ${nombre}
+                        </div>
+
+                        <div class="autocomplete-sub">
+                            ${ciudad}
+                        </div>
+                    `;
+
+                    item.addEventListener(
+                        'click',
+                        () => {
+
+                            input.value =
+                                `${nombre}${ciudad ? ', ' + ciudad : ''}`;
+
+                            lista.style.display =
+                                'none';
+
+                            if (tipo === 'origen') {
+
+                                colocarOrigen(
+                                    lat,
+                                    lng
+                                );
+
+                            } else {
+
+                                colocarDestino(
+                                    lat,
+                                    lng
+                                );
+                            }
+                        }
+                    );
+
+                    lista.appendChild(item);
+                });
+
+                lista.style.display = 'block';
+
+            } catch (e) {
+
+                console.log(e);
+            }
+
+        }, 300);
     });
-});
+
+    // CERRAR
+    document.addEventListener(
+        'click',
+        function(e) {
+
+            if (
+                !input.parentNode.contains(e.target)
+            ) {
+
+                lista.style.display =
+                    'none';
+            }
+        }
+    );
+}
 </script>
 
 @endsection
