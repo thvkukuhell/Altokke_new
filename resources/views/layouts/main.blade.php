@@ -13,11 +13,7 @@
 
     {{-- Vite (CSS + JS global) --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @isset($css)
-    @foreach($css as $archivo)
-    <link rel="stylesheet" href="{{ asset('css/' . $archivo) }}">
-    @endforeach
-    @endisset
+
 </head>
 
 <body>
