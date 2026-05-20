@@ -41,26 +41,30 @@ class PasajeroController extends Controller {
             'destino.different' => 'El origen y destino no pueden ser iguales.',
         ]);
 
-        // Verificar que exista el pasajero
         $pasajero = Pasajero::find(Auth::id());
         if (!$pasajero) {
             Pasajero::create([
-                'id_pasajero' => Auth::id(),
+                'id_pasajero'          => Auth::id(),
                 'metodo_pago_preferido' => 'efectivo',
             ]);
         }
 
         $viaje = Viaje::create([
-            'id_pasajero'     => Auth::id(),
-            'origen_texto'    => $request->origen,
-            'destino_texto'   => $request->destino,
-            'tarifa_estimada' => 3.00,
-            'tipo_servicio'   => $request->tipo_servicio,
-            'metodo_pago'     => $request->metodo_pago,
-            'estado_viaje'    => 'buscando',
+            'id_pasajero'         => Auth::id(),
+            'origen_texto'        => $request->origen,
+            'destino_texto'       => $request->destino,
+            'lat_origen'          => $request->origen_lat      ?: null,
+            'lng_origen'          => $request->origen_lng      ?: null,
+            'lat_destino'         => $request->destino_lat     ?: null,
+            'lng_destino'         => $request->destino_lng     ?: null,
+            'tarifa_estimada'     => $request->tarifa_estimada ?: 3.00,
+            'distancia_km'        => $request->distancia_km    ?: null,
+            'tiempo_estimado_min' => $request->tiempo_min      ?: null,
+            'tipo_servicio'       => $request->tipo_servicio,
+            'metodo_pago'         => $request->metodo_pago,
+            'estado_viaje'        => 'buscando',
         ]);
 
-        // Dispara el evento - Reverb lo transmite a los conductores
         event(new \App\Events\ViajeCreado($viaje));
 
         return redirect()->route('pasajero.buscando', $viaje->id_viaje);
@@ -71,24 +75,27 @@ class PasajeroController extends Controller {
         $viajeRaw = Viaje::find($viajeId);
 
         $viaje = $viajeRaw ? [
-            'id'      => $viajeRaw->id_viaje,
-            'origen'  => $viajeRaw->origen_texto,
-            'destino' => $viajeRaw->destino_texto,
-            'tarifa'  => $viajeRaw->tarifa_estimada,
-            'origen_lat' => $viajeRaw->lat_origen,
-            'origen_lng' => $viajeRaw->lng_origen,
-            'destino_lat' => $viajeRaw->lat_destino,
-            'destingo_lng' => $viajeRaw->lng_destino,
+            'id'          => $viajeRaw->id_viaje,
+            'origen'      => $viajeRaw->origen_texto,
+            'destino'     => $viajeRaw->destino_texto,
+            'tarifa'      => $viajeRaw->tarifa_estimada,
+            'distancia'   => $viajeRaw->distancia_km,
+            'tiempo'      => $viajeRaw->tiempo_estimado_min,
+            'origen_lat'  => $viajeRaw->lat_origen  ?? -5.63889,
+            'origen_lng'  => $viajeRaw->lng_origen  ?? -78.5311,
+            'destino_lat' => $viajeRaw->lat_destino ?? -5.6800,
+            'destino_lng' => $viajeRaw->lng_destino ?? -78.5400,
         ] : [
-            'id' => 0, 'origen' => '—', 'destino' => '—', 'tarifa' => '0.00'
+            'id' => 0, 'origen' => '—', 'destino' => '—', 'tarifa' => '0.00',
+            'origen_lat' => -5.63889, 'origen_lng' => -78.5311,
+            'destino_lat' => -5.6800, 'destino_lng' => -78.5400,
         ];
 
         return view('pasajero.buscando_conductor', [
-            'header'  => 'header_pasajero',
-            'footer'  => 'footer',
-            'css'     => ['pasajero/pasajero.css', 'pasajero/buscando_conductor.css'],
-            'viajeRaw'  => $viajeRaw,
-            'viaje' => $viaje,
+            'header' => 'header_pasajero',
+            'footer' => 'footer',
+            'css'    => ['pasajero/pasajero.css', 'pasajero/buscando_conductor.css'],
+            'viaje'  => $viaje,
         ]);
     }
 

@@ -45,8 +45,13 @@
                     <div class="ruta-fila">
                         <div class="punto punto-verde"></div>
                         <input type="text" name="origen" id="origen-input" placeholder="Origen" required>
-                        <input type="hidden" name="origen_lat" id="origen-lat">
-                        <input type="hidden" name="origen_lng" id="origen-lng">
+                        <input type="hidden" name="origen_lat"       id="origen-lat">
+                        <input type="hidden" name="origen_lng"       id="origen-lng">
+                        <input type="hidden" name="destino_lat"      id="destino-lat">
+                        <input type="hidden" name="destino_lng"      id="destino-lng">
+                        <input type="hidden" name="tarifa_estimada"  id="tarifa-hidden">
+                        <input type="hidden" name="distancia_km"     id="distancia-hidden">
+                        <input type="hidden" name="tiempo_min"       id="tiempo-hidden">
                     </div>
                     <div class="ruta-fila">
                         <div class="punto punto-rojo"></div>
@@ -284,6 +289,9 @@ function colocarDestino(lat, lng) {
         [lat, lng]
     ).addTo(mapa);
 
+    document.getElementById('destino-lat').value = lat;  
+    document.getElementById('destino-lng').value = lng;
+
     actualizarRuta();
 }
 
@@ -333,6 +341,10 @@ async function actualizarRuta() {
         // Renderizar los datos actualizados en la tarjeta verde
         document.getElementById('tarifa-numero').innerHTML = `S/ ${tarifa}`;
         document.getElementById('tarifa-detalle').innerHTML = `~${distanciaKm.toFixed(1)} km · ${tiempoMin} min`;
+
+        document.getElementById('tarifa-hidden').value    = tarifa;
+        document.getElementById('distancia-hidden').value = distanciaKm.toFixed(2);
+        document.getElementById('tiempo-hidden').value    = tiempoMin;
         
     } catch (e) {
         console.log(e);
