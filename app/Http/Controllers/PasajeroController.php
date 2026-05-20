@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\Auth;
 // Recibe peticiones HTTP, valida datos, llama al DAO y carga la vista correspondiente
 class PasajeroController extends Controller {
 
+    public function __construct()
+{
+    $this->middleware('auth');
+    $this->middleware('role:pasajero');
+}
+
     public function index()
     {
         return redirect()->route('pasajero.solicitarViaje');
@@ -76,7 +82,7 @@ class PasajeroController extends Controller {
         return view('pasajero.buscando_conductor', [
             'header'  => 'header_pasajero',
             'footer'  => 'footer',
-            'css'     => ['pasajero/pasajero.css', 'pasajero/buscando.css'],
+            'css'     => ['pasajero/pasajero.css', 'pasajero/buscando_conductor.css'],
             'viajeRaw'  => $viajeRaw,
             'viaje' => $viaje,
         ]);
@@ -302,7 +308,7 @@ class PasajeroController extends Controller {
         $user = Auth::user();
         $idUsuarioReal = $user->id_usuario;
 
-        $user->update([
+        $user->pasajero->update([
             'nombre_completo' => $request->nombre_completo,
             'apellidos'       => $request->apellidos,
             'telefono'        => $request->telefono,

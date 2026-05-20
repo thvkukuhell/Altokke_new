@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-abstract class Controller
+use Illuminate\Routing\Controller as BaseController;
+abstract class Controller extends BaseController
 {
     // En Laravel el redirect y las vistas se manejan diferente
     // Ya no se necesita helpers, Laravel los tiene nativos
