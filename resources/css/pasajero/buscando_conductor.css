@@ -127,3 +127,12 @@
     margin-bottom: 20px;
     line-height: 1.5;
 }
+
+/* Mapa */
+.mapa-decorativo {
+    height: 550px;
+}
+
+.mapa-etiqueta {
+    bottom: 20px;
+}

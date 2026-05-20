@@ -1,6 +1,16 @@
-  main {
+main {
     min-height: 100vh;
     display: flex;
     align-items: stretch;
     padding: 0;
+    width: 100%;
+}
+
+.auth-layout {
+    display: flex;
+    padding: 0 100px;
+}
+
+.auth-banner {
+    height: 445px;
 }
