@@ -9,32 +9,71 @@
  
         {{-- ── Mapa ── --}}
         <div class="mapa-viaje">
-            <div id="mapa-leaflet" style="width:100%; height:100%; border-radius:16px;"></div>
+            <div id="mapa-leaflet" style="width:100%; height:100%; min-height: 350px; border-radius:16px;"></div>
 
             <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
             <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
             <script>
-                const mapa = L.map('mapa-leaflet').setView([-5.6763, -78.5311], 15);
+                document.addEventListener('DOMContentLoaded', () => {
+                    // Coordenadas iniciales (Bagua)
+                    const LAT_BAGUA = -5.6763;
+                    const LNG_BAGUA = -78.5311;
+                    const VIAJE_ID = "{{ $viaje['id'] ?? 0 }}";
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
+                    // Inicializar Mapa
+                    const mapa = L.map('mapa-leaflet').setView([LAT_BAGUA, LNG_BAGUA], 15);
 
-                // Marcador del conductor — empieza en Bagua
-                let marcadorConductor = L.marker([-5.6763, -78.5311], {
-                    icon: L.divIcon({
-                        html: '<div style="font-size:28px;">🏍️</div>',
-                        iconSize: [30, 30],
-                        iconAnchor: [15, 15]
-                    })
-                }).addTo(mapa).bindPopup('Tu conductor en camino');
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(mapa);
 
-                // Escuchar movimiento del conductor en tiempo real
-                window.Echo.channel(`viaje.{{ $viaje['id'] }}`)
-                    .listen('ConductorMovido', (data) => {
-                        const nuevaPos = [data.lat, data.lng];
-                        marcadorConductor.setLatLng(nuevaPos);
-                        mapa.panTo(nuevaPos);
+                    // Marcador del conductor
+                    let marcadorConductor = L.marker([LAT_BAGUA, LNG_BAGUA], {
+                        icon: L.divIcon({
+                            html: '<div style="font-size:28px; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3));">🏍️</div>',
+                            iconSize: [30, 30],
+                            iconAnchor: [15, 15]
+                        })
+                    }).addTo(mapa).bindPopup('<strong>Tu conductor</strong><br>En camino').openPopup();
+
+                    // 1. ESCUCHAR MOVIMIENTO DEL CONDUCTOR (Canal Público del Viaje)
+                    if (window.Echo && VIAJE_ID > 0) {
+                        console.log(`Escuchando movimiento en canal: viaje.${VIAJE_ID}`);
+                        
+                        window.Echo.channel(`viaje.${VIAJE_ID}`)
+                            .listen('ConductorMovido', (data) => {
+                                console.log('Posición del conductor actualizada:', data);
+                                if (data.lat && data.lng) {
+                                    const nuevaPos = [data.lat, data.lng];
+                                    marcadorConductor.setLatLng(nuevaPos);
+                                    mapa.panTo(nuevaPos);
+                                }
+                            });
+
+                        // 2. ESCUCHAR CAMBIOS DE ESTADO (Terminado/Cancelado por Conductor)
+                        // Usamos el canal privado del pasajero que ya tienes configurado
+                        window.Echo.private(`pasajero.{{ auth()->id() }}`)
+                            .listen('ViajeActualizado', (data) => {
+                                console.log('El estado del viaje cambió:', data);
+                                
+                                // Si el conductor completó el viaje de forma exitosa
+                                if (data.estado === 'completado' || data.estado === 'finalizado') {
+                                    window.location.href = `/pasajero/calificar/${VIAJE_ID}`;
+                                }
+                                // Si el conductor se vio obligado a cancelarlo en el camino
+                                else if (data.estado === 'cancelado') {
+                                    alert('El conductor ha tenido que cancelar el viaje.');
+                                    window.location.href = '/pasajero/home';
+                                }
+                            });
+                    }
+
+                    // Ajustar mapa si la pantalla cambia de tamaño
+                    window.addEventListener('resize', () => {
+                        setTimeout(() => mapa.invalidateSize(), 100);
                     });
+                });
             </script>
         </div>
  

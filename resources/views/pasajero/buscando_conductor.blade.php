@@ -67,13 +67,11 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-// Esperar a que el DOM esté completamente cargado
 document.addEventListener('DOMContentLoaded', function() {
     // Coordenadas de Bagua como punto inicial
     const LAT_BAGUA = -5.6763;
     const LNG_BAGUA = -78.5311;
 
-    // Verificar que el contenedor existe
     const contenedorMapa = document.getElementById('mapa-leaflet');
     if (!contenedorMapa) {
         console.error('No se encontró el contenedor del mapa');
@@ -88,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
         maxZoom: 19
     }).addTo(mapa);
 
-    // Marcador del pasajero (mejorado)
+    // Marcador del pasajero
     const iconoPasajero = L.divIcon({
         html: '<div style="font-size: 30px;">📍</div>',
         iconSize: [30, 30],
@@ -100,22 +98,26 @@ document.addEventListener('DOMContentLoaded', function() {
         icon: iconoPasajero
     }).addTo(mapa);
 
-    // Agregar popup al marcador
     marcadorPasajero.bindPopup('<strong>Tu ubicación</strong><br>Bagua, Amazonas').openPopup();
 
+    // ID de este viaje en específico generado por el controlador
+    const viajeActualId = "{{ $viaje['id'] ?? 0 }}";
+
     // Escuchar cuando el conductor acepta el viaje
-    if (window.Echo) {
+    if (window.Echo && viajeActualId > 0) {
+        console.log(`Escuchando canal privado: pasajero.{{ auth()->id() }}`);
+        
         window.Echo.private(`pasajero.{{ auth()->id() }}`)
             .listen('ViajeAceptado', (data) => {
-                const viajeId = data.viajeId || (data.viaje ? data.viaje.id : null) ||
-                    '{{ $viaje["id"] ?? "" }}';
-                if (viajeId) {
-                    window.location.href = `/pasajero/enCurso/${viajeId}`;
+                console.log('¡Evento ViajeAceptado recibido!', data);
+                
+                // CORRECCIÓN: Tu evento en PHP envía exactamente 'viaje_id'
+                if (data.viaje_id == viajeActualId) {
+                    window.location.href = `/pasajero/enCurso/${viajeActualId}`;
                 }
             });
     }
 
-    // Opcional: Ajustar el mapa cuando cambia el tamaño
     window.addEventListener('resize', function() {
         setTimeout(() => mapa.invalidateSize(), 100);
     });
@@ -123,12 +125,10 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-/* Estilos adicionales para el mapa */
 #mapa-leaflet {
     border: 2px solid var(--p-verde-mid, #10b981);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-
 .marcador-pasajero {
     filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.3));
 }

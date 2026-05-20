@@ -112,54 +112,88 @@
 const VIAJE_ID = @json($viaje->id_viaje ?? null);
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (!VIAJE_ID) return;
 
-    if (VIAJE_ID) {
+    // Coordenadas base de Bagua
+    let ultimaLat = -5.6763;
+    let ultimaLng = -78.5311;
 
-        const LAT_INICIAL = -5.6763;
-        const LNG_INICIAL = -78.5311;
+    // Inicializar mapa del conductor
+    const mapaConductor = L.map('mapa-leaflet-conductor').setView([ultimaLat, ultimaLng], 16);
 
-        const mapaConductor = L.map('mapa-leaflet-conductor')
-            .setView([LAT_INICIAL, LNG_INICIAL], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(mapaConductor);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }).addTo(mapaConductor);
+    // Marcador visual para que el conductor vea su propia posición
+    const iconoMoto = L.divIcon({
+        html: '<div style="font-size:28px;">🏍️</div>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+    });
+    const marcadorConductor = L.marker([ultimaLat, ultimaLng], { icon: iconoMoto }).addTo(mapaConductor);
 
-        let ultimaLat = null;
-        let ultimaLng = null;
-
-        navigator.geolocation.watchPosition((pos) => {
-
-            ultimaLat = pos.coords.latitude;
-            ultimaLng = pos.coords.longitude;
-
-            mapaConductor.panTo([ultimaLat, ultimaLng]);
-
-        });
-
-        setInterval(() => {
-
-            if (ultimaLat && ultimaLng) {
-
-                fetch('/conductor/ubicacion', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        viaje_id: VIAJE_ID,
-                        lat: ultimaLat,
-                        lng: ultimaLng
-                    })
-                });
-
-            }
-
-        }, 5000);
-
+    // Función unificada para enviar las coordenadas al servidor mediante Fetch
+    function emitirUbicacion(latitud, longitud) {
+        fetch('/conductor/ubicacion', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                viaje_id: VIAJE_ID,
+                lat: latitud,
+                lng: longitud
+            })
+        })
+        .then(res => res.json())
+        .then(data => console.log('Transmisión Reverb exitosa:', data))
+        .catch(err => console.error('Error de red en actualización:', err));
     }
 
+    // DISPOSITIVO REAL EN CALLE vs SIMULADOR LOCAL EN PC
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.log("Detectado entorno Localhost. Activando simulador de movimiento automático...");
+        
+        // Simula avance cada 4 segundos hacia el noreste de Bagua
+        setInterval(() => {
+            ultimaLat += 0.00012;
+            ultimaLng += 0.00012;
+
+            const nuevaPos = [ultimaLat, ultimaLng];
+            marcadorConductor.setLatLng(nuevaPos);
+            mapaConductor.panTo(nuevaPos);
+
+            emitirUbicacion(ultimaLat, ultimaLng);
+        }, 4000);
+
+    } else {
+        console.log("Detectado dispositivo real. Activando GPS integrado...");
+
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition((pos) => {
+                ultimaLat = pos.coords.latitude;
+                ultimaLng = pos.coords.longitude;
+
+                const nuevaPos = [ultimaLat, ultimaLng];
+                marcadorConductor.setLatLng(nuevaPos);
+                mapaConductor.panTo(nuevaPos);
+            }, (err) => {
+                console.warn('Error capturando GPS del dispositivo:', err.message);
+            }, {
+                enableHighAccuracy: true,
+                maximumAge: 0
+            });
+
+            // Enviar la posición real al servidor periódicamente cada 4 segundos
+            setInterval(() => {
+                emitirUbicacion(ultimaLat, ultimaLng);
+            }, 4000);
+        } else {
+            console.error("El navegador no soporta geolocalización.");
+        }
+    }
 });
 </script>
 
