@@ -1004,8 +1004,8 @@ header.scrolled {
     display: grid;
     grid-template-columns: 1fr 620px;
     background: var(--negro);
-    position: absolute;  /* ← agrega esto */
-    top: 64px;           /* ← agrega esto */
+    position: absolute;  
+    top: 64px;           
     left: 0;
 }
 
@@ -1103,7 +1103,22 @@ header.scrolled {
     justify-content: center;
     padding: 48px 44px;
     overflow-y: auto;
-    
+    max-height: calc(100vh - 64px);
+    scrollbar-width: thin; 
+    scrollbar-color: var(--verde-mid) transparent;   
+}
+
+.auth-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.auth-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.auth-panel::-webkit-scrollbar-thumb {
+    background: var(--verde-mid);
+    border-radius: 10px;
 }
 
 .auth-panel-logo {
