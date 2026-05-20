@@ -84,32 +84,29 @@ let mapa;
 let lineaRuta;
 
 // Coordenadas dinámicas obtenidas del viaje creado
-const origLat = parseFloat("{{ $viaje['origen_lat'] ?? $viaje['origen_latitude'] ?? -5.6763 }}");
-const origLng = parseFloat("{{ $viaje['origen_lng'] ?? $viaje['origen_longitude'] ?? -78.5311 }}");
-const destLat = parseFloat("{{ $viaje['destino_lat'] ?? $viaje['destino_latitude'] ?? -5.6800 }}");
-const destLng = parseFloat("{{ $viaje['destino_lng'] ?? $viaje['destino_longitude'] ?? -78.5400 }}");
+const origLat = parseFloat("{{ $viaje['origen_lat'] ?? -5.63889 }}");
+const origLng = parseFloat("{{ $viaje['origen_lng'] ?? -78.5311 }}");
+const destLat = parseFloat("{{ $viaje['destino_lat'] ?? -5.6800 }}");
+const destLng = parseFloat("{{ $viaje['destino_lng'] ?? -78.5400 }}");
 
 window.addEventListener('load', () => {
-    
-    // Inicializar el mapa exactamente con la misma configuración de solicitar_viaje
     mapa = L.map('mapa-solicitud-pasajero', {
         zoomControl: false
     }).setView([origLat, origLng], 15);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
+        attribution: '© OpenStreetMap'
     }).addTo(mapa);
 
-    // Forzar reajuste para evitar el bug de Leaflet en contenedores dinámicos
     setTimeout(() => {
         mapa.invalidateSize();
     }, 200);
 
-    // Controles de zoom nativos de tu plantilla
+    // Controles de zoom 
     document.getElementById('zoom-in')?.addEventListener('click', () => mapa.zoomIn());
     document.getElementById('zoom-out')?.addEventListener('click', () => mapa.zoomOut());
 
-    // Marcadores con estilo DivIcon idéntico al tuyo
+    // Marcadores con estilo
     const iconoOrigen = L.divIcon({
         html: '<div style="font-size: 30px;">📍</div>',
         iconSize: [30, 30],
@@ -139,7 +136,6 @@ window.addEventListener('load', () => {
                 lineJoin: 'round'
             }).addTo(mapa);
 
-            // Auto-encuadre perfecto para que se vean origen y destino juntos en pantalla
             mapa.fitBounds(lineaRuta.getBounds(), { padding: [50, 50] });
         })
         .catch(e => console.log("Error en ruta:", e));

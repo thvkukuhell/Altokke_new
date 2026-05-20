@@ -109,24 +109,21 @@ let marcadorDestino = null;
 let lineaRuta = null;
 
 const DEFAULT_LOCATION = {
-    lat: -5.6763,
-    lng: -78.
+    lat: -5.63889,
+    lng: -78.5311,
 };
 
 // ===============================
 // INICIAR
 // ===============================
 window.addEventListener('load', () => {
-
     inicializarMapa();
-
 });
 
 // ===============================
 // MAPA
 // ===============================
 function inicializarMapa() {
-
     mapa = L.map('mapa-solicitud-pasajero', {
         zoomControl: false
     }).setView(
@@ -159,7 +156,6 @@ function inicializarMapa() {
 // UBICACION ACTUAL
 // ===============================
 function obtenerUbicacion() {
-
     const ubicacionTexto = document.getElementById('ubicacion-texto');
 
     if (!navigator.geolocation) {
@@ -168,19 +164,14 @@ function obtenerUbicacion() {
     }
 
     ubicacionTexto.textContent = 'Obteniendo tu ubicación...';
-
     navigator.geolocation.getCurrentPosition(
-
         async function(pos) {
-
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
 
             colocarOrigen(lat, lng, true);
-
             const direccion =
                 await obtenerDireccion(lat, lng);
-
             document.getElementById(
                 'origen-input'
             ).value = direccion;
@@ -189,9 +180,7 @@ function obtenerUbicacion() {
         },
 
         function(error) {
-
             console.log(error);
-
             ubicacionTexto.textContent =
                 'Permite acceso a ubicación para detectar tu origen';
         },
@@ -208,9 +197,7 @@ function obtenerUbicacion() {
 // DIRECCIÓN HUMANA
 // ===============================
 async function obtenerDireccion(lat, lng) {
-
     try {
-
         const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1`, {
                 headers: {
@@ -220,13 +207,11 @@ async function obtenerDireccion(lat, lng) {
         );
 
         const data = await response.json();
-
         if (!data.address) {
             return 'Ubicación actual';
         }
 
         const a = data.address;
-
         let calle =
             a.road ||
             a.residential ||
@@ -244,7 +229,6 @@ async function obtenerDireccion(lat, lng) {
             '';
 
         let direccion = calle;
-
         if (distrito) {
             direccion += `, ${distrito}`;
         }
@@ -252,9 +236,7 @@ async function obtenerDireccion(lat, lng) {
         return direccion || 'Ubicación actual';
 
     } catch (e) {
-
         console.log(e);
-
         return 'Ubicación actual';
     }
 }
@@ -263,11 +245,9 @@ async function obtenerDireccion(lat, lng) {
 // MARCADOR ORIGEN
 // ===============================
 function colocarOrigen(lat, lng, centrarMapa = false) {
-
     if (marcadorOrigen) {
         mapa.removeLayer(marcadorOrigen);
     }
-
      marcadorOrigen = L.marker(
         [lat, lng]
     ).addTo(mapa);
@@ -297,11 +277,9 @@ function colocarOrigen(lat, lng, centrarMapa = false) {
 // MARCADOR DESTINO
 // ===============================
 function colocarDestino(lat, lng) {
-
     if (marcadorDestino) {
         mapa.removeLayer(marcadorDestino);
     }
-
     marcadorDestino = L.marker(
         [lat, lng]
     ).addTo(mapa);
@@ -372,13 +350,10 @@ function calcularTarifa(
 ) {
 
     const R = 6371;
-
     const dLat =
         (lat2 - lat1) * Math.PI / 180;
-
     const dLon =
         (lon2 - lon1) * Math.PI / 180;
-
     const a =
         Math.sin(dLat / 2) *
         Math.sin(dLat / 2) +
@@ -388,13 +363,11 @@ function calcularTarifa(
 
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2);
-
     const c =
         2 * Math.atan2(
             Math.sqrt(a),
             Math.sqrt(1 - a)
         );
-
     const distancia = R * c;
 
     // TARIFA SIMPLE
@@ -435,54 +408,40 @@ function crearAutocomplete(input, tipo) {
 
     const lista =
         document.createElement('div');
-
     lista.className =
         'autocomplete-lista';
-
     lista.style.display = 'none';
-
     input.parentNode.style.position =
         'relative';
-
     input.parentNode.appendChild(lista);
-
     let timeoutBusqueda;
 
     input.addEventListener('input', function() {
-
         clearTimeout(timeoutBusqueda);
-
         const query = this.value;
-
         if (query.length < 3) {
 
             lista.style.display = 'none';
             return;
         }
         timeoutBusqueda = setTimeout(async () => {
-
             try {
-
                 const response = await fetch(
                     `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`
                 );
-
                 const data =
                     await response.json();
-
                 lista.innerHTML = '';
 
                 if (
                     !data.features ||
                     data.features.length === 0
                 ) {
-
                     lista.style.display = 'none';
                     return;
                 }
 
                 data.features.forEach(lugar => {
-
                     const props =
                         lugar.properties;
 
@@ -537,7 +496,6 @@ function crearAutocomplete(input, tipo) {
                                 );
 
                             } else {
-
                                 colocarDestino(
                                     lat,
                                     lng
@@ -562,11 +520,9 @@ function crearAutocomplete(input, tipo) {
     document.addEventListener(
         'click',
         function(e) {
-
             if (
                 !input.parentNode.contains(e.target)
             ) {
-
                 lista.style.display =
                     'none';
             }

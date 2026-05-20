@@ -69,6 +69,10 @@ class PasajeroController extends Controller {
             'origen'  => $viajeRaw->origen_texto,
             'destino' => $viajeRaw->destino_texto,
             'tarifa'  => $viajeRaw->tarifa_estimada,
+            'origen_lat' => $viajeRaw->lat_origen,
+            'origen_lng' => $viajeRaw->lng_origen,
+            'destino_lat' => $viajeRaw->lat_destino,
+            'destingo_lng' => $viajeRaw->lng_destino,
         ] : [
             'id' => 0, 'origen' => '—', 'destino' => '—', 'tarifa' => '0.00'
         ];
