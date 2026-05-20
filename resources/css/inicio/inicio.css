@@ -999,11 +999,14 @@ header.scrolled {
 
 /* Layout: banner + panel */
 .auth-layout {
-    min-height: 100vh;
-    width: 70%;
+    height: calc(100vh - 64px);
+    width: 100vw;
     display: grid;
     grid-template-columns: 1fr 620px;
     background: var(--negro);
+    position: absolute;  /* ← agrega esto */
+    top: 64px;           /* ← agrega esto */
+    left: 0;
 }
 
 /* Banner izquierdo */
@@ -1100,6 +1103,7 @@ header.scrolled {
     justify-content: center;
     padding: 48px 44px;
     overflow-y: auto;
+    
 }
 
 .auth-panel-logo {
