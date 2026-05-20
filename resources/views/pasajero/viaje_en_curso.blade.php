@@ -1,81 +1,81 @@
 @extends('layouts.main')
 @section('content')
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <div class="pagina-pasajero">
-    <h1 class="titulo-pagina">Viaje en curso</h1>
-    <p class="subtitulo-pagina">Estás en camino — mantén la página abierta</p>
- 
     <div class="solicitar-grid">
- 
-        {{-- ── MAPA ── --}}
+
+        {{-- MAPA --}}
         <div class="mapa-decorativo">
-            <div id="mapa-solicitud-pasajero"></div>
+            <div id="mapa-en-curso"></div>
             <div class="mapa-etiqueta">
                 <span class="mapa-etiqueta-icono">🛺</span>
-                <span id="ubicacion-texto">Monitoreando tu trayecto en tiempo real...</span>
+                <span id="estado-texto">Conductor en camino...</span>
             </div>
             <div class="mapa-controles">
-                <button class="mapa-boton-zoom" id="zoom-in" title="Acercar">+</button>
-                <button class="mapa-boton-zoom" id="zoom-out" title="Alejar">−</button>
+                <button class="mapa-boton-zoom" id="zoom-in">+</button>
+                <button class="mapa-boton-zoom" id="zoom-out">−</button>
             </div>
         </div>
- 
-        {{-- ── Panel lateral ── --}}
-        <div class="panel-viaje">
- 
+
+        {{-- PANEL DERECHO --}}
+        <div class="panel-solicitud" style="display:flex; flex-direction:column; gap:16px;">
+
             {{-- Conductor --}}
-            <div class="tarjeta">
-                <p class="campo-label" style="margin-bottom:14px;">Tu conductor</p>
-                <div class="conductor-fila">
-                    <div class="avatar">{{ $iniciales ?? '—' }}</div>
-                    <div style="flex:1;">
-                        <div class="conductor-nombre">{{ $conductor['nombre'] ?? '—' }}</div>
-                        <div class="conductor-dato">
+            <div>
+                <p class="panel-solicitud-titulo">Tu conductor</p>
+                <p class="panel-solicitud-sub">Sigue el trayecto en el mapa</p>
+
+                <div class="conductor-card-encurso">
+                    <div class="avatar-conductor">{{ $iniciales ?? '—' }}</div>
+                    <div class="conductor-info">
+                        <div class="conductor-nombre-encurso">{{ $conductor['nombre'] ?? '—' }}</div>
+                        <div class="conductor-dato-encurso">
                             ★ {{ number_format($conductor['calificacion'] ?? 0, 1) }}
-                            · {{ $conductor['modelo'] ?? '—' }}
+                            &nbsp;·&nbsp; {{ $conductor['modelo'] ?? '—' }}
                         </div>
                     </div>
-                    <div class="placa">{{ $conductor['placa'] ?? '—' }}</div>
-                </div>
- 
-                <hr class="separador">
- 
-                <div class="fila-dato">
-                    <span>Origen</span>
-                    <strong>{{ $viaje['origen'] ?? '—' }}</strong>
-                </div>
-                <div class="fila-dato">
-                    <span>Destino</span>
-                    <strong>{{ $viaje['destino'] ?? '—' }}</strong>
-                </div>
-                <div class="fila-dato">
-                    <span>Tarifa</span>
-                    <strong style="color:var(--p-verde-mid); font-size:17px; letter-spacing:-0.5px;">
-                        S/ {{ number_format($viaje['tarifa'] ?? 0, 2) }}
-                    </strong>
-                </div>
-                <div class="fila-dato" style="margin:0;">
-                    <span>Pago</span>
-                    <strong>{{ ucfirst($viaje['metodo_pago'] ?? 'efectivo') }}</strong>
+                    <div class="placa-encurso">{{ $conductor['placa'] ?? '—' }}</div>
                 </div>
             </div>
- 
-            {{-- Timeline (Pasos del viaje) --}}
-            <div class="tarjeta">
+
+            {{-- Datos del viaje --}}
+            <div class="ruta-selector" style="margin-bottom:0;">
+                <div class="ruta-fila">
+                    <div class="punto punto-verde"></div>
+                    <span style="font-size:13px; color:var(--text);">{{ $viaje['origen'] ?? '—' }}</span>
+                </div>
+                <div class="ruta-fila">
+                    <div class="punto punto-rojo"></div>
+                    <span style="font-size:13px; color:var(--text);">{{ $viaje['destino'] ?? '—' }}</span>
+                </div>
+            </div>
+
+            {{-- Tarifa --}}
+            <div class="tarifa-caja">
+                <div class="tarifa-numero">S/ {{ number_format($viaje['tarifa'] ?? 0, 2) }}</div>
+                <div class="tarifa-right">
+                    <div class="tarifa-label">Tarifa estimada</div>
+                    <div class="tarifa-detalle">{{ ucfirst($viaje['metodo_pago'] ?? 'efectivo') }}</div>
+                </div>
+            </div>
+
+            {{-- Timeline de pasos --}}
+            <div class="tarjeta-viaje">
                 <p class="campo-label" style="margin-bottom:14px;">Estado del viaje</p>
-                <div class="timeline">
-                    @foreach($pasos ?? [] as $i => $paso)
-                        <div class="paso {{ $paso['estado'] }}" id="contenedor-paso-{{ $i + 1 }}">
+                <div class="timeline" id="timeline-pasos">
+                    @foreach($pasos as $i => $paso)
+                        <div class="paso {{ $paso['estado'] }}" id="paso-{{ $i }}">
                             <div class="paso-icono">
-                                <span class="icono-contenido">
-                                    @if($paso['estado'] === 'hecho')
-                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                                            <path d="M5 13l4 4L19 7"/>
-                                        </svg>
-                                    @else
-                                        {{ $i + 1 }}
-                                    @endif
-                                </span>
+                                @if($paso['estado'] === 'hecho')
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                        <path d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                @else
+                                    {{ $i + 1 }}
+                                @endif
                             </div>
                             <div>
                                 <div class="paso-titulo">{{ $paso['titulo'] }}</div>
@@ -84,121 +84,125 @@
                         </div>
                     @endforeach
                 </div>
- 
-                <hr class="separador">
- 
-                {{-- SECCIÓN DE ACCIONES DIRECTA SIN RESTRICCIONES --}}
-                <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;">
-                    
-                    {{-- BOTÓN CALIFICAR FIJO SIN ARROBA IF --}}
-                    <a id="boton-calificar-real" 
-                       href="/pasajero/calificar/{{ $viaje['id'] ?? $viaje['id_viaje'] ?? 0 }}" 
-                       class="btn" 
-                       style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background-color: #10b981; color: white; padding: 14px; border-radius: 8px; font-weight: bold; text-decoration: none; border: none; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                        </svg>
-                        Calificar servicio del conductor
-                    </a>
-
-                </div>
             </div>
+
+            {{-- Botón calificar — oculto hasta que el viaje se complete --}}
+            <div id="seccion-calificar" style="display:none;">
+                <a href="{{ route('pasajero.calificar', $viaje['id'] ?? 0) }}"
+                   class="btn btn-verde btn-ancho"
+                   style="font-size:15px; padding:14px;">
+                    ⭐ Calificar conductor
+                </a>
+            </div>
+
+            {{-- Cancelar --}}
+            <form method="POST" action="{{ route('pasajero.cancelarViaje') }}"
+                  id="form-cancelar"
+                  onsubmit="return confirm('¿Cancelar el viaje?')">
+                @csrf
+                <input type="hidden" name="viaje_id" value="{{ $viaje['id'] ?? 0 }}">
+                <button type="submit" class="btn btn-outline btn-ancho">✕ Cancelar viaje</button>
+            </form>
+
         </div>
     </div>
 </div>
 
-{{-- Librerías indispensables de Leaflet --}}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
-let mapa;
-let marcadorOrigen = null;
-let marcadorDestino = null;
-let marcadorConductor = null;
-let lineaRuta = null;
+const VIAJE_ID   = {{ $viaje['id'] ?? 0 }};
+const origLat    = {{ $viaje['origen_lat']  ?? -5.63889 }};
+const origLng    = {{ $viaje['origen_lng']  ?? -78.5311 }};
+const destLat    = {{ $viaje['destino_lat'] ?? -5.6800  }};
+const destLng    = {{ $viaje['destino_lng'] ?? -78.5400 }};
+const condLat    = {{ $conductor['lat']     ?? -5.63889 }};
+const condLng    = {{ $conductor['lng']     ?? -78.5311 }};
+
+const ORDEN_PASOS = { aceptado: 0, recogiendo: 1, en_curso: 2, completado: 3 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    
-    const LAT_BAGUA = -5.6763;
-    const LNG_BAGUA = -78.5311;
-    
-    const VIAJE_ID = "{{ $viaje['id'] ?? $viaje['id_viaje'] ?? 0 }}";
-    
-    const origLat = parseFloat("{{ $viaje['origen_lat'] ?? 0 }}") || LAT_BAGUA;
-    const origLng = parseFloat("{{ $viaje['origen_lng'] ?? 0 }}") || LNG_BAGUA;
-    const destLat = parseFloat("{{ $viaje['destino_lat'] ?? 0 }}") || null;
-    const destLng = parseFloat("{{ $viaje['destino_lng'] ?? 0 }}") || null;
+    if (!VIAJE_ID) return;
 
-    // Inicialización del mapa
-    mapa = L.map('mapa-solicitud-pasajero', { zoomControl: false }).setView([origLat, origLng], 15);
+    // ── MAPA ──────────────────────────────────────────────
+    const mapa = L.map('mapa-en-curso', { zoomControl: false }).setView([origLat, origLng], 15);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapa);
-    setTimeout(() => { mapa.invalidateSize(); }, 250);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
+    setTimeout(() => mapa.invalidateSize(), 250);
 
-    document.getElementById('zoom-in')?.addEventListener('click', () => mapa.zoomIn());
+    document.getElementById('zoom-in')?.addEventListener('click',  () => mapa.zoomIn());
     document.getElementById('zoom-out')?.addEventListener('click', () => mapa.zoomOut());
 
-    // Marcadores base
-    marcadorOrigen = L.marker([origLat, origLng]).addTo(mapa);
-    
-    if (destLat && destLng) {
-        marcadorDestino = L.marker([destLat, destLng]).addTo(mapa);
-        
-        fetch(`https://router.project-osrm.org/route/v1/driving/${origLng},${origLat};${destLng},${destLat}?overview=full&geometries=geojson`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.routes && data.routes.length) {
-                    const coordenadas = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-                    lineaRuta = L.polyline(coordenadas, { color: '#16a34a', weight: 6, opacity: 0.9 }).addTo(mapa);
-                    mapa.fitBounds(lineaRuta.getBounds(), { padding: [50, 50] });
-                }
-            });
+    // Marcador pasajero
+    L.marker([origLat, origLng], {
+        icon: L.divIcon({ html: '<div style="font-size:26px">📍</div>', iconSize:[30,30], iconAnchor:[15,30] })
+    }).addTo(mapa).bindPopup('Tu ubicación');
+
+    // Marcador destino
+    L.marker([destLat, destLng], {
+        icon: L.divIcon({ html: '<div style="font-size:26px">🏁</div>', iconSize:[30,30], iconAnchor:[15,30] })
+    }).addTo(mapa).bindPopup('Tu destino');
+
+    // Ruta fija origen -> destino
+    fetch(`https://router.project-osrm.org/route/v1/driving/${origLng},${origLat};${destLng},${destLat}?overview=full&geometries=geojson`)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.routes?.length) return;
+            const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+            L.polyline(coords, { color: '#16a34a', weight: 5, opacity: 0.7, dashArray: '8 5' }).addTo(mapa);
+        });
+
+    // Marcador conductor dinámico
+    const marcadorConductor = L.marker([condLat, condLng], {
+        icon: L.divIcon({ html: '<div style="font-size:28px">🏍️</div>', iconSize:[35,35], iconAnchor:[17,17] })
+    }).addTo(mapa).bindPopup('Tu conductor');
+
+    // ── ACTUALIZAR TIMELINE ───────────────────────────────
+    function actualizarPasos(nuevoEstado) {
+        const posNueva = ORDEN_PASOS[nuevoEstado] ?? 0;
+
+        document.querySelectorAll('.paso').forEach((el, i) => {
+            if (i < posNueva) {
+                el.className = 'paso hecho';
+            } else if (i === posNueva) {
+                el.className = 'paso activo';
+            } else {
+                el.className = 'paso';
+            }
+        });
+
+        // Cambiar dinámicamente el texto flotante de la etiqueta del mapa
+        const textos = {
+            aceptado: 'Conductor asignado y en camino...',
+            recogiendo: 'El conductor está llegando a tu punto de origen...',
+            en_curso: '¡Viaje en curso! Te diriges a tu destino...',
+            completado: '¡Has llegado a tu destino!'
+        };
+        const txtLabel = document.getElementById('estado-texto');
+        if (txtLabel && textos[nuevoEstado]) txtLabel.innerText = textos[nuevoEstado];
     }
 
-    marcadorConductor = L.marker([origLat, origLng], {
-        icon: L.divIcon({
-            html: '<div style="font-size:32px;">🛺</div>',
-            iconSize: [35, 35],
-            iconAnchor: [17, 17]
-        })
-    }).addTo(mapa);
-
-    // ==========================================
-    // ESCUCHAR EVENTOS EN TIEMPO REAL (Echo)
-    // ==========================================
-    if (window.Echo && VIAJE_ID > 0) {
-        
-        window.Echo.channel(`viaje.${VIAJE_ID}`)
-            .listen('ConductorMovido', (data) => {
+    // ── ESCUCHA WEBSOCKETS (ECHO) ─────────────────────────
+    if (window.Echo) {
+        // 1. Escuchar la ubicación en tiempo real de la moto
+        window.Echo.private(`viaje.${VIAJE_ID}`)
+            .listen('UbicacionConductorActualizada', (data) => {
                 if (data.lat && data.lng) {
-                    marcadorConductor.setLatLng([data.lat, data.lng]);
+                    const nuevaPos = [parseFloat(data.lat), parseFloat(data.lng)];
+                    marcadorConductor.setLatLng(nuevaPos);
                 }
             });
 
+        // 2. Escuchar cambios de estado del viaje (Recogiendo, En curso, Completado)
         window.Echo.private(`pasajero.{{ auth()->id() }}`)
             .listen('ViajeActualizado', (data) => {
-                if (data.estado === 'completado' || data.estado === 'finalizado') {
-                    
-                    // Al completarse el viaje, pintamos todos los pasos de verde ("hecho")
-                    for (let pasoNum = 1; pasoNum <= 4; pasoNum++) {
-                        const pasoDiv = document.getElementById(`contenedor-paso-${pasoNum}`);
-                        if (pasoDiv) {
-                            pasoDiv.className = 'paso hecho';
-                            const spanIcono = pasoDiv.querySelector('.icono-contenido');
-                            if (spanIcono) {
-                                spanIcono.innerHTML = `
-                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                                        <path d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                `;
-                            }
-                        }
-                    }
+                if (!data.estado) return;
+                
+                actualizarPasos(data.estado);
+
+                if (data.estado === 'completado') {
+                    document.getElementById('seccion-calificar').style.display = 'block';
+                    document.getElementById('form-cancelar').style.display = 'none';
                 }
             });
     }
 });
 </script>
-
-@endsection

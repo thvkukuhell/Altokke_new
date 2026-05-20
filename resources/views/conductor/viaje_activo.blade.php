@@ -114,9 +114,8 @@ const VIAJE_ID = @json($viaje->id_viaje ?? null);
 document.addEventListener('DOMContentLoaded', () => {
     if (!VIAJE_ID) return;
 
-    // Coordenadas base de Bagua
-    let ultimaLat = -5.6763;
-    let ultimaLng = -78.5311;
+    let ultimaLat = parseFloat("{{ $viaje->conductor->lat ?? -5.6763 }}");
+    let ultimaLng = parseFloat("{{ $viaje->conductor->lng ?? -78.5311 }}");
 
     // Inicializar mapa del conductor
     const mapaConductor = L.map('mapa-leaflet-conductor').setView([ultimaLat, ultimaLng], 16);

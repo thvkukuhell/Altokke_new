@@ -156,39 +156,82 @@ class ConductorController extends Controller
         ]);
     }
 
-public function aceptarViaje(Request $request) 
-{
-    $request->validate([
-        'id_viaje' => 'required|integer|exists:viajes,id_viaje',
-    ]);
+    public function aceptarViaje(Request $request) 
+    {
+        $request->validate([
+            'id_viaje' => 'required|integer|exists:viajes,id_viaje',
+        ]);
 
-    $viaje = Viaje::findOrFail($request->id_viaje);
+        $viaje = Viaje::findOrFail($request->id_viaje);
 
-    // Evitar que dos conductores acepten el mismo viaje
-    if ($viaje->estado_viaje !== 'buscando' || $viaje->id_conductor !== null) {
+        // Evitar que dos conductores acepten el mismo viaje
+        if ($viaje->estado_viaje !== 'buscando' || $viaje->id_conductor !== null) {
+            return redirect()
+                ->route('conductor.solicitudes')
+                ->with('mensaje', 'Este viaje ya fue tomado por otro conductor.');
+        }
+
+        // 1. Cambiar el estado ÚNICAMENTE a 'aceptado'
+        $viaje->update([
+            'id_conductor' => Auth::id(), 
+            'estado_viaje' => 'aceptado', 
+            'fecha_inicio' => now()
+        ]);
+
+        // 2. Disparar eventos
+        event(new \App\Events\ViajeAceptado($viaje->load('conductor.user', 'conductor.vehiculo')));
+        
+        // CORRECCIÓN AQUÍ: Pasamos los 3 parámetros individuales con type-casting a entero
+        event(new \App\Events\ViajeActualizado(
+            (int) $viaje->id_pasajero,
+            'aceptado',
+            (int) $viaje->id_viaje
+        ));
+
+        // Inicia simulación de llegada del conductor
+        dispatch(new SimularLlegadaConductor($viaje));
+
+        // CORRECCIÓN AQUÍ: Apuntamos al nombre de ruta correcto
         return redirect()
-            ->route('conductor.solicitudes')
-            ->with('mensaje', 'Este viaje ya fue tomado por otro conductor.');
+            ->route('conductor.viaje_activo')
+            ->with('mensaje', '¡Viaje aceptado! Dirígete a recoger al pasajero.');
     }
 
-    $viaje->update([
-        'id_conductor' => Auth::id(),
-        'estado_viaje' => 'aceptado',
-        'fecha_inicio' => now(),
-    ]);
+    public function recogerPasajero(Request $request)
+    {
+        $request->validate([
+            'id_viaje' => 'required|integer|exists:viajes,id_viaje',
+        ]);
 
-    // Avisa al pasajero que su viaje fue aceptado
-    event(new \App\Events\ViajeAceptado(
-        $viaje->load('conductor.user', 'conductor.vehiculo')
-    ));
+        $viaje = Viaje::findOrFail($request->id_viaje);
+        $viaje->update(['estado_viaje' => 'recogiendo']);
 
-    // Inicia simulación de llegada del conductor
-    dispatch(new SimularLlegadaConductor($viaje));
+        event(new \App\Events\ViajeActualizado([
+            'id_pasajero' => $viaje->id_pasajero,
+            'estado'      => 'recogiendo',
+            'id_viaje'    => $viaje->id_viaje
+        ]));
 
-    return redirect()
-        ->route('conductor.viaje_activo')
-        ->with('mensaje', '¡Viaje aceptado correctamente!');
-}
+        return redirect()->route('conductor.viaje_activo');
+    }
+
+    public function iniciarTrayecto(Request $request)
+    {
+        $request->validate([
+            'id_viaje' => 'required|integer|exists:viajes,id_viaje',
+        ]);
+
+        $viaje = Viaje::findOrFail($request->id_viaje);
+        $viaje->update(['estado_viaje' => 'en_curso']);
+
+        event(new \App\Events\ViajeActualizado([
+            'id_pasajero' => $viaje->id_pasajero,
+            'estado'      => 'en_curso',
+            'id_viaje'    => $viaje->id_viaje
+        ]));
+
+        return redirect()->route('conductor.viaje_activo');
+    }
 
     // ── Viaje activo ───────────────────────────────────
 
@@ -220,34 +263,30 @@ public function aceptarViaje(Request $request)
 
     public function completarViaje(Request $request)
     {
+        // 1. Validar que llegue el ID del viaje
         $request->validate([
             'id_viaje' => 'required|integer|exists:viajes,id_viaje',
         ]);
 
         $viaje = Viaje::findOrFail($request->id_viaje);
 
+        // 2. Actualizar el estado del viaje en la base de datos
         $viaje->update([
             'estado_viaje' => 'completado',
-            'tarifa_final' => $viaje->tarifa_estimada,
-            'fecha_fin'    => now(),
+            'fecha_fin'    => now()
         ]);
 
-        // Actualizar contador y saldo del conductor
-        $conductor = $this->getConductorActual();
-        $conductor->increment('total_viajes');
-        $conductor->increment('saldo_disponible', $viaje->tarifa_estimada);
+        // 3.  Pasar los 3 parámetros individuales al constructor del evento
+        event(new \App\Events\ViajeActualizado(
+            (int) $viaje->id_pasajero,
+            'completado',
+            (int) $viaje->id_viaje
+        ));
 
-        // ── ENVIAR ALERTA EN TIEMPO REAL AL PASAJERO ──
-        // Enviamos 'estado' => 'completado' para que la vista del pasajero reaccione
-        event(new \App\Events\ViajeActualizado([
-            'id_pasajero' => $viaje->id_pasajero,
-            'estado'      => 'completado',
-            'id_viaje'    => $viaje->id_viaje
-        ]));
-
+        // 4. Redirigir al conductor a su historial, dashboard o solicitudes con un mensaje de éxito
         return redirect()
-            ->route('conductor.billetera')
-            ->with('mensaje', 'Viaje completado. Las ganancias se reflejarán en tu billetera.');
+            ->route('conductor.solicitudes') // O la ruta que prefieras mandar al terminar
+            ->with('mensaje', '¡Viaje terminado con éxito! Buen trabajo.');
     }
 
     public function cancelarViaje(Request $request)

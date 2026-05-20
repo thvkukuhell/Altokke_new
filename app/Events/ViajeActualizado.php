@@ -11,26 +11,24 @@ use Illuminate\Queue\SerializesModels;
 
 class ViajeActualizado implements ShouldBroadcastNow
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, InteractsWithSockets;
 
-    public $data;
+    public function __construct(
+        public int    $pasajeroId,
+        public string $estado,
+        public int    $viajeId
+    ) {}
 
-    public function __construct($data)
+    public function broadcastOn(): PrivateChannel
     {
-        $this->data = $data;
-    }
-
-    public function broadcastOn(): array
-    {
-        // Se transmite por el canal privado del pasajero correspondiente
-        $idPasajero = $this->data['id_pasajero'] ?? $this->data['pasajero_id'] ?? 0;
-        return [
-            new PrivateChannel('pasajero.' . $idPasajero),
-        ];
+        return new PrivateChannel('pasajero.' . $this->pasajeroId);
     }
 
     public function broadcastWith(): array
     {
-        return $this->data;
+        return [
+            'estado'   => $this->estado,
+            'viaje_id' => $this->viajeId,
+        ];
     }
 }

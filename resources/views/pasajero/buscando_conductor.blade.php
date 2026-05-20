@@ -158,9 +158,7 @@ window.addEventListener('load', () => {
 
         window.Echo.private(`pasajero.{{ auth()->id() }}`)
             .listen('ViajeAceptado', (data) => {
-
                 const viajeId = data.viajeId || viajeIdActual;
-
                 if (!viajeId) return;
 
                 // opcional: mostrar info del conductor antes de redirigir

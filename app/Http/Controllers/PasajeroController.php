@@ -7,14 +7,9 @@ use App\Models\Pasajero;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-// Recibe peticiones HTTP, valida datos, llama al DAO y carga la vista correspondiente
-class PasajeroController extends Controller {
-
-    public function __construct()
+class PasajeroController extends Controller
 {
-    $this->middleware('auth');
-    $this->middleware('role:pasajero');
-}
+    // ── Sin __construct — el middleware está en web.php ──
 
     public function index()
     {
@@ -40,6 +35,11 @@ class PasajeroController extends Controller {
         ], [
             'destino.different' => 'El origen y destino no pueden ser iguales.',
         ]);
+
+        // Cancelar viajes buscando anteriores del mismo pasajero
+        Viaje::where('id_pasajero', Auth::id())
+             ->where('estado_viaje', 'buscando')
+             ->update(['estado_viaje' => 'cancelado']);
 
         $pasajero = Pasajero::find(Auth::id());
         if (!$pasajero) {
@@ -74,6 +74,11 @@ class PasajeroController extends Controller {
     {
         $viajeRaw = Viaje::find($viajeId);
 
+        // Si el viaje fue aceptado mientras llegaba aquí, redirigir directo
+        if ($viajeRaw && in_array($viajeRaw->estado_viaje, ['aceptado', 'recogiendo', 'en_curso'])) {
+            return redirect()->route('pasajero.enCurso', $viajeId);
+        }
+
         $viaje = $viajeRaw ? [
             'id'          => $viajeRaw->id_viaje,
             'origen'      => $viajeRaw->origen_texto,
@@ -94,18 +99,36 @@ class PasajeroController extends Controller {
         return view('pasajero.buscando_conductor', [
             'header' => 'header_pasajero',
             'footer' => 'footer',
-            'css'    => ['pasajero/pasajero.css', 'pasajero/buscando_conductor.css'],
+            'css'    => ['pasajero/pasajero.css', 'pasajero/solicitar_viaje.css'],
             'viaje'  => $viaje,
         ]);
     }
 
     public function cancelarViaje(Request $request)
     {
-        $viaje = Viaje::find($request->viaje_id);
-        if ($viaje) {
+        $viaje = Viaje::where('id_viaje', $request->viaje_id)
+                      ->where('id_pasajero', Auth::id())
+                      ->first();
+
+        if ($viaje && in_array($viaje->estado_viaje, ['buscando', 'aceptado'])) {
             $viaje->update(['estado_viaje' => 'cancelado']);
         }
+
         return redirect()->route('pasajero.solicitarViaje');
+    }
+
+    public function expirarViaje(Request $request)
+    {
+        $viaje = Viaje::where('id_viaje', $request->viaje_id)
+                      ->where('id_pasajero', Auth::id())
+                      ->where('estado_viaje', 'buscando')
+                      ->first();
+
+        if ($viaje) {
+            $viaje->update(['estado_viaje' => 'expirado']);
+        }
+
+        return response()->json(['ok' => true]);
     }
 
     public function enCurso(int $viajeId)
@@ -114,53 +137,74 @@ class PasajeroController extends Controller {
 
         if (!$viajeRaw || !$viajeRaw->conductor) {
             $viaje = [
-                'id' => 0, 'origen' => '-', 'destino' => '-',
-                'tarifa' => '0.00', 'metodo_pago' => 'efectivo'
-            ];
-            $conductor = ['nombre' => '-', 'calificacion' => 0, 'modelo' => '-', 'placa' => '-'];
-            $iniciales = '--';
-            $eta = '-';
-            $pasos = [];
-        } else {
-            $viaje = [
-                'id' => $viajeRaw->id_viaje,
-                'origen' => $viajeRaw->origen_texto,
-                'destino' => $viajeRaw->destino_texto,
-                'tarifa' => $viajeRaw->tarifa_estimada,
-                'metodo_pago' => $viajeRaw->metodo_pago,
+                'id'          => $viajeId,
+                'origen'      => '—',
+                'destino'     => '—',
+                'tarifa'      => '0.00',
+                'metodo_pago' => 'efectivo',
+                'origen_lat'  => -5.63889,
+                'origen_lng'  => -78.5311,
+                'destino_lat' => -5.6800,
+                'destino_lng' => -78.5400,
+                'estado'      => 'buscando',
             ];
             $conductor = [
-                'nombre' => $viajeRaw->conductor->user->nombre_completo ?? '-',
-                'calificacion' => $viajeRaw->conductor->califcacion_promedio ?? 0,
-                'modelo' => ($viajeRaw->conductor->vehiculo->marca ?? '') . ' ' . ($viajeRaw->conductor->vehiculo->modelo ?? ''),
-                'placa' => $viajeRaw->conductor->vehiculo->placa ?? '-',
+                'nombre'      => '—',
+                'calificacion' => 0,
+                'modelo'      => '—',
+                'placa'       => '—',
+                'lat'         => -5.63889,
+                'lng'         => -78.5311,
+            ];
+            $iniciales = '--';
+            $eta       = '—';
+            $pasos     = $this->construirPasos('aceptado');
+        } else {
+            $viaje = [
+                'id'          => $viajeRaw->id_viaje,
+                'origen'      => $viajeRaw->origen_texto,
+                'destino'     => $viajeRaw->destino_texto,
+                'tarifa'      => $viajeRaw->tarifa_estimada,
+                'metodo_pago' => $viajeRaw->metodo_pago,
+                'origen_lat'  => $viajeRaw->lat_origen  ?? -5.63889,
+                'origen_lng'  => $viajeRaw->lng_origen  ?? -78.5311,
+                'destino_lat' => $viajeRaw->lat_destino ?? -5.6800,
+                'destino_lng' => $viajeRaw->lng_destino ?? -78.5400,
+                'estado'      => $viajeRaw->estado_viaje,
+            ];
+            $conductor = [
+                'nombre'       => $viajeRaw->conductor->user->nombre_completo ?? '—',
+                'calificacion' => $viajeRaw->conductor->calificacion_promedio ?? 0,
+                'modelo'       => trim(($viajeRaw->conductor->vehiculo->marca ?? '') . ' ' . ($viajeRaw->conductor->vehiculo->modelo ?? '')),
+                'placa'        => $viajeRaw->conductor->vehiculo->placa ?? '—',
+                'lat'          => -5.63889,
+                'lng'          => -78.5311,
             ];
             $iniciales = $this->calcularIniciales($viajeRaw->conductor->user->nombre_completo ?? '');
-            $eta = $viajeRaw->tiempo_estimado_min ?? '-';
-            $pasos = $this->construirPasos($viajeRaw->estado_viaje);
+            $eta       = $viajeRaw->tiempo_estimado_min ?? '—';
+            $pasos     = $this->construirPasos($viajeRaw->estado_viaje);
         }
 
         return view('pasajero.viaje_en_curso', [
-            'header'  => 'header_pasajero',
-            'footer'  => 'footer',
-            'css'     => ['pasajero/pasajero.css', 'pasajero/viaje_en_curso.css'],
-            'viajeRaw'  => $viajeRaw,
-            'viaje' => $viaje,
+            'header'    => 'header_pasajero',
+            'footer'    => 'footer',
+            'css'       => ['pasajero/pasajero.css', 'pasajero/solicitar_viaje.css'],
+            'viaje'     => $viaje,
             'conductor' => $conductor,
             'iniciales' => $iniciales,
-            'eta' => $eta,
-            'pasos' => $pasos,
-        ]); 
+            'eta'       => $eta,
+            'pasos'     => $pasos,
+        ]);
     }
 
-    public function calificar (int $viajeId)
+    public function calificar(int $viajeId)
     {
         $viajeRaw = Viaje::with('conductor.user', 'conductor.vehiculo')->find($viajeId);
 
         if (!$viajeRaw || !$viajeRaw->conductor) {
-            $viaje = ['id' => 0, 'origen' => '-', 'destino' => '-', 'tarifa' => '0.00'];
-            $conductor = ['id' => 0, 'nombre' => '-', 'placa' => '-', 'calificacion' => 0];
-            $inicales = '--';
+            $viaje     = ['id' => 0, 'origen' => '—', 'destino' => '—', 'tarifa' => '0.00'];
+            $conductor = ['id' => 0, 'nombre' => '—', 'placa' => '—', 'calificacion' => 0];
+            $iniciales = '--';
         } else {
             $viaje = [
                 'id'      => $viajeRaw->id_viaje,
@@ -178,34 +222,32 @@ class PasajeroController extends Controller {
         }
 
         return view('pasajero.calificar_viaje', [
-            'header'  => 'header_pasajero',
-            'footer'  => 'footer',
-            'css'     => ['pasajero/pasajero.css', 'pasajero/calificar_viaje.css'],
-            'viajeRaw'  => $viajeRaw,
-            'viaje' => $viaje,
+            'header'    => 'header_pasajero',
+            'footer'    => 'footer',
+            'css'       => ['pasajero/pasajero.css', 'pasajero/calificar_viaje.css'],
+            'viaje'     => $viaje,
             'conductor' => $conductor,
             'iniciales' => $iniciales,
         ]);
     }
 
-    public function enviarCalificacion(Request $request) 
+    public function enviarCalificacion(Request $request)
     {
         $request->validate([
-            'viaje_id' => 'required|integer',
+            'viaje_id'     => 'required|integer',
             'conductor_id' => 'required|integer',
-            'estrellas' => 'required|integer|min:1|max:5',
-            'comentario' => 'nullable|string|max:500', 
+            'estrellas'    => 'required|integer|min:1|max:5',
+            'comentario'   => 'nullable|string|max:500',
         ]);
 
         \App\Models\Calificacion::updateOrCreate(
             ['id_viaje' => $request->viaje_id],
             [
-                'puntuacion'  => $request->estrellas,
-                'comentario'  => $request->comentario ?? '',
+                'puntuacion' => $request->estrellas,
+                'comentario' => $request->comentario ?? '',
             ]
         );
 
-        // Recalcular promedio del conductor
         $promedio = Viaje::where('id_conductor', $request->conductor_id)
                          ->join('calificaciones', 'calificaciones.id_viaje', '=', 'viajes.id_viaje')
                          ->avg('calificaciones.puntuacion');
@@ -225,8 +267,9 @@ class PasajeroController extends Controller {
             'mes'    => 'Este mes',
         ];
 
-        $filtro  = $request->get('filtro', 'todos');
-        $query   = Viaje::where('id_pasajero', Auth::id())->with('conductor.user', 'calificacion');
+        $filtro = $request->get('filtro', 'todos');
+        $query  = Viaje::where('id_pasajero', Auth::id())
+                       ->with('conductor.user', 'calificacion');
 
         $query = match($filtro) {
             'hoy'    => $query->whereDate('fecha_solicitud', today()),
@@ -272,36 +315,36 @@ class PasajeroController extends Controller {
 
     public function perfil()
     {
-        $user     = Auth::user();
-        $pasajero = $user->pasajero;
-        $iniciales = $this->calcularIniciales($user->nombre_completo);
+        $user          = Auth::user();
+        $pasajero      = $user->pasajero;
+        $iniciales     = $this->calcularIniciales($user->nombre_completo);
         $seccionActiva = 'perfil';
 
         return view('pasajero.perfil', [
-            'header'       => 'header_pasajero',
-            'footer'       => 'footer',
-            'css'          => ['pasajero/pasajero.css', 'pasajero/perfil.css'],
-            'user'         => $user,
-            'pasajero'     => $pasajero,
-            'iniciales'    => $iniciales,
-            'seccionActiva'=> $seccionActiva,
+            'header'        => 'header_pasajero',
+            'footer'        => 'footer',
+            'css'           => ['pasajero/pasajero.css', 'pasajero/perfil.css'],
+            'user'          => $user,
+            'pasajero'      => $pasajero,
+            'iniciales'     => $iniciales,
+            'seccionActiva' => $seccionActiva,
         ]);
     }
 
-    public function editarPerfil() 
+    public function editarPerfil()
     {
-        $user = Auth::user();
-        $pasajero = $user->pasajero;
-        $iniciales = $this->calcularIniciales($user->nombre_completo);
+        $user          = Auth::user();
+        $pasajero      = $user->pasajero;
+        $iniciales     = $this->calcularIniciales($user->nombre_completo);
         $seccionActiva = 'perfil';
 
         return view('pasajero.editar_perfil', [
-            'header'  => 'header_pasajero',
-            'footer'  => 'footer',
-            'css'     => ['pasajero/pasajero.css', 'pasajero/editar_perfil.css'],
-            'user'  => $user,
-            'pasajero'  => $pasajero,
-            'iniciales' => $iniciales,
+            'header'        => 'header_pasajero',
+            'footer'        => 'footer',
+            'css'           => ['pasajero/pasajero.css', 'pasajero/editar_perfil.css'],
+            'user'          => $user,
+            'pasajero'      => $pasajero,
+            'iniciales'     => $iniciales,
             'seccionActiva' => $seccionActiva,
         ]);
     }
@@ -312,52 +355,53 @@ class PasajeroController extends Controller {
             'nombre_completo'       => 'required|string|max:150',
             'apellidos'             => 'nullable|string|max:150',
             'telefono'              => 'nullable|regex:/^\+?[0-9\s\-]{7,15}$/',
-            'dni'                   => 'nullable|digits:8', // Valida que tenga exactamente 8 números
             'metodo_pago_preferido' => 'required|in:efectivo,yape,plin',
         ]);
 
         $user = Auth::user();
-        $idUsuarioReal = $user->id_usuario;
-
-        $user->pasajero->update([
+        $user->update([
             'nombre_completo' => $request->nombre_completo,
             'apellidos'       => $request->apellidos,
             'telefono'        => $request->telefono,
-            'dni'             => $request->dni, 
         ]);
 
-        $pasajeroExistente = \App\Models\Pasajero::where('id_pasajero', $idUsuarioReal)->first();
-
-        if ($pasajeroExistente) {
-            $pasajeroExistente->update([
-                'metodo_pago_preferido' => $request->metodo_pago_preferido,
-            ]);
-        } else {
-            \App\Models\Pasajero::create([
-                'id_pasajero'           => $idUsuarioReal,
-                'metodo_pago_preferido' => $request->metodo_pago_preferido,
-            ]);
-        }
+        $pasajero = Pasajero::firstOrCreate(
+            ['id_pasajero' => $user->id_usuario],
+            ['metodo_pago_preferido' => 'efectivo']
+        );
+        $pasajero->update([
+            'metodo_pago_preferido' => $request->metodo_pago_preferido,
+        ]);
 
         return redirect()->route('pasajero.perfil');
+    }
+
+    public function actualizarUbicacion(Request $request)
+    {
+        // Para uso futuro si el pasajero también comparte ubicación
+        return response()->json(['ok' => true]);
     }
 
     private function calcularIniciales(string $nombre): string
     {
         $partes = explode(' ', trim($nombre));
-        return strtoupper(substr($partes[0] ?? '', 0, 1) . substr($partes[1] ?? '', 0, 1));
+        return strtoupper(
+            substr($partes[0] ?? '', 0, 1) .
+            substr($partes[1] ?? '', 0, 1)
+        );
     }
 
     private function construirPasos(string $estadoActual): array
     {
         $orden = ['aceptado', 'recogiendo', 'en_curso', 'completado'];
         $posicion = array_search($estadoActual, $orden, true);
+        if ($posicion === false) $posicion = 0;
 
         $definiciones = [
             'aceptado'   => ['titulo' => 'Viaje aceptado',      'sub' => 'El conductor confirmó la solicitud'],
-            'recogiendo' => ['titulo' => 'Recogiendo pasajero', 'sub' => 'El conductor va a tu origen'],
-            'en_curso'   => ['titulo' => 'En curso',            'sub' => 'Llevándote al destino'],
-            'completado' => ['titulo' => 'Completado',          'sub' => 'Has llegado a tu destino'],
+            'recogiendo' => ['titulo' => 'Recogiendo pasajero', 'sub' => 'El conductor va hacia ti'],
+            'en_curso'   => ['titulo' => 'En camino',           'sub' => 'Llevándote al destino'],
+            'completado' => ['titulo' => 'Llegaste',            'sub' => 'Has llegado a tu destino'],
         ];
 
         $pasos = [];
@@ -365,7 +409,8 @@ class PasajeroController extends Controller {
             $pasos[] = [
                 'titulo' => $definiciones[$estado]['titulo'],
                 'sub'    => $definiciones[$estado]['sub'],
-                'estado' => $i < $posicion ? 'hecho' : ($i === $posicion ? 'activo' : 'pendiente'),
+                'estado' => $i < $posicion  ? 'hecho'
+                          : ($i === $posicion ? 'activo' : 'pendiente'),
             ];
         }
 

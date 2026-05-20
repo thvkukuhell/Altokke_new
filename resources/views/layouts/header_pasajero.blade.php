@@ -8,7 +8,7 @@
 
         <nav class="enlaces-nav-app">
             <a href="{{ route('pasajero.solicitarViaje') }}"
-                class="enlace-menu-app {{ Request::is('pasajero/solicitarViaje') ? 'activo' : '' }}">
+            class="enlace-menu-app {{ Request::is('pasajero/solicitar-viaje') ? 'activo' : '' }}">
                 Solicitar viaje
             </a>
 
@@ -19,30 +19,39 @@
 
             {{-- Lógica de viaje activo --}}
             @php
+                $viajeActivo = null;
 
-            if (auth()->check()) {
+                if (auth()->check()) {
+                    // Expirar viajes buscando de más de 3 minutos sin conductor
+                    \App\Models\Viaje::where('id_pasajero', auth()->id())
+                        ->where('estado_viaje', 'buscando')
+                        ->where('created_at', '<', now()->subMinutes(3))
+                        ->update(['estado_viaje' => 'expirado']);
 
-                // Expirar viajes viejos
-                \App\Models\Viaje::where('id_pasajero', auth()->id())
-                    ->where('estado_viaje', 'buscando')
-                    ->where('created_at', '<', now()->subMinutes(2))
-                    ->update([
-                        'estado_viaje' => 'expirado'
-                    ]);
-
-                // Buscar viaje activo reciente
-                $viajeActivo = \App\Models\Viaje::where('id_pasajero', auth()->id())
-                    ->whereIn('estado_viaje', [
-                        'buscando',
-                        'aceptado',
-                        'recogiendo',
-                        'en_curso'
-                    ])
-                    ->latest('id_viaje')
-                    ->first();
-            }
-
+                    // Buscar solo el viaje activo más reciente
+                    $viajeActivo = \App\Models\Viaje::where('id_pasajero', auth()->id())
+                        ->whereIn('estado_viaje', ['buscando', 'aceptado', 'recogiendo', 'en_curso'])
+                        ->latest('id_viaje')
+                        ->first();
+                }
             @endphp
+
+            {{-- Solo muestra el badge si hay viaje activo --}}
+            @if($viajeActivo)
+                @if($viajeActivo->estado_viaje === 'buscando')
+                    <a href="{{ route('pasajero.buscando', $viajeActivo->id_viaje) }}"
+                    class="enlace-menu-app nav-viaje-activo">
+                        <span class="nav-dot-pulse"></span>
+                        Buscando conductor
+                    </a>
+                @else
+                    <a href="{{ route('pasajero.enCurso', $viajeActivo->id_viaje) }}"
+                    class="enlace-menu-app nav-viaje-activo">
+                        <span class="nav-dot-pulse"></span>
+                        Viaje en curso
+                    </a>
+                @endif
+            @endif
 
             {{-- Avatar de Perfil Circular Limpio --}}
             <a href="{{ route('pasajero.perfil') }}" class="perfil-contenedor-app">
