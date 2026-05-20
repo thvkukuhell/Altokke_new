@@ -313,100 +313,50 @@ function colocarDestino(lat, lng) {
 // DIBUJAR RUTA REAL
 // ===============================
 async function actualizarRuta() {
-    if (
-        !marcadorOrigen ||
-        !marcadorDestino
-    ) {
-        return;
-    }
-
-    const origen =
-        marcadorOrigen.getLatLng();
-
-    const destino =
-        marcadorDestino.getLatLng();
-
-    // BORRAR RUTA ANTERIOR
-    if (lineaRuta) {
-
-        mapa.removeLayer(lineaRuta);
-    }
-
+    if (!marcadorOrigen || !marcadorDestino) return;
+    const origen = marcadorOrigen.getLatLng();
+    const destino = marcadorDestino.getLatLng();
+    if (lineaRuta) mapa.removeLayer(lineaRuta);
+    
     try {
-
-        // API ROUTING REAL
         const response = await fetch(
-            `https://router.project-osrm.org/route/v1/driving/` +
-            `${origen.lng},${origen.lat};${destino.lng},${destino.lat}` +
-            `?overview=full&geometries=geojson`
+            `https://router.project-osrm.org/route/v1/driving/${origen.lng},${origen.lat};${destino.lng},${destino.lat}?overview=full&geometries=geojson`
         );
+        const data = await response.json();
+        if (!data.routes || !data.routes.length) return;
+        const ruta = data.routes[0];
+        const coordenadas = ruta.geometry.coordinates.map(coord => [coord[1], coord[0]]);
 
-        const data =
-            await response.json();
+        lineaRuta = L.polyline(coordenadas, {
+            color: '#16a34a',
+            weight: 6,
+            opacity: 0.9,
+            lineJoin: 'round'
+        }).addTo(mapa);
 
-        if (
-            !data.routes ||
-            !data.routes.length
-        ) {
-            return;
+        mapa.fitBounds(lineaRuta.getBounds(), { padding: [50, 50] });
+        
+        const distanciaKm = ruta.distance / 1000;
+        const tiempoMin = Math.ceil(ruta.duration / 60);
+        
+        // --- AQUÍ ESTÁ EL TRUCO: Detectar cuál servicio está marcado ---
+        const radioExpress = document.querySelector('input[name="tipo_servicio"][value="express"]');
+        let tarifaBase = 3.00;
+        
+        // Validamos si el elemento existe y además su contenedor tiene la clase "seleccionado"
+        if (radioExpress && radioExpress.closest('.servicio-chip').classList.contains('seleccionado')) {
+            tarifaBase = 5.00;
         }
 
-        const ruta =
-            data.routes[0];
-
-        // COORDENADAS DE LA RUTA
-        const coordenadas =
-            ruta.geometry.coordinates.map(
-                coord => [
-                    coord[1],
-                    coord[0]
-                ]
-            );
-        // DIBUJAR RUTA
-        lineaRuta = L.polyline(
-            coordenadas, {
-                color: '#16a34a',
-                weight: 6,
-                opacity: 0.9,
-                lineJoin: 'round'
-            }
-        ).addTo(mapa);
-        // AJUSTAR MAPA
-        mapa.fitBounds(
-            lineaRuta.getBounds(), {
-                padding: [50, 50]
-            }
-        );
-
-        // DISTANCIA REAL
-        const distanciaKm =
-            ruta.distance / 1000;
-
-        // TIEMPO REAL
-        const tiempoMin =
-            Math.ceil(
-                ruta.duration / 60
-            );
-
-        // TARIFA
-        let tarifa =
-            3 + (distanciaKm * 1.5);
-
-        tarifa =
-            tarifa.toFixed(2);
-
-        document.getElementById(
-                'tarifa-numero'
-            ).innerHTML =
-            `S/ ${tarifa}`;
-
-        document.getElementById(
-                'tarifa-detalle'
-            ).innerHTML =
-            `~${distanciaKm.toFixed(1)} km · ${tiempoMin} min`;
-
+        // Realizar el cálculo matemático con la base correspondiente
+        let tarifa = tarifaBase + (distanciaKm * 1.5);
+        tarifa = tarifa.toFixed(2);
+        
+        // Renderizar los datos actualizados en la tarjeta verde
+        document.getElementById('tarifa-numero').innerHTML = `S/ ${tarifa}`;
+        document.getElementById('tarifa-detalle').innerHTML = `~${distanciaKm.toFixed(1)} km · ${tiempoMin} min`;
+        
     } catch (e) {
-
         console.log(e);
     }
 }
@@ -625,27 +575,41 @@ function crearAutocomplete(input, tipo) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Detectar clics en los tipos de servicio (Normal / Express)
-    const chipsServicio = document.querySelectorAll('.servicio-chip');
-    chipsServicio.forEach(chip => {
+    // Manejo de clicks en Tipo de Servicio (Normal / Express)
+    const chips = document.querySelectorAll('.servicio-chip');
+    chips.forEach(chip => {
         chip.addEventListener('click', function() {
-            chipsServicio.forEach(c => c.classList.remove('seleccionado'));
+            // 1. Limpiamos y asignamos la clase visual primero
+            chips.forEach(c => c.classList.remove('seleccionado'));
             this.classList.add('seleccionado');
             
-            const input = this.querySelector('input[type="radio"]');
-            if (input) input.checked = true;
+            // 2. Marcamos el input radio correspondiente internamente
+            const radio = this.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+            }
+            
+            // 3. Forzamos el recalculo inmediato si ya hay una ruta trazada
+            if (marcadorOrigen && marcadorDestino) {
+                actualizarRuta();
+            } else {
+                // Si aún no hay ruta, solo actualiza el texto del precio base inicial
+                const tarifaNumElement = document.getElementById('tarifa-numero');
+                if (tarifaNumElement) {
+                    tarifaNumElement.innerHTML = radio && radio.value === 'express' ? 'S/ 5.00' : 'S/ 3.00';
+                }
+            }
         });
     });
 
-    // Detectar clics en los métodos de pago (Efectivo / Yape / Plin)
+    // Manejo de clicks en Métodos de Pago
     const opcionesPago = document.querySelectorAll('.pago-opcion');
     opcionesPago.forEach(opcion => {
         opcion.addEventListener('click', function() {
             opcionesPago.forEach(o => o.classList.remove('activo'));
             this.classList.add('activo');
-            
-            const input = this.querySelector('input[type="radio"]');
-            if (input) input.checked = true;
+            const radio = this.querySelector('input[type="radio"]');
+            if (radio) radio.checked = true;
         });
     });
 });

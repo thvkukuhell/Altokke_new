@@ -295,19 +295,32 @@ class PasajeroController extends Controller {
             'nombre_completo'       => 'required|string|max:150',
             'apellidos'             => 'nullable|string|max:150',
             'telefono'              => 'nullable|regex:/^\+?[0-9\s\-]{7,15}$/',
+            'dni'                   => 'nullable|digits:8', // Valida que tenga exactamente 8 números
             'metodo_pago_preferido' => 'required|in:efectivo,yape,plin',
         ]);
 
         $user = Auth::user();
-        $user->pasajero->update([
+        $idUsuarioReal = $user->id_usuario;
+
+        $user->update([
             'nombre_completo' => $request->nombre_completo,
-            'apellidos' => $request->apellidos,
-            'telefono' => $request->telefono,
+            'apellidos'       => $request->apellidos,
+            'telefono'        => $request->telefono,
+            'dni'             => $request->dni, 
         ]);
 
-        $user->pasajero->update([
-            'metodo_pago_preferido' => $request->metodo_pago_preferido,
-        ]);
+        $pasajeroExistente = \App\Models\Pasajero::where('id_pasajero', $idUsuarioReal)->first();
+
+        if ($pasajeroExistente) {
+            $pasajeroExistente->update([
+                'metodo_pago_preferido' => $request->metodo_pago_preferido,
+            ]);
+        } else {
+            \App\Models\Pasajero::create([
+                'id_pasajero'           => $idUsuarioReal,
+                'metodo_pago_preferido' => $request->metodo_pago_preferido,
+            ]);
+        }
 
         return redirect()->route('pasajero.perfil');
     }

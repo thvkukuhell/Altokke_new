@@ -21,6 +21,7 @@ class User extends Authenticatable
         'contrasena_hash',
         'tipo_usuario',
         'activo',
+        'foto_perfil',
     ];
 
     protected $hidden = [

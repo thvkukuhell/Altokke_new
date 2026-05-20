@@ -24,5 +24,6 @@ class DatabaseSeeder extends Seeder
             'id_pasajero'          => $user->id_usuario,
             'metodo_pago_preferido' => 'efectivo',
         ]);
+
     }
 }

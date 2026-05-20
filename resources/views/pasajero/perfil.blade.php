@@ -1,13 +1,15 @@
 @extends('layouts.main')
 @section('content')
 
-<div class="pagina-pasajero">
+<div class="pagina-pasajero-perfil">
     <div class="perfil-layout">
  
         {{-- SIDEBAR --}}
         <aside class="perfil-sidebar">
             <div class="sidebar-cabecera">
-                <div class="sidebar-avatar">{{ $iniciales ?? '—' }}</div>
+                <div class="avatar-wrapper">
+                    <div class="sidebar-avatar">{{ $user->iniciales() }}</div>
+                </div>
                 <div class="sidebar-nombre">
                     {{ $user->nombre_completo ?? 'Usuario' }}
                     {{ $user->apellidos ?? '' }}
@@ -17,8 +19,7 @@
  
             <ul class="sidebar-menu">
                 <li>
-                    <a href="{{ route('pasajero.historial') }}"
-                       class="{{ ($seccionActiva ?? '') === 'historial' ? 'activo' : '' }}">
+                    <a href="{{ route('pasajero.historial') }}" class="{{ ($seccionActiva ?? '') === 'historial' ? 'activo' : '' }}">
                         <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
                         </svg>
@@ -26,8 +27,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('pasajero.perfil') }}"
-                       class="{{ ($seccionActiva ?? '') === 'perfil' ? 'activo' : '' }}">
+                    <a href="{{ route('pasajero.perfil') }}" class="activo">
                         <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
                         </svg>
@@ -45,7 +45,7 @@
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="btn-cerrar-sesion">
+                        <button type="submit" class="btn-cerrar-sesion-sidebar">
                             <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 0 1-6 0v-1m0-8V7a3 3 0 0 1 6 0v1"/>
                             </svg>
@@ -56,19 +56,18 @@
             </ul>
         </aside>
  
-        {{-- CONTENIDO --}}
+        {{-- CONTENIDO DE DATOS --}}
         <div class="perfil-contenido">
  
-            {{-- Datos personales --}}
-            <div class="tarjeta">
+            <div class="tarjeta-perfil-bloque">
                 <div class="perfil-encabezado">
-                    <h2>Mi Perfil</h2>
-                    <a href="{{ route('pasajero.editarPerfil') }}" class="btn btn-verde">
+                    <h2>Información Personal</h2>
+                    <a href="{{ route('pasajero.editarPerfil') }}" class="btn-editar-perfil-accion">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                             <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/>
                         </svg>
-                        Editar
+                        Editar perfil
                     </a>
                 </div>
  
@@ -101,11 +100,11 @@
  
                 <div class="perfil-grid">
                     <div>
-                        <p class="perfil-campo-label">Email</p>
+                        <p class="perfil-campo-label">Correo Electrónico</p>
                         <p class="perfil-campo-valor">{{ $user->email ?? '—' }}</p>
                     </div>
                     <div>
-                        <p class="perfil-campo-label">Teléfono</p>
+                        <p class="perfil-campo-label">Teléfono / Celular</p>
                         <p class="perfil-campo-valor {{ empty($user->telefono) ? 'vacio' : '' }}">
                             {{ $user->telefono ?: '—' }}
                         </p>
@@ -114,10 +113,10 @@
             </div>
  
             {{-- Método de pago --}}
-            <div class="tarjeta">
+            <div class="tarjeta-perfil-bloque">
                 <div class="perfil-encabezado">
                     <h2>Método de pago preferido</h2>
-                    <a href="{{ route('pasajero.editarPerfil') }}" class="btn btn-outline">
+                    <a href="{{ route('pasajero.editarPerfil') }}" class="btn-cambiar-pago-text">
                         Cambiar
                     </a>
                 </div>
@@ -130,8 +129,8 @@
  
                 <div class="pago-fila">
                     <span class="pago-icono">{{ $icono }}</span>
-                    <span>{{ ucfirst($metodo) }}</span>
-                    <span class="badge badge-verde" style="margin-left:auto;">Predeterminado</span>
+                    <span class="pago-texto-nombre">{{ ucfirst($metodo) }}</span>
+                    <span class="badge-predeterminado">Predeterminado</span>
                 </div>
             </div>
  
