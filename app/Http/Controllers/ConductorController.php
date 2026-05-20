@@ -3,11 +3,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Viaje;
 use App\Models\Conductor;
-use App\Models\Vehiculo;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Events\ViajeActualizado;
+use App\Jobs\SimularLlegadaConductor;
 
 class ConductorController extends Controller
 {
@@ -119,7 +117,7 @@ class ConductorController extends Controller
             'email.unique'             => 'El email ya está en uso.',
         ]);
 
-        Auth::user()->update([
+        Auth::user()->conductor->update([
             'nombre_completo' => $request->nombre_completo,
             'apellidos'       => $request->apellidos,
             'telefono'        => $request->telefono,
@@ -158,34 +156,39 @@ class ConductorController extends Controller
         ]);
     }
 
-    public function aceptarViaje(Request $request) 
-    {
-        $request->validate([
-            'id_viaje' => 'required|integer|exists:viajes,id_viaje',
-        ]);
+public function aceptarViaje(Request $request) 
+{
+    $request->validate([
+        'id_viaje' => 'required|integer|exists:viajes,id_viaje',
+    ]);
 
-        $viaje = Viaje::findOrFail($request->id_viaje);
+    $viaje = Viaje::findOrFail($request->id_viaje);
 
-        // Evitar que dos conductores acepten el mismo viaje
-        if ($viaje->estado_viaje !== 'buscando' || $viaje->id_conductor !== null) {
-            return redirect()
-                ->route('conductor.solicitudes')
-                ->with('mensaje', 'Este viaje ya fue tomado por otro conductor.');
-        }
-
-        $viaje->update([
-            'id_conductor' => Auth::id(),
-            'estado_viaje' => 'aceptado',
-            'fecha_inicio' => now(),
-        ]);
-
-        // Avisa al pasajero que su viaje fue aceptado
-        event(new \App\Events\ViajeAceptado($viaje->load('conductor.user', 'conductor.vehiculo')));
-
+    // Evitar que dos conductores acepten el mismo viaje
+    if ($viaje->estado_viaje !== 'buscando' || $viaje->id_conductor !== null) {
         return redirect()
-            ->route('conductor.viaje_activo')
-            ->with('mensaje', '¡Viaje aceptado correctamente!');
+            ->route('conductor.solicitudes')
+            ->with('mensaje', 'Este viaje ya fue tomado por otro conductor.');
     }
+
+    $viaje->update([
+        'id_conductor' => Auth::id(),
+        'estado_viaje' => 'aceptado',
+        'fecha_inicio' => now(),
+    ]);
+
+    // Avisa al pasajero que su viaje fue aceptado
+    event(new \App\Events\ViajeAceptado(
+        $viaje->load('conductor.user', 'conductor.vehiculo')
+    ));
+
+    // Inicia simulación de llegada del conductor
+    dispatch(new SimularLlegadaConductor($viaje));
+
+    return redirect()
+        ->route('conductor.viaje_activo')
+        ->with('mensaje', '¡Viaje aceptado correctamente!');
+}
 
     // ── Viaje activo ───────────────────────────────────
 
@@ -248,28 +251,28 @@ class ConductorController extends Controller
     }
 
     public function cancelarViaje(Request $request)
-    {
-        $$request->validate([
-            'id_viaje' => 'required|integer|exists:viajes,id_viaje',
-        ]);
+{
+    $request->validate([
+        'id_viaje' => 'required|integer|exists:viajes,id_viaje',
+    ]);
 
-        $viaje = Viaje::findOrFail($request->id_viaje);
-        
-        $viaje->update([
-            'estado_viaje' => 'cancelado',
-        ]);
+    $viaje = Viaje::findOrFail($request->id_viaje);
 
-        // ── ENVIAR ALERTA EN TIEMPO REAL AL PASAJERO ──
-        event(new \App\Events\ViajeActualizado([
-            'id_pasajero' => $viaje->id_pasajero,
-            'estado'      => 'cancelado',
-            'id_viaje'    => $viaje->id_viaje
-        ]));
+    $viaje->update([
+        'estado_viaje' => 'cancelado',
+    ]);
 
-        return redirect()
-            ->route('conductor.index') // Cambiado a index para evitar errores si no existe alias dashboard
-            ->with('mensaje', 'Viaje cancelado correctamente.');
-    }
+    // ── ENVIAR ALERTA EN TIEMPO REAL AL PASAJERO ──
+    event(new \App\Events\ViajeActualizado([
+        'id_pasajero' => $viaje->id_pasajero,
+        'estado'      => 'cancelado',
+        'id_viaje'    => $viaje->id_viaje
+    ]));
+
+    return redirect()
+        ->route('conductor.dashboard')
+        ->with('mensaje', 'Viaje cancelado correctamente.');
+}
 
     // ── Historial ──────────────────────────────────────
 
