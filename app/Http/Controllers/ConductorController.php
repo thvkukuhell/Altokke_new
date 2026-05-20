@@ -7,6 +7,7 @@ use App\Models\Vehiculo;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Events\ViajeActualizado;
 
 class ConductorController extends Controller
 {
@@ -233,6 +234,14 @@ class ConductorController extends Controller
         $conductor->increment('total_viajes');
         $conductor->increment('saldo_disponible', $viaje->tarifa_estimada);
 
+        // ── ENVIAR ALERTA EN TIEMPO REAL AL PASAJERO ──
+        // Enviamos 'estado' => 'completado' para que la vista del pasajero reaccione
+        event(new \App\Events\ViajeActualizado([
+            'id_pasajero' => $viaje->id_pasajero,
+            'estado'      => 'completado',
+            'id_viaje'    => $viaje->id_viaje
+        ]));
+
         return redirect()
             ->route('conductor.billetera')
             ->with('mensaje', 'Viaje completado. Las ganancias se reflejarán en tu billetera.');
@@ -240,16 +249,25 @@ class ConductorController extends Controller
 
     public function cancelarViaje(Request $request)
     {
-        $request->validate([
+        $$request->validate([
             'id_viaje' => 'required|integer|exists:viajes,id_viaje',
         ]);
 
-        Viaje::findOrFail($request->id_viaje)->update([
+        $viaje = Viaje::findOrFail($request->id_viaje);
+        
+        $viaje->update([
             'estado_viaje' => 'cancelado',
         ]);
 
+        // ── ENVIAR ALERTA EN TIEMPO REAL AL PASAJERO ──
+        event(new \App\Events\ViajeActualizado([
+            'id_pasajero' => $viaje->id_pasajero,
+            'estado'      => 'cancelado',
+            'id_viaje'    => $viaje->id_viaje
+        ]));
+
         return redirect()
-            ->route('conductor.dashboard')
+            ->route('conductor.index') // Cambiado a index para evitar errores si no existe alias dashboard
             ->with('mensaje', 'Viaje cancelado correctamente.');
     }
 

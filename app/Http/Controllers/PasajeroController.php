@@ -167,7 +167,7 @@ class PasajeroController extends Controller {
             'viajeRaw'  => $viajeRaw,
             'viaje' => $viaje,
             'conductor' => $conductor,
-            'iniciales' => $inicales,
+            'iniciales' => $iniciales,
         ]);
     }
 

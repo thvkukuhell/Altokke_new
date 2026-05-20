@@ -2,63 +2,76 @@
 @section('content')
 
 <div class="pagina-pasajero">
+    <div class="solicitar-grid">
 
-    <div id="mapa-leaflet" style="height: 300px; width: 100%; margin-bottom: 20px; border-radius: 12px; z-index: 1;">
-    </div>
-
-    <div class="buscando-centro">
-
-        <div class="icono-buscando">
-            <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M5 17H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11l4 4v4" />
-                <circle cx="7" cy="17" r="2" />
-                <circle cx="17" cy="17" r="2" />
-                <path d="M9 17h6" />
-            </svg>
-        </div>
-
-        <h2 class="buscando-titulo">Buscando mototaxi cercano...</h2>
-        <span class="buscando-tiempo">⏱ Menos de 2 minutos</span>
-        <p class="buscando-desc">
-            Te conectamos con el conductor más cercano disponible en Bagua
-        </p>
-
-        <div class="progreso-wrap">
-            <div class="progreso-barra"></div>
-        </div>
-
-        <div class="tarjeta-viaje">
-            <div class="fila-dato">
-                <span>Origen</span>
-                <strong>{{ $viaje['origen'] ?? '—' }}</strong>
+        {{-- MAPA: Exactamente igual a solicitar_viaje --}}
+        <div class="mapa-decorativo">
+            <div id="mapa-solicitud-pasajero"></div>
+            <div class="mapa-etiqueta">
+                <span class="mapa-etiqueta-icono">🔍</span>
+                <span id="ubicacion-texto">Buscando la mototaxi más cercana en Bagua...</span>
             </div>
-            <hr class="separador">
-            <div class="fila-dato">
-                <span>Destino</span>
-                <strong>{{ $viaje['destino'] ?? '—' }}</strong>
-            </div>
-            <hr class="separador">
-            <div class="fila-dato" style="margin:0;">
-                <span>Tarifa estimada</span>
-                <strong style="font-size:18px; color:var(--p-verde-mid); letter-spacing:-0.5px;">
-                    S/ {{ $viaje['tarifa'] ?? '0.00' }}
-                </strong>
+            <div class="mapa-controles">
+                <button class="mapa-boton-zoom" id="zoom-in" title="Acercar">+</button>
+                <button class="mapa-boton-zoom" id="zoom-out" title="Alejar">−</button>
             </div>
         </div>
 
-        <p class="nota-cancelar">Si cancelas ahora no se te cobrará nada.</p>
+        {{-- Panel derecho: Tu tarjeta original de buscando --}}
+        <div class="buscando-centro" style="margin-top: 0;">
 
-        <form method="POST" action="{{ route('pasajero.cancelarViaje') }}">
-            @csrf
-            <input type="hidden" name="viaje_id" value="{{ $viaje['id'] ?? 0 }}">
-            <button type="submit" class="btn btn-outline">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M18 6 6 18M6 6l12 12" />
+            <div class="icono-buscando">
+                <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M5 17H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11l4 4v4" />
+                    <circle cx="7" cy="17" r="2" />
+                    <circle cx="17" cy="17" r="2" />
+                    <path d="M9 17h6" />
                 </svg>
-                Cancelar solicitud
-            </button>
-        </form>
+            </div>
 
+            <h2 class="buscando-titulo">Buscando mototaxi cercano...</h2>
+            <span class="buscando-tiempo">⏱ Menos de 2 minutos</span>
+            <p class="buscando-desc">
+                Te conectamos con el conductor más cercano disponible en Bagua
+            </p>
+
+            <div class="progreso-wrap">
+                <div class="progreso-barra"></div>
+            </div>
+
+            <div class="tarjeta-viaje">
+                <div class="fila-dato">
+                    <span>Origen</span>
+                    <strong>{{ $viaje['origen'] ?? '—' }}</strong>
+                </div>
+                <hr class="separador">
+                <div class="fila-dato">
+                    <span>Destino</span>
+                    <strong>{{ $viaje['destino'] ?? '—' }}</strong>
+                </div>
+                <hr class="separador">
+                <div class="fila-dato" style="margin:0;">
+                    <span>Tarifa estimada</span>
+                    <strong style="font-size:18px; color:var(--p-verde-mid); letter-spacing:-0.5px;">
+                        S/ {{ number_format($viaje['tarifa'] ?? 3.00, 2) }}
+                    </strong>
+                </div>
+            </div>
+
+            <p class="nota-cancelar">Si cancelas ahora no se te cobrará nada.</p>
+
+            <form method="POST" action="{{ route('pasajero.cancelarViaje') }}">
+                @csrf
+                <input type="hidden" name="viaje_id" value="{{ $viaje['id'] ?? 0 }}">
+                <button type="submit" class="btn btn-outline">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M18 6 6 18M6 6l12 12" />
+                    </svg>
+                    Cancelar solicitud
+                </button>
+            </form>
+
+        </div>
     </div>
 </div>
 
@@ -67,71 +80,81 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Coordenadas de Bagua como punto inicial
-    const LAT_BAGUA = -5.6763;
-    const LNG_BAGUA = -78.5311;
+let mapa;
+let lineaRuta;
 
-    const contenedorMapa = document.getElementById('mapa-leaflet');
-    if (!contenedorMapa) {
-        console.error('No se encontró el contenedor del mapa');
-        return;
-    }
+// Coordenadas dinámicas obtenidas del viaje creado
+const origLat = parseFloat("{{ $viaje['origen_lat'] ?? $viaje['origen_latitude'] ?? -5.6763 }}");
+const origLng = parseFloat("{{ $viaje['origen_lng'] ?? $viaje['origen_longitude'] ?? -78.5311 }}");
+const destLat = parseFloat("{{ $viaje['destino_lat'] ?? $viaje['destino_latitude'] ?? -5.6800 }}");
+const destLng = parseFloat("{{ $viaje['destino_lng'] ?? $viaje['destino_longitude'] ?? -78.5400 }}");
 
-    // Inicializar mapa
-    const mapa = L.map('mapa-leaflet').setView([LAT_BAGUA, LNG_BAGUA], 15);
+window.addEventListener('load', () => {
+    
+    // Inicializar el mapa exactamente con la misma configuración de solicitar_viaje
+    mapa = L.map('mapa-solicitud-pasajero', {
+        zoomControl: false
+    }).setView([origLat, origLng], 15);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19
+        attribution: '© OpenStreetMap contributors'
     }).addTo(mapa);
 
-    // Marcador del pasajero
-    const iconoPasajero = L.divIcon({
+    // Forzar reajuste para evitar el bug de Leaflet en contenedores dinámicos
+    setTimeout(() => {
+        mapa.invalidateSize();
+    }, 200);
+
+    // Controles de zoom nativos de tu plantilla
+    document.getElementById('zoom-in')?.addEventListener('click', () => mapa.zoomIn());
+    document.getElementById('zoom-out')?.addEventListener('click', () => mapa.zoomOut());
+
+    // Marcadores con estilo DivIcon idéntico al tuyo
+    const iconoOrigen = L.divIcon({
         html: '<div style="font-size: 30px;">📍</div>',
         iconSize: [30, 30],
-        iconAnchor: [15, 30],
-        className: 'marcador-pasajero'
+        iconAnchor: [15, 30]
     });
 
-    const marcadorPasajero = L.marker([LAT_BAGUA, LNG_BAGUA], {
-        icon: iconoPasajero
-    }).addTo(mapa);
+    const iconoDestino = L.divIcon({
+        html: '<div style="font-size: 30px;">🏁</div>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30]
+    });
 
-    marcadorPasajero.bindPopup('<strong>Tu ubicación</strong><br>Bagua, Amazonas').openPopup();
+    L.marker([origLat, origLng], { icon: iconoOrigen }).addTo(mapa).bindPopup('<strong>Tu origen</strong>').openPopup();
+    L.marker([destLat, destLng], { icon: iconoDestino }).addTo(mapa).bindPopup('<strong>Tu destino</strong>');
 
-    // ID de este viaje en específico generado por el controlador
-    const viajeActualId = "{{ $viaje['id'] ?? 0 }}";
+    // Trazado exacto de la ruta vial usando OSRM (Igual que en tu código anterior)
+    fetch(`https://router.project-osrm.org/route/v1/driving/${origLng},${origLat};${destLng},${destLat}?overview=full&geometries=geojson`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.routes || !data.routes.length) return;
+            const coordenadas = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
 
-    // Escuchar cuando el conductor acepta el viaje
-    if (window.Echo && viajeActualId > 0) {
-        console.log(`Escuchando canal privado: pasajero.{{ auth()->id() }}`);
-        
+            lineaRuta = L.polyline(coordenadas, {
+                color: '#16a34a',
+                weight: 6,
+                opacity: 0.9,
+                lineJoin: 'round'
+            }).addTo(mapa);
+
+            // Auto-encuadre perfecto para que se vean origen y destino juntos en pantalla
+            mapa.fitBounds(lineaRuta.getBounds(), { padding: [50, 50] });
+        })
+        .catch(e => console.log("Error en ruta:", e));
+
+    // Escuchar el evento en tiempo real para redireccionar cuando acepte el conductor
+    if (window.Echo) {
         window.Echo.private(`pasajero.{{ auth()->id() }}`)
             .listen('ViajeAceptado', (data) => {
-                console.log('¡Evento ViajeAceptado recibido!', data);
-                
-                // CORRECCIÓN: Tu evento en PHP envía exactamente 'viaje_id'
-                if (data.viaje_id == viajeActualId) {
-                    window.location.href = `/pasajero/enCurso/${viajeActualId}`;
+                const viajeId = data.viajeId || (data.viaje ? data.viaje.id : null) || '{{ $viaje["id"] ?? "" }}';
+                if (viajeId) {
+                    window.location.href = `/pasajero/enCurso/${viajeId}`;
                 }
             });
     }
-
-    window.addEventListener('resize', function() {
-        setTimeout(() => mapa.invalidateSize(), 100);
-    });
 });
 </script>
-
-<style>
-#mapa-leaflet {
-    border: 2px solid var(--p-verde-mid, #10b981);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-.marcador-pasajero {
-    filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.3));
-}
-</style>
 
 @endsection
