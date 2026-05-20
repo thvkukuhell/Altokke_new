@@ -64,7 +64,8 @@
                 @csrf
                 <input type="hidden" name="viaje_id" value="{{ $viaje['id'] ?? 0 }}">
                 <button type="submit" class="btn btn-outline">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
                         <path d="M18 6 6 18M6 6l12 12" />
                     </svg>
                     Cancelar solicitud
@@ -83,15 +84,16 @@
 let mapa;
 let lineaRuta;
 
-// Coordenadas dinámicas obtenidas del viaje creado
+// Coordenadas dinámicas
 const origLat = parseFloat("{{ $viaje['origen_lat'] ?? $viaje['origen_latitude'] ?? -5.6763 }}");
 const origLng = parseFloat("{{ $viaje['origen_lng'] ?? $viaje['origen_longitude'] ?? -78.5311 }}");
 const destLat = parseFloat("{{ $viaje['destino_lat'] ?? $viaje['destino_latitude'] ?? -5.6800 }}");
 const destLng = parseFloat("{{ $viaje['destino_lng'] ?? $viaje['destino_longitude'] ?? -78.5400 }}");
 
+const viajeIdActual = "{{ $viaje['id'] ?? '' }}";
+
 window.addEventListener('load', () => {
-    
-    // Inicializar el mapa exactamente con la misma configuración de solicitar_viaje
+
     mapa = L.map('mapa-solicitud-pasajero', {
         zoomControl: false
     }).setView([origLat, origLng], 15);
@@ -100,16 +102,11 @@ window.addEventListener('load', () => {
         attribution: '© OpenStreetMap contributors'
     }).addTo(mapa);
 
-    // Forzar reajuste para evitar el bug de Leaflet en contenedores dinámicos
-    setTimeout(() => {
-        mapa.invalidateSize();
-    }, 200);
+    setTimeout(() => mapa.invalidateSize(), 200);
 
-    // Controles de zoom nativos de tu plantilla
     document.getElementById('zoom-in')?.addEventListener('click', () => mapa.zoomIn());
     document.getElementById('zoom-out')?.addEventListener('click', () => mapa.zoomOut());
 
-    // Marcadores con estilo DivIcon idéntico al tuyo
     const iconoOrigen = L.divIcon({
         html: '<div style="font-size: 30px;">📍</div>',
         iconSize: [30, 30],
@@ -122,36 +119,65 @@ window.addEventListener('load', () => {
         iconAnchor: [15, 30]
     });
 
-    L.marker([origLat, origLng], { icon: iconoOrigen }).addTo(mapa).bindPopup('<strong>Tu origen</strong>').openPopup();
-    L.marker([destLat, destLng], { icon: iconoDestino }).addTo(mapa).bindPopup('<strong>Tu destino</strong>');
+    L.marker([origLat, origLng], {
+            icon: iconoOrigen
+        })
+        .addTo(mapa)
+        .bindPopup('Tu origen');
 
-    // Trazado exacto de la ruta vial usando OSRM (Igual que en tu código anterior)
-    fetch(`https://router.project-osrm.org/route/v1/driving/${origLng},${origLat};${destLng},${destLat}?overview=full&geometries=geojson`)
+    L.marker([destLat, destLng], {
+            icon: iconoDestino
+        })
+        .addTo(mapa)
+        .bindPopup('Tu destino');
+
+    fetch(
+            `https://router.project-osrm.org/route/v1/driving/${origLng},${origLat};${destLng},${destLat}?overview=full&geometries=geojson`)
         .then(res => res.json())
         .then(data => {
             if (!data.routes || !data.routes.length) return;
-            const coordenadas = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
 
-            lineaRuta = L.polyline(coordenadas, {
+            const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+
+            lineaRuta = L.polyline(coords, {
                 color: '#16a34a',
                 weight: 6,
-                opacity: 0.9,
-                lineJoin: 'round'
+                opacity: 0.9
             }).addTo(mapa);
 
-            // Auto-encuadre perfecto para que se vean origen y destino juntos en pantalla
-            mapa.fitBounds(lineaRuta.getBounds(), { padding: [50, 50] });
-        })
-        .catch(e => console.log("Error en ruta:", e));
+            mapa.fitBounds(lineaRuta.getBounds(), {
+                padding: [50, 50]
+            });
+        });
 
-    // Escuchar el evento en tiempo real para redireccionar cuando acepte el conductor
+    /*
+    |-----------------------------------------
+    | ESCUCHA EN TIEMPO REAL
+    |-----------------------------------------
+    */
     if (window.Echo) {
+
         window.Echo.private(`pasajero.{{ auth()->id() }}`)
             .listen('ViajeAceptado', (data) => {
-                const viajeId = data.viajeId || (data.viaje ? data.viaje.id : null) || '{{ $viaje["id"] ?? "" }}';
-                if (viajeId) {
-                    window.location.href = `/pasajero/enCurso/${viajeId}`;
-                }
+
+                const viajeId = data.viajeId || viajeIdActual;
+
+                if (!viajeId) return;
+
+                // opcional: mostrar info del conductor antes de redirigir
+                console.log("Conductor asignado:", data);
+
+                window.location.href = `/pasajero/enCurso/${viajeId}`;
+            });
+
+        window.Echo.private(`pasajero.{{ auth()->id() }}`)
+            .listen('ViajeActualizado', (data) => {
+
+                if (!data.estado) return;
+
+                console.log("Estado viaje:", data.estado);
+
+                // aquí podrías actualizar UI sin redirigir aún
             });
     }
 });
