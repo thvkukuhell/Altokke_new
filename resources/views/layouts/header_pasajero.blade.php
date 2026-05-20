@@ -19,27 +19,30 @@
 
             {{-- Lógica de viaje activo --}}
             @php
-            $viajeActivo = null;
-            if (auth()->check()) {
-                $viajeActivo = \App\Models\Viaje::where('id_pasajero', auth()->id())
-                ->whereIn('estado_viaje', ['buscando', 'aceptado', 'recogiendo', 'en_curso'])
-                ->first();
-            }
-            @endphp
 
-            @if($viajeActivo)
-                @if($viajeActivo->estado_viaje === 'buscando')
-                <a href="{{ route('pasajero.buscando', $viajeActivo->id_viaje) }}" class="nav-viaje-activo-app buscando">
-                    <span class="nav-dot-pulse-app red"></span>
-                    Buscando conductor
-                </a>
-                @else
-                <a href="{{ route('pasajero.enCurso', $viajeActivo->id_viaje) }}" class="nav-viaje-activo-app en-curso">
-                    <span class="nav-dot-pulse-app green"></span>
-                    Viaje en curso
-                </a>
-                @endif
-            @endif
+            if (auth()->check()) {
+
+                // Expirar viajes viejos
+                \App\Models\Viaje::where('id_pasajero', auth()->id())
+                    ->where('estado_viaje', 'buscando')
+                    ->where('created_at', '<', now()->subMinutes(2))
+                    ->update([
+                        'estado_viaje' => 'expirado'
+                    ]);
+
+                // Buscar viaje activo reciente
+                $viajeActivo = \App\Models\Viaje::where('id_pasajero', auth()->id())
+                    ->whereIn('estado_viaje', [
+                        'buscando',
+                        'aceptado',
+                        'recogiendo',
+                        'en_curso'
+                    ])
+                    ->latest('id_viaje')
+                    ->first();
+            }
+
+            @endphp
 
             {{-- Avatar de Perfil Circular Limpio --}}
             <a href="{{ route('pasajero.perfil') }}" class="perfil-contenedor-app">
