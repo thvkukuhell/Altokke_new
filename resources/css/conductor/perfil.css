@@ -29,6 +29,7 @@
 .sidebar-cabecera,
 .sidebar-header {
   background: rgba(0, 0, 0, 0.25); /* Un poco más oscuro para dar profundidad */
+  background: rgba(0, 0, 0, 0.25);
   color: #ffffff;
   padding: 25px 20px;
   margin: 15px;
