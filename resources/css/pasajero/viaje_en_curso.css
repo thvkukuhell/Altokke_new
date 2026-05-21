@@ -1,4 +1,15 @@
 
+.pagina-pasajero {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto !important;
+    padding: 24px;
+    box-sizing: border-box;
+    display: block !important;
+    font-family: inherit;
+}
+
+/* === REJILLA PRINCIPAL DEL PANEL === */
 .solicitar-grid {
     display: grid;
     grid-template-columns: 1fr 380px;
@@ -7,14 +18,16 @@
     width: 100%;
 }
 
+/* === SECCIÓN CONTENEDORA DEL MAPA === */
 .mapa-decorativo {
     position: relative;
     width: 100%;
-    height: 450px;
+    height: 500px;
     border-radius: 20px;
     overflow: hidden;
     background: #e2e8f0;
-    top: 25px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
 }
 
 #mapa-en-curso {
@@ -31,172 +44,158 @@
     background: #cbd5e1;
 }
 
-/* Eliminar fondo cuadrado de iconos leaflet */
+
 .leaflet-div-icon {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
 }
 
+/* Etiqueta flotante de estado en el mapa */
 .mapa-etiqueta {
     position: absolute;
-    bottom: 16px;
-    right: 16px;
+    bottom: 20px;
+    left: 20px;
     z-index: 1000;
-
     display: flex;
     align-items: center;
-    gap: 8px;
-
-    background: rgba(255,255,255,0.95);
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(4px);
     border: 1px solid var(--border);
-    border-radius: 10px;
-
-    padding: 8px 14px;
-
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--gray);
-
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .mapa-etiqueta-icono {
-    font-size: 15px;
+    font-size: 16px;
 }
 
+/* Botones flotantes de Zoom manual */
 .mapa-controles {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 20px;
+    right: 20px;
     z-index: 1000;
-
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .mapa-boton-zoom {
-    width: 38px;
-    height: 38px;
-
-    border: none;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border);
     border-radius: 10px;
-
-    background: #fff;
+    background: var(--white);
     color: var(--text);
-
     font-size: 18px;
     font-weight: 700;
-
     cursor: pointer;
-
-    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
-
-    transition: 0.15s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .mapa-boton-zoom:hover {
     background: var(--p-verde-bg);
     color: var(--p-verde-mid);
+    border-color: var(--p-verde-mid);
 }
 
+/* === PANEL DERECHO DE INFORMACIÓN === */
 .panel-solicitud {
     background: var(--white);
     border: 1px solid var(--border);
     border-radius: 16px;
-
-    padding: 30px;
-
-    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-
+    padding: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
     position: sticky;
-    top: 100px;
+    top: 30px;
 }
 
 .panel-solicitud-titulo {
     font-size: 18px;
     font-weight: 800;
     color: var(--text);
-
-    margin-bottom: 6px;
+    margin: 0 0 4px 0;
     letter-spacing: -0.4px;
 }
 
 .panel-solicitud-sub {
     font-size: 13px;
     color: var(--gray);
-
-    margin-bottom: 20px;
-    line-height: 1.5;
+    margin: 0 0 16px 0;
+    line-height: 1.4;
 }
 
+/* Ficha del Conductor Asignado */
 .conductor-card-encurso {
     display: flex;
     align-items: center;
     gap: 14px;
-
-    margin-top: 18px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    padding: 14px;
+    border-radius: 12px;
 }
 
 .avatar-conductor {
-    width: 52px;
-    height: 52px;
-
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-
-    background: linear-gradient(
-        135deg,
-        var(--p-verde-mid),
-        var(--p-verde)
-    );
-
-    color: #fff;
-
+    background: var(--p-verde-mid);
+    color: var(--white);
     display: flex;
     align-items: center;
     justify-content: center;
-
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 800;
-
     flex-shrink: 0;
 }
 
 .conductor-info {
     flex: 1;
+    min-width: 0;
 }
 
 .conductor-nombre-encurso {
-    font-size: 15px;
-    font-weight: 800;
+    font-size: 14.5px;
+    font-weight: 700;
     color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .conductor-dato-encurso {
     font-size: 12.5px;
     color: var(--gray);
-    margin-top: 3px;
+    margin-top: 2px;
 }
 
 .placa-encurso {
     background: var(--p-verde-bg);
     color: var(--p-verde-mid);
-
-    border: 1px solid var(--p-verde-border);
+    border: 1px solid rgba(45, 106, 45, 0.15);
     border-radius: 8px;
-
     padding: 5px 10px;
-
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 800;
-
     letter-spacing: 0.5px;
+    white-space: nowrap;
 }
 
+/* Caja de Ruta (Direcciones) */
 .ruta-selector {
     background: #fafafa;
-    border: 1.5px solid var(--border-mid);
+    border: 1px solid var(--border-mid);
     border-radius: 12px;
     overflow: hidden;
 }
@@ -204,9 +203,8 @@
 .ruta-fila {
     display: flex;
     align-items: center;
-    gap: 13px;
-
-    padding: 14px 16px;
+    gap: 12px;
+    padding: 12px 14px;
 }
 
 .ruta-fila:first-child {
@@ -214,46 +212,38 @@
 }
 
 .punto {
-    width: 11px;
-    height: 11px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     flex-shrink: 0;
 }
 
 .punto-verde {
     background: var(--p-verde-mid);
-    box-shadow: 0 0 0 3px rgba(45,106,45,0.15);
+    box-shadow: 0 0 0 3px var(--p-verde-bg);
 }
 
 .punto-rojo {
-    background: var(--p-rojo);
-    box-shadow: 0 0 0 3px rgba(192,57,43,0.15);
+    background: #dc2626;
+    box-shadow: 0 0 0 3px #fef2f2;
 }
 
+/* Tarjeta de Tarifa */
 .tarifa-caja {
-    background: linear-gradient(
-        135deg,
-        var(--p-verde-mid),
-        var(--p-verde)
-    );
-
-    color: #fff;
-
+    background: var(--p-verde-mid);
+    color: var(--white);
     border-radius: 12px;
-
-    padding: 20px 24px;
-
+    padding: 16px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
 .tarifa-numero {
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 900;
-
     line-height: 1;
-    letter-spacing: -1.5px;
+    letter-spacing: -0.5px;
 }
 
 .tarifa-right {
@@ -262,45 +252,48 @@
 
 .tarifa-label {
     font-size: 11px;
-    opacity: 0.75;
+    opacity: 0.8;
     margin-bottom: 2px;
 }
 
 .tarifa-detalle {
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 12.5px;
+    font-weight: 700;
 }
 
+/* Línea de Tiempo del Estado */
 .tarjeta-viaje {
-    background: #fff;
+    background: var(--white);
     border: 1px solid var(--border);
     border-radius: 14px;
-
-    padding: 22px;
+    padding: 20px;
 }
 
 .timeline {
-    padding: 4px 0;
+    display: flex;
+    flex-direction: column;
+    padding: 2px 0;
 }
 
 .paso {
     display: flex;
     gap: 14px;
-
-    padding-bottom: 18px;
+    padding-bottom: 20px;
     position: relative;
 }
 
+.paso:last-child {
+    padding-bottom: 0;
+}
+
+/* Conectores verticales del paso */
 .paso:not(:last-child)::after {
     content: "";
-
     position: absolute;
-    left: 9px;
+    left: 10px;
     top: 22px;
-
     width: 2px;
-    height: calc(100% - 14px);
-
+    height: calc(100% - 18px);
     background: var(--border);
 }
 
@@ -309,86 +302,99 @@
 }
 
 .paso-icono {
-    width: 20px;
-    height: 20px;
-
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
-
     flex-shrink: 0;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 800;
-
     position: relative;
     z-index: 1;
+    background: #f3f4f6;
+    color: #9ca3af;
+    border: 1px solid var(--border);
+    box-sizing: border-box;
 }
 
 .paso.hecho .paso-icono {
     background: var(--p-verde-mid);
-    color: #fff;
+    border-color: var(--p-verde-mid);
+    color: var(--white);
 }
 
 .paso.activo .paso-icono {
     background: var(--p-verde-mid);
-    color: #fff;
-
-    box-shadow: 0 0 0 4px rgba(45,106,45,0.15);
-
-    animation: paso-pulso 1.6s ease-in-out infinite;
-}
-
-.paso .paso-icono {
-    background: #f3f4f6;
-    color: #9ca3af;
-    border: 1.5px solid var(--border);
+    border-color: var(--p-verde-mid);
+    color: var(--white);
+    box-shadow: 0 0 0 4px var(--p-verde-bg);
+    animation: paso-pulso 1.8s ease-in-out infinite;
 }
 
 @keyframes paso-pulso {
-    0%,100% {
-        box-shadow: 0 0 0 4px rgba(45,106,45,0.15);
-    }
-
-    50% {
-        box-shadow: 0 0 0 6px rgba(45,106,45,0.08);
-    }
+    0%, 100% { box-shadow: 0 0 0 4px var(--p-verde-bg); }
+    50% { box-shadow: 0 0 0 7px rgba(45, 106, 45, 0.05); }
 }
 
 .paso-titulo {
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 700;
     color: var(--text);
 }
 
 .paso-sub {
-    font-size: 11.5px;
+    font-size: 12px;
     color: var(--gray);
-
     margin-top: 2px;
     line-height: 1.4;
 }
 
-@media (max-width: 1200px) {
+/* Botones de acción general */
+.btn-ancho {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+}
 
+/* === RESPONSIVES === */
+@media (max-width: 1100px) {
     .solicitar-grid {
         grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .mapa-decorativo {
+        height: 400px;
     }
 
     .panel-solicitud {
         position: static;
+        padding: 20px;
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
+    .pagina-pasajero {
+        padding: 16px;
+    }
 
     .mapa-decorativo {
         height: 320px;
+        border-radius: 14px;
     }
 
-    .panel-solicitud {
-        padding: 22px;
+    .mapa-etiqueta {
+        left: 12px;
+        bottom: 12px;
+        right: 12px;
+        font-size: 11.5px;
+        padding: 8px 12px;
+    }
+
+    .mapa-controles {
+        top: 12px;
+        right: 12px;
     }
 }

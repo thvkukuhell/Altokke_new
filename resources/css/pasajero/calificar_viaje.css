@@ -1,87 +1,228 @@
+
+.pagina-pasajero {
+    padding: 20px;
+}
+
 .calificar-wrap {
-  max-width: 500px;
-  margin: 0 auto;
+    max-width: 500px;
+    margin: 0 auto;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
 }
- 
+
+/* === HEADER DE CONFIRMACIÓN === */
 .calificar-header {
-  text-align: center;
-  margin-bottom: 28px;
+    text-align: center;
+    margin-bottom: 28px;
 }
- 
+
 .check-icono {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: #dcfce7;
-  border: 2px solid #86efac;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 18px;
-  animation: check-entrada 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #dcfce7;
+    border: 2px solid #86efac;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px;
+    animation: check-entrada 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
+
 @keyframes check-entrada {
-  from { transform: scale(0.5); opacity: 0; }
-  to   { transform: scale(1);   opacity: 1; }
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
 }
- 
+
+.titulo-pagina {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+}
+
+.subtitulo-pagina {
+    font-size: 14px;
+    color: var(--gray);
+    line-height: 1.5;
+}
+
+/* === TARJETA DE RESUMEN DE VIAJE === */
 .resumen-viaje {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #fafafa;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 18px 22px;
-  margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fafafa;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 16px;
 }
-.resumen-ruta         { font-size: 13px; color: var(--gray); }
-.resumen-ruta strong  { display: block; font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 3px; letter-spacing: -0.3px; }
-.resumen-precio       { font-size: 24px; font-weight: 900; color: var(--p-verde-mid); letter-spacing: -1px; }
- 
+
+.resumen-ruta {
+    font-size: 13px;
+    color: var(--gray);
+    line-height: 1.4;
+}
+
+.resumen-ruta strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 3px;
+    letter-spacing: -0.3px;
+}
+
+.resumen-precio {
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--p-verde-mid);
+    letter-spacing: -1px;
+}
+
+/* === TARJETA DEL CONDUCTOR === */
 .conductor-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: var(--p-verde-bg);
-  border: 1px solid var(--p-verde-border);
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin-bottom: 26px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--p-verde-bg);
+    border: 1px solid var(--p-verde-border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 26px;
 }
- 
+
+.avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--p-verde-mid);
+    color: var(--white);
+    font-weight: 700;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: -0.3px;
+}
+
+.conductor-nombre {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 3px;
+}
+
+.conductor-dato {
+    font-size: 12.5px;
+    color: var(--gray);
+    font-weight: 500;
+}
+
+/* === INTERFAZ DE ESTRELLAS (SISTEMA INVERTIDO) === */
 .estrellas-grupo {
-  text-align: center;
-  padding: 26px 20px;
-  background: #fafafa;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  margin-bottom: 20px;
+    text-align: center;
+    padding: 24px 20px;
+    background: #fafafa;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 24px;
 }
- 
+
 .estrellas-titulo {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-2);
-  margin-bottom: 18px;
-  letter-spacing: -0.2px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-2);
+    margin-bottom: 14px;
+    letter-spacing: -0.2px;
 }
- 
+
 .estrellas-input {
-  display: flex;
-  flex-direction: row-reverse;
-  justify-content: center;
-  gap: 8px;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    gap: 8px;
 }
-.estrellas-input input[type="radio"] { display: none; }
+
+.estrellas-input input[type="radio"] {
+    display: none;
+}
+
 .estrellas-input label {
-  font-size: 44px;
-  color: #d1d5db;
-  cursor: pointer;
-  transition: color 0.1s, transform 0.1s;
-  line-height: 1;
+    font-size: 42px;
+    color: #d1d5db;
+    cursor: pointer;
+    transition: color 0.12s, transform 0.1s;
+    line-height: 1;
+    user-select: none;
 }
-.estrellas-input label:hover { transform: scale(1.15); }
+
+.estrellas-input label:hover {
+    transform: scale(1.15);
+}
+
 .estrellas-input label:hover,
 .estrellas-input label:hover ~ label,
-.estrellas-input input:checked ~ label { color: var(--p-dorado); }
+.estrellas-input input:checked ~ label {
+    color: var(--p-dorado, #f59e0b); 
+}
+
+/* === FORMULARIO: COMENTARIOS EXTRAS === */
+.campo-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.campo-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-2);
+}
+
+.campo-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--white);
+    border: 1.5px solid var(--border-mid);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text);
+    font-family: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.campo-input:focus {
+    outline: none;
+    border-color: var(--p-verde-mid);
+    box-shadow: 0 0 0 3px rgba(45, 106, 45, 0.1);
+}
+
+.campo-input::placeholder {
+    color: var(--gray-lite, #9ca3af);
+}
+
+/* === BOTONES DE ACCIÓN COMPATIBLES === */
+.btn-ancho {
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    padding: 13px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 10px;
+    transition: background 0.15s, transform 0.1s;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.btn-ancho:active {
+    transform: scale(0.98);
+}

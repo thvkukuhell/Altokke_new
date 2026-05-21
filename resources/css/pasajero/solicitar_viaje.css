@@ -1,10 +1,72 @@
-/* CONTENEDOR PRINCIPAL */
+
 .solicitar-grid {
     display: grid;
     grid-template-columns: 1fr 380px;
     gap: 24px;
     align-items: start;
     width: 100%;
+}
+
+/* === CONTROLES INTERNOS DEL MAPA === */
+.mapa-decorativo {
+    position: relative;
+    width: 100%;
+    height: 450px;
+    background: #e2e8f0;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    top: 25px;
+}
+
+#mapa-solicitud-pasajero {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background: #cbd5e1;
+    z-index: 1;
+}
+
+.leaflet-container {
+    width: 100%;
+    height: 100%;
+    background: #cbd5e1;
+}
+
+.mapa-controles {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 1000;
+}
+
+.mapa-boton-zoom, .mapa-boton-milocation {
+    width: 38px;
+    height: 38px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: background 0.15s, transform 0.1s;
+}
+
+.mapa-boton-zoom:hover, .mapa-boton-milocation:hover {
+    background: #f8fafc;
+    transform: translateY(-1px);
 }
 
 .mapa-etiqueta {
@@ -19,10 +81,10 @@
     border-radius: 8px;
     border: 1px solid var(--border);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-    z-index: 1000; /* Obliga a la etiqueta a estar por encima del mapa real */
+    z-index: 1000;
 }
 
-/* Panel formulario */
+/* === PANEL FORMULARIO === */
 .panel-solicitud {
     background: var(--white);
     border: 1px solid var(--border);
@@ -31,6 +93,7 @@
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     position: sticky;
     top: 76px;
+    overflow: visible !important;
 }
 
 .panel-solicitud-titulo {
@@ -53,8 +116,8 @@
     background: #fafafa;
     border: 1.5px solid var(--border-mid);
     border-radius: 12px;
-    overflow: hidden;
     margin-bottom: 20px;
+    overflow: visible !important;
 }
 
 .ruta-fila {
@@ -63,6 +126,8 @@
     gap: 13px;
     padding: 14px 16px;
     transition: background 0.12s;
+    position: relative;
+    overflow: visible !important;
 }
 
 .ruta-fila:hover {
@@ -101,11 +166,7 @@
     font-family: inherit;
 }
 
-.ruta-fila input::placeholder {
-    color: var(--gray-lite);
-}
-
-/* Opciones de Servicio (Chips) */
+/* === SERVICIO CHIPS === */
 .servicio-chips {
     display: flex;
     gap: 8px;
@@ -142,26 +203,30 @@
     display: none;
 }
 
-.servicio-chip-icono {
+/* Da formato al 1er span (Ícono) */
+.servicio-chip span:nth-of-type(1) {
     font-size: 22px;
 }
 
-.servicio-chip-nombre {
+/* Da formato al 2do span (Nombre: Normal / Express) */
+.servicio-chip span:nth-of-type(2) {
     font-size: 12px;
     font-weight: 700;
     color: var(--text-2);
 }
 
-.servicio-chip-precio {
+/* Da formato al 3er span (Precio) */
+.servicio-chip span:nth-of-type(3) {
     font-size: 11px;
     color: var(--gray);
 }
 
-.servicio-chip.seleccionado .servicio-chip-nombre {
+/* Cambio de color de nombre cuando está seleccionado */
+.servicio-chip.seleccionado span:nth-of-type(2) {
     color: var(--p-verde-mid);
 }
 
-/* Caja de Tarifa Estimada */
+/* === CAJA DE TARIFA ESTIMADA === */
 .tarifa-caja {
     background: linear-gradient(135deg, var(--p-verde-mid), var(--p-verde));
     color: #fff;
@@ -197,7 +262,7 @@
     font-weight: 600;
 }
 
-/* Opciones de Método de Pago */
+/* === METODOS DE PAGO === */
 .pago-opciones {
     display: flex;
     gap: 8px;
@@ -233,44 +298,13 @@
     display: none;
 }
 
-/* === ESTILOS DEL MAPA === */
-.mapa-decorativo {
-    position: relative; /* Necesario para que el mapa absoluto lo cubra */
-    width: 100%;
-    height: 450px;
-    background: #e2e8f0;
-    border-radius: 20px;
-    overflow: hidden;
-    margin-bottom: 20px;
-    top: 25px;
-}
-
-#mapa-solicitud-pasajero {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    background: #cbd5e1;
-    z-index: 1;
-}
-
-.leaflet-container {
-    width: 100%;
-    height: 100%;
-    background: #cbd5e1;
-}
-
-/* Eliminar fondo y borde cuadrado del marcador personalizado */
+/* === CONFIGURACIONES EXTRAS Y AUTOCOMPLETE === */
 .leaflet-div-icon {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
 }
 
-/* Asegurar que la primera columna del grid ocupe todo el ancho disponible */
 .solicitar-grid > :first-child {
     width: 100%;
     min-width: 0;
@@ -279,23 +313,6 @@
 .pagina-pasajero {
     overflow: visible;
     padding: 20px;
-}
-
-/* =========================================
-   AUTOCOMPLETE
-========================================= */
-
-.ruta-fila {
-    position: relative;
-    overflow: visible !important;
-}
-
-.ruta-selector {
-    overflow: visible !important;
-}
-
-.panel-solicitud {
-    overflow: visible !important;
 }
 
 .autocomplete-lista {
@@ -307,7 +324,6 @@
     border-radius: 14px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     z-index: 999999;
-    overflow: hidden;
     max-height: 260px;
     overflow-y: auto;
     border: 1px solid #e5e7eb;
