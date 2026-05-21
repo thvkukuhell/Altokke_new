@@ -15,7 +15,7 @@ class RedirectIfAuthenticatedRole
         $user = Auth::user();
 
         return match ($user->tipo_usuario) {
-            'conductor' => redirect()->route('conductor.index'),
+            'conductor' => redirect()->route('conductor.dashboard'),
             'pasajero'  => redirect()->route('pasajero.solicitarViaje'),
             default     => redirect()->route('inicio'),
         };
