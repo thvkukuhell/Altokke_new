@@ -182,4 +182,33 @@ class AuthController extends Controller
         Auth::login($user);
         return redirect()->route('conductor.dashboard');
     }
+
+    //recuperar contraseña
+
+    public function recuperar_contrasena()
+    {
+        return view('auth.recuperar_contrasena', [
+            'header' => 'header_inicio',
+            'footer' => 'footer_inicio',
+            'css'    => ['auth/login.css'], 
+        ]);
+    }
+
+    public function recuperar_contrasena_proceso(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email|exists:usuarios,email',
+            'password' => 'required|min:6|confirmed',
+        ], [
+            'email.exists'       => 'No encontramos una cuenta con ese correo.',
+            'password.min'       => 'La contraseña debe tener al menos 6 caracteres.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+        ]);
+
+        $usuario = User::where('email', $request->email)->first();
+        $usuario->contrasena_hash = Hash::make($request->password);
+        $usuario->save();
+
+        return back()->with('exito', '✓ Contraseña actualizada. Ya puedes iniciar sesión.');
+    }
 }

@@ -80,7 +80,7 @@
     </form>
 
     <p class="auth-link-texto">
-      ¿Olvidaste tu contraseña? <a href="#">Recuperar acceso</a>
+      ¿Olvidaste tu contraseña? <a href="{{ route('recuperar_contrasena') }}">Recuperar acceso</a>
     </p>
 
   </div>

@@ -14,13 +14,15 @@ Route::get('/inicio/sobre_nosotros', [InicioController::class, 'sobre_nosotros']
 
 // ── Auth público (redirige si ya está autenticado) ────────
 Route::middleware('redirect.auth.role')->group(function () {
-    Route::get( '/auth/login',              [AuthController::class, 'login'])->name('login');
-    Route::post('/auth/login',              [AuthController::class, 'login_proceso'])->name('login.proceso');
-    Route::get( '/auth/eleccion_registro',  [AuthController::class, 'eleccion_registro'])->name('eleccion_registro');
-    Route::get( '/auth/registro_pasajero',  [AuthController::class, 'registro_pasajero'])->name('registro_pasajero');
-    Route::post('/auth/registro_pasajero',  [AuthController::class, 'proc_regist_pasajero'])->name('proc_regist_pasajero');
-    Route::get( '/auth/registro_conductor', [AuthController::class, 'registro_conductor'])->name('registro_conductor');
-    Route::post('/auth/registro_conductor', [AuthController::class, 'proc_regist_conductor'])->name('proc_regist_conductor');
+    Route::get( '/auth/login',                [AuthController::class, 'login'])->name('login');
+    Route::post('/auth/login',                [AuthController::class, 'login_proceso'])->name('login.proceso');
+    Route::get( '/auth/eleccion_registro',    [AuthController::class, 'eleccion_registro'])->name('eleccion_registro');
+    Route::get( '/auth/registro_pasajero',    [AuthController::class, 'registro_pasajero'])->name('registro_pasajero');
+    Route::post('/auth/registro_pasajero',    [AuthController::class, 'proc_regist_pasajero'])->name('proc_regist_pasajero');
+    Route::get( '/auth/registro_conductor',   [AuthController::class, 'registro_conductor'])->name('registro_conductor');
+    Route::post('/auth/registro_conductor',   [AuthController::class, 'proc_regist_conductor'])->name('proc_regist_conductor');
+    Route::get( '/auth/recuperar_contrasena', [AuthController::class, 'recuperar_contrasena'])->name('recuperar_contrasena');
+    Route::post('/auth/recuperar_contrasena', [AuthController::class, 'recuperar_contrasena_proceso'])->name('recuperar_contrasena.proceso');
 });
 
 Route::post('/auth/logout', [AuthController::class, 'logout'])->name('logout');
