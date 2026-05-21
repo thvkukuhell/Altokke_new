@@ -1100,7 +1100,7 @@ header.scrolled {
     background: var(--blanco);
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     padding: 48px 44px;
     overflow-y: auto;
     max-height: calc(100vh - 64px);

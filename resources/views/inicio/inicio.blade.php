@@ -62,7 +62,7 @@
                     </div>
                     <span class="precio-badge">Mototaxi</span>
                 </div>
-                <button class="hero-card-btn">Confirmar viaje</button>
+                <a href="{{ route('login') }}" class="hero-card-btn">Confirmar viaje</a>
             </div>
 
             <div class="hero-chip-conductor">
