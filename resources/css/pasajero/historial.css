@@ -2,62 +2,71 @@
 .pagina-pasajero-historial {
     width: 100%;
     max-width: 900px;
-    margin: 40px auto !important;
+    margin: 30px auto !important;
     padding: 0 24px;
     box-sizing: border-box;
-    display: block !important; /* Desactiva el centrado aplastado */
-    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    display: block !important;
+    font-family: inherit;
 }
 
-/* Encabezado Principal */
+/* === ENCABEZADO PRINCIPAL === */
 .historial-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 24px;
     width: 100%;
+    gap: 16px;
 }
 
 .historial-header .titulo-pagina {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 800;
     color: var(--text);
     letter-spacing: -0.5px;
-    margin-bottom: 4px;
+    margin: 0 0 4px 0;
 }
 
 .historial-header .subtitulo-pagina {
     font-size: 14px;
     color: var(--gray);
+    margin: 0;
 }
 
-/* Botón Nuevo Viaje */
+/* Botón Nuevo Viaje  */
 .btn-nuevo-viaje {
-    background: var(--primary-mid);
+    background: var(--p-verde-mid);
     color: var(--white);
     text-decoration: none;
     padding: 10px 20px;
-    border-radius: var(--radius-sm);
+    border-radius: 10px;
     font-size: 14px;
-    font-weight: 600;
-    display: flex;
+    font-weight: 700;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
-    transition: background 0.2s ease, transform 0.1s ease;
-    box-shadow: var(--shadow-sm);
+    transition: background 0.15s, transform 0.1s;
+    box-shadow: 0 2px 6px rgba(45, 106, 45, 0.15);
+    white-space: nowrap;
 }
 
 .btn-nuevo-viaje:hover {
-    background: var(--primary);
+    background: var(--p-verde);
     transform: translateY(-1px);
 }
 
-/* Sección de Filtros */
+.btn-nuevo-viaje:active {
+    transform: scale(0.98);
+}
+
+/* === SECCIÓN DE FILTROS NAV === */
 .filtros-contenedor {
     display: flex;
     gap: 8px;
     margin-bottom: 24px;
     width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
 }
 
 .filtro-item-btn {
@@ -66,26 +75,27 @@
     border: 1.5px solid var(--border-mid);
     background: var(--white);
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-2);
     text-decoration: none;
-    transition: all 0.15s ease;
+    transition: all 0.12s ease;
+    white-space: nowrap;
 }
 
 .filtro-item-btn:hover {
-    border-color: var(--primary-mid);
-    color: var(--primary-mid);
-    background: var(--primary-bg);
+    border-color: var(--p-verde-mid);
+    color: var(--p-verde-mid);
+    background: var(--p-verde-bg);
 }
 
 .filtro-item-btn.activo {
-    background: var(--primary-mid);
+    background: var(--p-verde-mid);
     color: var(--white);
-    border-color: var(--primary-mid);
-    box-shadow: var(--shadow-sm);
+    border-color: var(--p-verde-mid);
+    box-shadow: 0 2px 6px rgba(45, 106, 45, 0.1);
 }
 
-/* Contenedor de la Lista */
+/* === CONTENEDOR DE LA LISTA === */
 .historial-lista {
     display: flex;
     flex-direction: column;
@@ -99,52 +109,53 @@
     align-items: stretch;
     background: var(--white);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: 14px;
     overflow: hidden;
     text-decoration: none;
     color: inherit;
-    transition: box-shadow 0.2s ease, transform 0.15s ease;
-    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.15s, transform 0.1s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     width: 100%;
 }
 
 .tarjeta-viaje-item:hover {
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
     transform: translateY(-2px);
 }
 
-/* Bordes Laterales según Estado */
+/* Bordes Laterales según Estado Dinámico */
 .viaje-borde {
     width: 6px;
     flex-shrink: 0;
 }
-.borde-verde, .borde-completado { background: #22c55e; }
-.borde-rojo, .borde-cancelado { background: #ef4444; }
-.borde-dorado, .borde-en_curso { background: #eab308; }
-.borde-gris, .borde-buscando { background: #9ca3af; }
+.borde-verde, .borde-completado, .borde-finalizado { background: #16a34a; }
+.borde-rojo, .borde-cancelado { background: #dc2626; }
+.borde-dorado, .borde-en_curso, .borde-progreso { background: #f59e0b; }
+.borde-gris, .borde-buscando, .borde-pendiente { background: #6b7280; }
 
-/* Cuerpo de la Tarjeta */
+/* Cuerpo Interno de la Tarjeta */
 .viaje-cuerpo {
     flex: 1;
-    padding: 20px 24px;
+    padding: 18px 22px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 20px;
 }
 
-/* Dirección e Iconografía */
+/* Dirección e Iconografía de Ruta */
 .viaje-detalles-izquierda {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     flex: 1;
+    min-width: 0; /* Permite truncar textos dentro de flexbox */
 }
 
 .puntos-ruta-contenedor {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 
 .ruta-linea-punto {
@@ -154,41 +165,47 @@
 }
 
 .ruta-linea-punto .dot {
-    width: 8px;
-    height: 8px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     flex-shrink: 0;
 }
 
-.ruta-linea-punto .dot.verde { background: #22c55e; }
-.ruta-linea-punto .dot.rojo { background: #ef4444; }
+.ruta-linea-punto .dot.verde { 
+    background: #16a34a; 
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+}
+.ruta-linea-punto .dot.rojo { 
+    background: #dc2626; 
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.15);
+}
 
 .direccion-texto-item {
-    font-size: 14.5px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--text);
-    letter-spacing: -0.1px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 450px;
 }
 
-/* Meta información (Fecha, Km) */
+/* Meta información */
 .viaje-meta-info {
     font-size: 12.5px;
     color: var(--gray);
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-wrap: wrap;
 }
 
 .viaje-meta-info .separador {
     color: var(--border-mid);
+    font-weight: bold;
 }
 
 .badge-estado-container {
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 /* Sección Derecha (Precios y Calificación) */
@@ -198,14 +215,13 @@
     flex-direction: column;
     align-items: flex-end;
     justify-content: center;
-    gap: 4px;
+    gap: 6px;
     flex-shrink: 0;
-    min-width: 120px;
 }
 
 .viaje-precio {
-    font-size: 22px;
-    font-weight: 800;
+    font-size: 20px;
+    font-weight: 900;
     color: var(--text);
     letter-spacing: -0.5px;
 }
@@ -214,43 +230,74 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: 13px;
+    font-size: 12.5px;
     color: var(--text-2);
+    font-weight: 500;
 }
 
 .conductor-avatar-icon {
-    font-size: 11px;
-    opacity: 0.6;
+    font-size: 12px;
+    opacity: 0.7;
 }
 
 .viaje-estrellas-puntuacion {
-    font-size: 12px;
-    color: #eab308;
-    letter-spacing: 1px;
+    font-size: 11px;
+    color: #f59e0b;
+    letter-spacing: 0.5px;
 }
 
-/* Estado Vacío */
+/* === ESTADO VACÍO === */
 .historial-vacio {
     text-align: center;
-    padding: 60px 24px;
+    padding: 50px 24px;
     background: var(--white);
-    border-radius: var(--radius-lg);
+    border-radius: 16px;
     border: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .estado-vacio-icono {
-    font-size: 54px;
-    margin-bottom: 12px;
+    font-size: 48px;
+    margin-bottom: 14px;
 }
 
 .historial-vacio p {
-    font-size: 15px;
+    font-size: 14.5px;
     color: var(--gray);
     line-height: 1.6;
-    margin-bottom: 20px;
+    margin: 0 0 20px 0;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 640px) {
+    .historial-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .btn-nuevo-viaje {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .viaje-cuerpo {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px;
+    }
+
+    .viaje-detalles-derecha {
+        text-align: left;
+        align-items: flex-start;
+        width: 100%;
+        border-top: 1px solid var(--border);
+        padding-top: 12px;
+    }
 }
