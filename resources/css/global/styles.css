@@ -77,6 +77,14 @@ main {
     width: 100%;
 }
 
+main.main-wrapper {
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    background: transparent !important;
+    justify-content: unset !important;
+}
+
 /* encabezado */
 header {
     background: var(--white);
