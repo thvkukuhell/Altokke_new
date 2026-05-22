@@ -325,7 +325,7 @@ async function actualizarRuta() {
         const distanciaKm = ruta.distance / 1000;
         const tiempoMin = Math.ceil(ruta.duration / 60);
         
-        // --- AQUÍ ESTÁ EL TRUCO: Detectar cuál servicio está marcado ---
+        // --- Detectar cuál servicio está marcado ---
         const radioExpress = document.querySelector('input[name="tipo_servicio"][value="express"]');
         let tarifaBase = 3.00;
         

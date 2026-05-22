@@ -9,18 +9,18 @@ use Illuminate\Support\Facades\Auth;
 class RedirectIfAuthenticatedRole
 {
     public function handle(Request $request, Closure $next)
-{
-    if (Auth::check()) {
+    {
+        if (Auth::check()) {
 
-        $user = Auth::user();
+            $user = Auth::user();
 
-        return match ($user->tipo_usuario) {
-            'conductor' => redirect()->route('conductor.dashboard'),
-            'pasajero'  => redirect()->route('pasajero.solicitarViaje'),
-            default     => redirect()->route('inicio'),
-        };
+            return match ($user->tipo_usuario) {
+                'conductor' => redirect()->route('conductor.dashboard'),
+                'pasajero'  => redirect()->route('pasajero.solicitarViaje'),
+                default     => redirect()->route('inicio'),
+            };
+        }
+
+        return $next($request);
     }
-
-    return $next($request);
-}
 }
