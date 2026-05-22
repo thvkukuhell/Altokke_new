@@ -207,9 +207,9 @@ class ConductorController extends Controller
         $viaje->update(['estado_viaje' => 'recogiendo']);
 
         event(new \App\Events\ViajeActualizado([
-            'id_pasajero' => $viaje->id_pasajero,
-            'estado'      => 'recogiendo',
-            'id_viaje'    => $viaje->id_viaje
+            (int) $viaje->id_pasajero,
+            'recogiendo',
+            (int) $viaje->id_viaje
         ]));
 
         return redirect()->route('conductor.viaje_activo');
@@ -290,28 +290,27 @@ class ConductorController extends Controller
     }
 
     public function cancelarViaje(Request $request)
-{
-    $request->validate([
-        'id_viaje' => 'required|integer|exists:viajes,id_viaje',
-    ]);
+    {
+        $request->validate([
+            'id_viaje' => 'required|integer|exists:viajes,id_viaje',
+        ]);
 
-    $viaje = Viaje::findOrFail($request->id_viaje);
+        $viaje = Viaje::findOrFail($request->id_viaje);
 
-    $viaje->update([
-        'estado_viaje' => 'cancelado',
-    ]);
+        $viaje->update([
+            'estado_viaje' => 'cancelado',
+        ]);
 
-    // ── ENVIAR ALERTA EN TIEMPO REAL AL PASAJERO ──
-    event(new \App\Events\ViajeActualizado([
-        'id_pasajero' => $viaje->id_pasajero,
-        'estado'      => 'cancelado',
-        'id_viaje'    => $viaje->id_viaje
-    ]));
+        // ── ENVIAR ALERTA EN TIEMPO REAL AL PASAJERO ──
+        event(new \App\Events\ViajeActualizado([
+            'id_pasajero' => $viaje->id_pasajero,
+            'estado'      => 'cancelado',
+            'id_viaje'    => $viaje->id_viaje
+        ]));
 
-    return redirect()
-        ->route('conductor.dashboard')
-        ->with('mensaje', 'Viaje cancelado correctamente.');
-}
+        return redirect()
+            ->route('conductor.solicitudes');
+    }
 
     // ── Historial ──────────────────────────────────────
 

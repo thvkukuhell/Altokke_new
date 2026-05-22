@@ -20,19 +20,28 @@ class SimularLlegadaConductor implements ShouldQueue
 
     public function handle(): void
     {
+        // Refrescar para tener el estado actual
         $this->viaje->refresh();
 
-        $this->viaje->update([
-            'estado_viaje' => 'recogiendo'
-        ]);
+        // Paso 1 — Cambiar a 'recogiendo' (conductor llegó al pasajero)
+        $this->viaje->update(['estado_viaje' => 'recogiendo']);
 
-        event(new ViajeActualizado([
-            'id_pasajero' => $this->viaje->id_pasajero,
-            'estado'      => 'recogiendo',
-            'id_viaje'    => $this->viaje->id_viaje
-        ]));
+        event(new ViajeActualizado(
+            (int) $this->viaje->id_pasajero,
+            'recogiendo',
+            (int) $this->viaje->id_viaje
+        ));
 
-        dispatch(new IniciarViaje($this->viaje->id_viaje))
-            ->delay(now()->addSeconds(8));
+        // Esperar 8 segundos y luego pasar a 'en_curso'
+        sleep(8);
+
+        $this->viaje->refresh();
+        $this->viaje->update(['estado_viaje' => 'en_curso']);
+
+        event(new ViajeActualizado(
+            (int) $this->viaje->id_pasajero,
+            'en_curso',
+            (int) $this->viaje->id_viaje
+        ));
     }
 }
