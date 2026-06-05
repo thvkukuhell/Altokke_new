@@ -22,10 +22,10 @@ class IniciarViaje implements ShouldQueue
             'estado_viaje' => 'en_curso'
         ]);
 
-        event(new ViajeActualizado([
-            'id_pasajero' => $viaje->id_pasajero,
-            'estado'      => 'en_curso',
-            'id_viaje'    => $viaje->id_viaje
-        ]));
+        event(new ViajeActualizado(
+            (int) $viaje->id_pasajero,
+            'en_curso',
+            (int) $viaje->id_viaje
+        ));
     }
 }

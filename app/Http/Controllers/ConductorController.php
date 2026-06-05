@@ -117,7 +117,7 @@ class ConductorController extends Controller
             'email.unique'             => 'El email ya está en uso.',
         ]);
 
-        Auth::user()->conductor->update([
+        Auth::user()->update([
             'nombre_completo' => $request->nombre_completo,
             'apellidos'       => $request->apellidos,
             'telefono'        => $request->telefono,
@@ -206,11 +206,11 @@ class ConductorController extends Controller
         $viaje = Viaje::findOrFail($request->id_viaje);
         $viaje->update(['estado_viaje' => 'recogiendo']);
 
-        event(new \App\Events\ViajeActualizado([
+        event(new \App\Events\ViajeActualizado(
             (int) $viaje->id_pasajero,
             'recogiendo',
             (int) $viaje->id_viaje
-        ]));
+        ));
 
         return redirect()->route('conductor.viaje_activo');
     }
@@ -224,11 +224,11 @@ class ConductorController extends Controller
         $viaje = Viaje::findOrFail($request->id_viaje);
         $viaje->update(['estado_viaje' => 'en_curso']);
 
-        event(new \App\Events\ViajeActualizado([
-            'id_pasajero' => $viaje->id_pasajero,
-            'estado'      => 'en_curso',
-            'id_viaje'    => $viaje->id_viaje
-        ]));
+        event(new \App\Events\ViajeActualizado(
+            (int) $viaje->id_pasajero,
+            'en_curso',
+            (int) $viaje->id_viaje
+        ));
 
         return redirect()->route('conductor.viaje_activo');
     }
@@ -302,11 +302,11 @@ class ConductorController extends Controller
         ]);
 
         // ── ENVIAR ALERTA EN TIEMPO REAL AL PASAJERO ──
-        event(new \App\Events\ViajeActualizado([
-            'id_pasajero' => $viaje->id_pasajero,
-            'estado'      => 'cancelado',
-            'id_viaje'    => $viaje->id_viaje
-        ]));
+        event(new \App\Events\ViajeActualizado(
+            (int) $viaje->id_pasajero,
+            'cancelado',
+            (int) $viaje->id_viaje
+        ));
 
         return redirect()
             ->route('conductor.solicitudes');

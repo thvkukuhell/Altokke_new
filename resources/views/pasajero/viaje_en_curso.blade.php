@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.Echo) {
         // 1. Escuchar la ubicación en tiempo real de la moto
         window.Echo.private(`viaje.${VIAJE_ID}`)
-            .listen('UbicacionConductorActualizada', (data) => {
+            .listen('.UbicacionConductorActualizada', (data) => {
                 if (data.lat && data.lng) {
                     const nuevaPos = [parseFloat(data.lat), parseFloat(data.lng)];
                     marcadorConductor.setLatLng(nuevaPos);
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 2. Escuchar cambios de estado del viaje (Recogiendo, En curso, Completado)
         window.Echo.private(`pasajero.{{ auth()->id() }}`)
-            .listen('ViajeActualizado', (data) => {
+            .listen('.ViajeActualizado', (data) => {
                 if (!data.estado) return;
                 
                 actualizarPasos(data.estado);

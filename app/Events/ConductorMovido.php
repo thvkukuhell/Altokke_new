@@ -2,9 +2,7 @@
 
 namespace App\Events;
 
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -20,9 +18,14 @@ class ConductorMovido implements ShouldBroadcast
         public float $lng
     ) {}
 
-    public function broadcastOn(): Channel
+    public function broadcastOn(): PrivateChannel
     {
-        return new Channel('viaje.' . $this->viajeId);
+        return new PrivateChannel('viaje.' . $this->viajeId);
+    }
+
+    public function broadcastAs(): string 
+    {
+        return 'UbicacionConductorActualizada';
     }
 
     public function broadcastWith(): array 

@@ -157,7 +157,7 @@ window.addEventListener('load', () => {
     if (window.Echo) {
 
         window.Echo.private(`pasajero.{{ auth()->id() }}`)
-            .listen('ViajeAceptado', (data) => {
+            .listen('.ViajeAceptado', (data) => {
                 const viajeId = data.viajeId || viajeIdActual;
                 if (!viajeId) return;
 
@@ -168,7 +168,7 @@ window.addEventListener('load', () => {
             });
 
         window.Echo.private(`pasajero.{{ auth()->id() }}`)
-            .listen('ViajeActualizado', (data) => {
+            .listen('.ViajeActualizado', (data) => {
 
                 if (!data.estado) return;
 

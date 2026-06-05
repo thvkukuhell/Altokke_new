@@ -24,6 +24,11 @@ class ViajeActualizado implements ShouldBroadcastNow
         return new PrivateChannel('pasajero.' . $this->pasajeroId);
     }
 
+    public function broadcastAs(): string 
+    {
+        return 'ViajeActualizado';
+    }
+
     public function broadcastWith(): array
     {
         return [
