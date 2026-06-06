@@ -44,7 +44,7 @@
                             <label>Monto</label>
                             <input type="number" name="monto" min="5" max="500" step="0.50" value="{{ old('monto', 10) }}" required>
                         </div>
-                        <divc class="auth-campo">
+                        <div class="auth-campo">
                             <label>Método</label>
                             <select name="metodo_recarga" required>
                                 <option value="yape">Yape QR</option>
@@ -76,30 +76,30 @@
                     <div class="perfil-campo-valor">{{ $ganancias->total_viajes ?? 0 }}</div>
                 </div>
             </div>
-        </div>
 
-        <div class="tarjeta">
-            <h3 style="margin-bottom:12px;">Últimas recargas</h3>
-            @forelse($recargas as $recarga)
-                <div class="billetera-fila">
-                    <span>{{ ucfirst($recarga->metodo_recarga) }} - {{ ucfirst($recarga->estado_recarga) }}</span>
-                    <strong>S/ {{ number_format($recarga->monto, 2) }}</strong>
-                </div>
-            @empty
-                <p class="text-muted">Aún no registras recargas.</p>
-            @endforelse
-        </div>
+            <div class="tarjeta">
+                <h3 style="margin-bottom:12px;">Últimas recargas</h3>
+                @forelse($recargas as $recarga)
+                    <div class="billetera-fila">
+                        <span>{{ ucfirst($recarga->metodo_recarga) }} - {{ ucfirst($recarga->estado_recarga) }}</span>
+                        <strong>S/ {{ number_format($recarga->monto, 2) }}</strong>
+                    </div>
+                @empty
+                    <p class="text-muted">Aún no registras recargas.</p>
+                @endforelse
+            </div>
 
-        <div class="tarjeta">
-            <h3 style="margin-bottom:12px;">Comisiones descontadas</h3>
-            @forelse($comisiones as $comision)
-                <div class="billetera-fila">
-                    <span>Viaje #{{ $comision->id_viaje }}</span>
-                    <strong>S/ {{ number_format($comision->monto_comision, 2) }}</strong>
-                </div>
-            @empty
-                <p class="text-muted">Aún no hay comisiones descontadas.</p>
-            @endforelse
+            <div class="tarjeta">
+                <h3 style="margin-bottom:12px;">Comisiones descontadas</h3>
+                @forelse($comisiones as $comision)
+                    <div class="billetera-fila">
+                        <span>Viaje #{{ $comision->id_viaje }}</span>
+                        <strong>S/ {{ number_format($comision->monto_comision, 2) }}</strong>
+                    </div>
+                @empty
+                    <p class="text-muted">Aún no hay comisiones descontadas.</p>
+                @endforelse
+            </div>
         </div>
     </div>
 </div>

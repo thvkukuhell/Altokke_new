@@ -287,7 +287,7 @@ Route::delete('/pasajeros/{id}', function ($id) {
         return response()->json(['error' => 'Pasajero no encontrado'], 404);
     }
     $pasajero->user?->update(['activo' => 0]);
-    Viaje::where('id_pasajero, $id')
+    Viaje::where('id_pasajero', $id)
         ->whereIn('estado_viaje', ['buscando', 'aceptado', 'recogiendo', 'en_curso'])
         ->update(['estado_viaje' => 'cancelado']);
 

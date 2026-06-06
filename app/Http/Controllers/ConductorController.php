@@ -290,7 +290,7 @@ class ConductorController extends Controller
         $viaje = Viaje::findOrFail($request->id_viaje);
         $conductor = $this->getConductorActual();
         $tarifaFinal = (float) ($viaje->tarifa_final ?? $viaje->tarifa_estimada ?? 0);
-        $montoComision = rount($tarifaFinal * self::COMISION_ALTOKKE, 2);
+        $montoComision = round($tarifaFinal * self::COMISION_ALTOKKE, 2);
 
         if ((float) $conductor->saldo_disponible < $montoComision) {
             return redirect()

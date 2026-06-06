@@ -12,7 +12,7 @@ return new class extends Migration
             $table->dropForeign(['id_pasajero']);
             $table->foreign('id_pasajero')
                 ->references('id_usuario')
-                ->on('usuario')
+                ->on('usuarios')
                 ->restrictOnDelete();
         });
 

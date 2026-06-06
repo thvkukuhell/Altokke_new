@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Notificacion extends Model
 {
-    protected $table = 'notifiaciones';
-    protected $primaryKey = 'id_notifiacion';
+    protected $table = 'notificaciones';
+    protected $primaryKey = 'id_notificacion';
 
     protected $fillable = [
         'id_usuario',
@@ -17,7 +17,7 @@ class Notificacion extends Model
         'fecha_notificacion',
     ];
 
-    protected function casts(): arrary 
+    protected function casts(): array 
     {
         return [
             'fecha_notificacion' => 'datetime',
