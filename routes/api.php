@@ -69,8 +69,8 @@ Route::delete('/usuarios/{id}', function ($id) {
     if (!$user) {
         return response()->json(['error' => 'Usuario no encontrado'], 404);
     }
-    $user->delete();
-    return response()->json(['mensaje' => 'Usuario eliminado correctamente'], 200);
+    $user->update(['activo' => 0]);
+    return response()->json(['mensaje' => 'Usuario desactivado correctamente'], 200);
 });
 
 // CRUD - VIAJES
@@ -140,8 +140,8 @@ Route::delete('/viajes/{id}', function ($id) {
     if (!$viaje) {
         return response()->json(['error' => 'Viaje no encontrado'], 404);
     }
-    $viaje->delete();
-    return response()->json(['mensaje' => 'Viaje eliminado correctamente'], 200);
+    $viaje->update(['estado_viaje' => 'cancelado']);
+    return response()->json(['mensaje' => 'Viaje cancelado correctamente'], 200);
 });
 
 // CRUD - CONDUCTORES
@@ -182,8 +182,9 @@ Route::delete('/conductores/{id}', function ($id) {
     if (!$conductor) {
         return response()->json(['error' => 'Conductor no encontrado'], 404);
     }
-    $conductor->delete();
-    return response()->json(['mensaje' => 'Conductor eliminado correctamente'], 200);
+    $conductor->update(['estado_conductor' => 'inactivo']);
+    $conductor->user?->update(['activo' => 0]);
+    return response()->json(['mensaje' => 'Conductor desactivado correctamente'], 200);
 });
 
 // CRUD - CALIFICACIONES
@@ -285,8 +286,12 @@ Route::delete('/pasajeros/{id}', function ($id) {
     if (!$pasajero) {
         return response()->json(['error' => 'Pasajero no encontrado'], 404);
     }
-    $pasajero->delete();
-    return response()->json(['mensaje' => 'Pasajero eliminado correctamente'], 200);
+    $pasajero->user?->update(['activo' => 0]);
+    Viaje::where('id_pasajero, $id')
+        ->whereIn('estado_viaje', ['buscando', 'aceptado', 'recogiendo', 'en_curso'])
+        ->update(['estado_viaje' => 'cancelado']);
+
+    return response()->json(['mensaje' => 'Pasajero desactivado correctamente'], 200);
 });
  
 // Ver historial de viajes de un pasajero

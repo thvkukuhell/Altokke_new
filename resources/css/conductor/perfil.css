@@ -94,6 +94,48 @@
   transform: translateY(-1px);
 }
 
+.billetera-form {
+  display: grid;
+  gap: 16px;
+}
+
+.billetera-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #edf0ed;
+}
+
+.billetera-fila:last-child {
+  border-bottom: 0;
+}
+
+.auth-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-campo label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gris);
+  text-transform: uppercase;
+}
+
+.auth-campo input,
+.auth-campo select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #dfe5df;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font: inherit;
+  background: #fff;
+}
+
 /* Tarjeta de datos personales */
 .perfil-encabezado {
   display: flex;
@@ -183,6 +225,9 @@
 }
 
 @media (max-width: 1024px) {
+  .pagina-conductor {
+    padding: 18px 14px 40px;
+  }
   .perfil-layout {
     grid-template-columns: 1fr;
   }
@@ -192,5 +237,9 @@
   .perfil-grid {
     grid-template-columns: 1fr;
     gap: 16px;
+  }
+  .billetera-fila {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

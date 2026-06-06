@@ -15,8 +15,8 @@
 
             {{-- Caja flotante del ETA --}}
             <div class="eta-caja" style="position: absolute; top: 15px; left: 15px; z-index: 1000;">
-                <div class="eta-numero">4</div>
-                <div class="eta-unidad">min restantes</div>
+                <div class="eta-numero">GPS</div>
+                <div class="eta-unidad">activo</div>
             </div>
         </div>
 
@@ -45,7 +45,7 @@
                             {{ $viaje->pasajero->user->nombre_completo ?? 'Pasajero' }}
                         </div>
                         <div class="conductor-dato">
-                            📱 {{ $viaje->pasajero->user->telefono ?? '—' }}
+                            Tel: {{ $viaje->pasajero->user->telefono ?? '—' }}
                         </div>
                     </div>
                 </div>
@@ -81,7 +81,7 @@
                 @csrf
                 <input type="hidden" name="id_viaje" value="{{ $viaje->id_viaje }}">
                 <button type="submit" class="btn btn-verde btn-ancho">
-                    ✅ Completar Viaje
+                     Completar Viaje
                 </button>
             </form>
 
@@ -141,38 +141,17 @@ window.addEventListener('load', () => {
         attribution: '© OpenStreetMap'
     }).addTo(mapaConductor);
 
-    const iconoMoto = L.divIcon({
-        html: '<div style="font-size:28px;">🏍️</div>',
-        iconSize: [30, 30],
-        iconAnchor: [15, 15]
-    });
-    const marcadorConductor = L.marker([conductorLat, conductorLng], { icon: iconoMoto }).addTo(mapaConductor);
+    const marcadorConductor = L.marker([conductorLat, conductorLng]).addTo(mapaConductor).bindPopup('Conductor');
+    const marcadorPasajero = L.marker([origenLat, origenLng]).addTo(mapaConductor).bindPopup('Pasajero');
+    const marcadorDestino = L.marker([destinoLat, destinoLng]).addTo(mapaConductor).bindPopup('Destino');
 
-    const marcadorPasajero = L.marker([origenLat, origenLng], {
-        icon: L.divIcon({ html: '<div style="font-size:26px">📍</div>', iconSize: [30, 30], iconAnchor: [15, 30] })
-    }).addTo(mapaConductor).bindPopup('Pasajero');
-
-    const marcadorDestino = L.marker([destinoLat, destinoLng], {
-        icon: L.divIcon({ html: '<div style="font-size:26px">🏁</div>', iconSize: [30, 30], iconAnchor: [15, 30] })
-    }).addTo(mapaConductor).bindPopup('Destino');
-
-    const bounds = L.latLngBounds([
+    mapaConductor.fitBounds(L.latLngBounds([
         [conductorLat, conductorLng],
         [origenLat, origenLng],
         [destinoLat, destinoLng]
-    ]);
-    mapaConductor.fitBounds(bounds.pad(0.30));
+    ]).pad(0.30));
 
     setTimeout(() => mapaConductor.invalidateSize(), 500);
-
-    fetch(`https://router.project-osrm.org/route/v1/driving/${origenLng},${origenLat};${destinoLng},${destinoLat}?overview=full&geometries=geojson`)
-        .then(res => res.json())
-        .then(data => {
-            if (!data.routes?.length) return;
-            const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-            L.polyline(coords, { color: '#16a34a', weight: 5, opacity: 0.7, dashArray: '8 5' }).addTo(mapaConductor);
-        })
-        .catch(err => console.warn('Error dibujando ruta:', err));
 
     function emitirUbicacion(latitud, longitud) {
         fetch('{{ route('conductor.ubicacion') }}', {
@@ -186,39 +165,43 @@ window.addEventListener('load', () => {
                 lat: latitud,
                 lng: longitud
             })
-        })
-        .then(res => res.json())
-        .then(data => console.log('Transmisión Reverb exitosa:', data))
-        .catch(err => console.error('Error de red en actualización:', err));
+        }).catch(err => console.error('Error enviando ubicacion:', err));
     }
 
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        setInterval(() => {
-            conductorLat += 0.00012;
-            conductorLng += 0.00012;
+    let simulacionActiva = false;
+    let simulacionTimer = null;
 
-            marcadorConductor.setLatLng([conductorLat, conductorLng]);
-            mapaConductor.panTo([conductorLat, conductorLng]);
-            emitirUbicacion(conductorLat, conductorLng);
+    function moverConductor(latitud, longitud) {
+        conductorLat = latitud;
+        conductorLng = longitud;
+        marcadorConductor.setLatLng([conductorLat, conductorLng]);
+        mapaConductor.panTo([conductorLat, conductorLng]);
+        emitirUbicacion(conductorLat, conductorLng);
+    }
+
+    function iniciarSimulacionLocal() {
+        if (simulacionActiva) return;
+        simulacionActiva = true;
+        simulacionTimer = setInterval(() => {
+            moverConductor(conductorLat + 0.00012, conductorLng + 0.00012);
         }, 4000);
-    } else {
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition((pos) => {
-                const nuevaLat = pos.coords.latitude;
-                const nuevaLng = pos.coords.longitude;
+    }
 
-                marcadorConductor.setLatLng([nuevaLat, nuevaLng]);
-                mapaConductor.panTo([nuevaLat, nuevaLng]);
-                emitirUbicacion(nuevaLat, nuevaLng);
-            }, (err) => {
-                console.warn('Error capturando GPS del dispositivo:', err.message);
-            }, {
-                enableHighAccuracy: true,
-                maximumAge: 0
-            });
-        } else {
-            console.error('El navegador no soporta geolocalización.');
-        }
+    if (navigator.geolocation) {
+        navigator.geolocation.watchPosition((pos) => {
+            if (simulacionTimer) clearInterval(simulacionTimer);
+            simulacionActiva = false;
+            moverConductor(pos.coords.latitude, pos.coords.longitude);
+        }, (err) => {
+            console.warn('No se pudo obtener GPS real:', err.message);
+            iniciarSimulacionLocal();
+        }, {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 10000
+        });
+    } else {
+        iniciarSimulacionLocal();
     }
 });
 </script>

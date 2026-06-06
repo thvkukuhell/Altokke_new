@@ -6,13 +6,13 @@ use App\Http\Controllers\InicioController;
 use App\Http\Controllers\PasajeroController;
 use App\Http\Controllers\ConductorController;
 
-// ── Inicio público (sin middleware — visible para todos) ──
+// Inicio público (sin middleware — visible para todos)
 Route::get('/',        [InicioController::class, 'index'])->name('inicio');
 Route::get('/inicio',  [InicioController::class, 'index']);
 Route::get('/inicio/como_funciona',  [InicioController::class, 'como_funciona'])->name('como_funciona');
 Route::get('/inicio/sobre_nosotros', [InicioController::class, 'sobre_nosotros'])->name('sobre_nosotros');
 
-// ── Auth público (redirige si ya está autenticado) ────────
+//Auth público (redirige si ya está autenticado)
 Route::middleware('redirect.auth.role')->group(function () {
     Route::get( '/auth/login',                [AuthController::class, 'login'])->name('login');
     Route::post('/auth/login',                [AuthController::class, 'login_proceso'])->name('login.proceso');
@@ -27,7 +27,7 @@ Route::middleware('redirect.auth.role')->group(function () {
 
 Route::post('/auth/logout', [AuthController::class, 'logout'])->name('logout');
 
-// ── Pasajero (protegido) ──────────────────────────────────
+//Pasajero (protegido)
 Route::prefix('pasajero')->name('pasajero.')->middleware(['auth', 'role:pasajero'])->group(function () {
     Route::get('/',                        [PasajeroController::class, 'index']);
     Route::get('/solicitarViaje',          [PasajeroController::class, 'solicitarViaje'])->name('solicitarViaje');
@@ -44,12 +44,12 @@ Route::prefix('pasajero')->name('pasajero.')->middleware(['auth', 'role:pasajero
     Route::post('/guardarPerfil',          [PasajeroController::class, 'guardarPerfil'])->name('guardarPerfil');
 });
 
-// ── Fallbacks pasajero (corregidos a camelCase para evitar 404) ─────
+// Fallbacks pasajero (corregidos a camelCase para evitar 404)
 Route::redirect('/pasajero/buscando', '/pasajero/solicitarViaje');
 Route::redirect('/pasajero/enCurso',   '/pasajero/solicitarViaje');
 Route::redirect('/pasajero/calificar', '/pasajero/solicitarViaje');
 
-// ── Conductor (protegido) ─────────────────────────────────
+// Conductor (protegido)
 Route::prefix('conductor')->name('conductor.')->middleware(['auth', 'role:conductor'])->group(function () {
     Route::get('/',                  [ConductorController::class, 'index'])->name('dashboard');
     Route::get('/perfil',            [ConductorController::class, 'perfil'])->name('perfil');
@@ -61,9 +61,10 @@ Route::prefix('conductor')->name('conductor.')->middleware(['auth', 'role:conduc
     Route::get('/viajeActivo',       [ConductorController::class, 'viajeActivo'])->name('viaje_activo');
     Route::get('/historial',         [ConductorController::class, 'historial'])->name('historial');
     Route::get('/billetera',         [ConductorController::class, 'billetera'])->name('billetera');
+    Route::post('/recargarSaldo',    [ConductorController::class, 'recargarSaldo'])->name('recargarSaldo');
 });
 
-// ── APIs tiempo real (corregido a camelCase) ──────────────────────────────────────
+// APIs tiempo real (corregido a camelCase)
 Route::middleware(['auth', 'role:conductor'])->post(
     '/conductor/actualizarUbicacion',
     [ConductorController::class, 'actualizarUbicacion']

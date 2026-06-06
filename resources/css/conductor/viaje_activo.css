@@ -325,6 +325,9 @@
 }
 
 @media (max-width: 1024px) {
+    .pagina-conductor {
+        padding: 16px 12px 32px;
+    }
     .viaje-grid {
         grid-template-columns: 1fr;
         gap: 20px;
@@ -332,5 +335,12 @@
     .mapa-viaje {
         height: 280px;
         min-height: 280px;
+    }
+    .viaje-grid > .mapa-viaje,
+    .viaje-grid > .panel-viaje {
+        grid-column: 1;
+    }
+    .panel-viaje {
+        gap: 12px;
     }
 }

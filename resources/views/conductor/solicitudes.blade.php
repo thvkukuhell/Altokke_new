@@ -14,6 +14,18 @@
             @if(session('mensaje'))
                 <div class="alert alert-success">{{ session('mensaje') }}</div>
             @endif
+
+            @if(!$puedeTomarViajes)
+                <div class="tarjeta" style="border-left:4px solid #f59e0b; margin-bottom:16px;">
+                    <strong>Antes de aceptar viajes</strong>
+                    <p style="margin:6px 0 0; color:var(--gray);">
+                        Tu cuenta debe estar verificada y tu billetera debe tener saldo para cubrir la comisión de Altokke.
+                    </p>
+                    <a href="{{ route('conductor.billetera') }}" class="btn btn-verde btn-sm" style="margin-top:10px;">
+                        Recargar saldo
+                    </a>
+                </div>
+            @endif
  
             @if($solicitudes->isEmpty())
                 <div class="tarjeta estado-vacio">
