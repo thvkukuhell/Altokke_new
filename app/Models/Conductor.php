@@ -34,4 +34,19 @@ class Conductor extends Model
     {
         return $this->hasMany(Viaje::class, 'id_conductor', 'id_conductor');
     }
+
+    public function recargas()
+    {
+        return $this->hasMany(RecargaSaldo::class, 'id_conductor', 'id_conductor');
+    }
+
+    public function comisiones()
+    {
+        return $this->hasMany(Comision::class, 'id_conductor', 'id_conductor');
+    }
+
+    public function documentos()
+    {
+        return $this->hasMany(DocumentoVerificacion::class, 'id_conductor', 'id_conductor');
+    }
 }

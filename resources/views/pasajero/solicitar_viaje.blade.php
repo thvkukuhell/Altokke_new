@@ -351,9 +351,7 @@ async function actualizarRuta() {
     }
 }
 
-// ===============================
 // DISTANCIA Y TARIFA
-// ===============================
 function calcularTarifa(
     lat1,
     lon1,
@@ -403,9 +401,7 @@ function calcularTarifa(
         `~${distancia.toFixed(1)} km · ${tiempo} min`;
 }
 
-// ===============================
 // AUTOCOMPLETE
-// ===============================
 crearAutocomplete(
     document.getElementById('origen-input'),
     'origen'

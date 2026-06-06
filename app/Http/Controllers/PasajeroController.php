@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class PasajeroController extends Controller
 {
-    // ── Sin __construct — el middleware está en web.php ──
+    //  Sin __construct — el middleware está en web.php 
 
     public function index()
     {

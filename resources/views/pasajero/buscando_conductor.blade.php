@@ -150,9 +150,7 @@ window.addEventListener('load', () => {
         });
 
     /*
-    |-----------------------------------------
     | ESCUCHA EN TIEMPO REAL
-    |-----------------------------------------
     */
     if (window.Echo) {
 
@@ -161,7 +159,6 @@ window.addEventListener('load', () => {
                 const viajeId = data.viajeId || viajeIdActual;
                 if (!viajeId) return;
 
-                // opcional: mostrar info del conductor antes de redirigir
                 console.log("Conductor asignado:", data);
 
                 window.location.href = `/pasajero/enCurso/${viajeId}`;
@@ -174,7 +171,6 @@ window.addEventListener('load', () => {
 
                 console.log("Estado viaje:", data.estado);
 
-                // aquí podrías actualizar UI sin redirigir aún
             });
     }
 });

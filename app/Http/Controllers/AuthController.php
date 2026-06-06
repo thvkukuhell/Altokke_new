@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Pasajero;
 use App\Models\Conductor;
+use App\Models\DocumentoVerificacion;
 use App\Models\Vehiculo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,8 +12,7 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    // ── Vistas ────────────────────────────────────────
-
+    // Vistas 
     public function login()
     {
         return view('auth.login', [
@@ -49,8 +49,7 @@ class AuthController extends Controller
         ]);
     }
 
-    // ── Login ──────────────────────────────────────────
-
+    // Login 
     public function login_proceso(Request $request)
     {
         // Validación
@@ -84,16 +83,14 @@ class AuthController extends Controller
         };
     }
 
-    // ── Logout ─────────────────────────────────────────
-
+    // Logout 
     public function logout()
     {
         Auth::logout();
         return redirect()->route('inicio');
     }
 
-    // ── Registro Pasajero ──────────────────────────────
-
+    // Registro Pasajero
     public function proc_regist_pasajero(Request $request)
     {
         $request->validate([
@@ -134,8 +131,7 @@ class AuthController extends Controller
         return redirect()->route('pasajero.solicitarViaje');
     }
 
-    // ── Registro Conductor ─────────────────────────────
-
+    // Registro Conductor
     public function proc_regist_conductor(Request $request)
     {
         $request->validate([
@@ -167,6 +163,9 @@ class AuthController extends Controller
         $conductor = Conductor::create([
             'id_conductor'    => $user->id_usuario,
             'licencia_numero' => $request->numero_licencia,
+            'estado_conductor' => 'activo',
+            'verificado_dni' => 1,
+            'fecha_verificacion_dni' => now(),
         ]);
 
         Vehiculo::create([
@@ -179,12 +178,26 @@ class AuthController extends Controller
             'numero_soat'  => $request->numero_soat,
         ]);
 
+        foreach ([
+            'dni' => $user->dni,
+            'licencia_conducir' => $conductor->licencia_numero,
+            'soat' => $request->numero_soat,
+            'tarjeta_propiedad' => $request->placa,
+        ] as $tipo => $referencia) {
+            DocumentoVerificacion::create([
+                'id_conductor' => $user->id_usuario,
+                'tipo_documento' => $tipo,
+                'url_archivo' => 'registro-simulado:' . $referencia,
+                'estado_documento' => 'aprobado', 
+                'fecha_revision' => now(),
+            ]);
+        }
+
         Auth::login($user);
         return redirect()->route('conductor.dashboard');
     }
 
     //recuperar contraseña
-
     public function recuperar_contrasena()
     {
         return view('auth.recuperar_contrasena', [

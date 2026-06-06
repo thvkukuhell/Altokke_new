@@ -54,4 +54,9 @@ class Viaje extends Model
     {
         return $this->hasOne(Calificacion::class, 'id_viaje', 'id_viaje');
     }
+
+    public function comision() 
+    {
+        return $this->hasOne(Comision::class, 'id_viaje', 'id_viaje');
+    }
 }

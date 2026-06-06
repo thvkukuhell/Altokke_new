@@ -122,7 +122,7 @@ const ORDEN_PASOS = { aceptado: 0, recogiendo: 1, en_curso: 2, completado: 3 };
 document.addEventListener('DOMContentLoaded', () => {
     if (!VIAJE_ID) return;
 
-    // ── MAPA ──────────────────────────────────────────────
+    // MAPA 
     const mapa = L.map('mapa-en-curso', { zoomControl: false }).setView([origLat, origLng], 15);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa);
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
         icon: L.divIcon({ html: '<div style="font-size:28px">🏍️</div>', iconSize:[35,35], iconAnchor:[17,17] })
     }).addTo(mapa).bindPopup('Tu conductor');
 
-    // ── ACTUALIZAR TIMELINE ───────────────────────────────
+    // ACTUALIZAR TIMELINE 
     function actualizarPasos(nuevoEstado) {
         const posNueva = ORDEN_PASOS[nuevoEstado] ?? 0;
 
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (txtLabel && textos[nuevoEstado]) txtLabel.innerText = textos[nuevoEstado];
     }
 
-    // ── ESCUCHA WEBSOCKETS (ECHO) ─────────────────────────
+    // ESCUCHA WEBSOCKETS (ECHO) 
     if (window.Echo) {
         // 1. Escuchar la ubicación en tiempo real de la moto
         window.Echo.private(`viaje.${VIAJE_ID}`)

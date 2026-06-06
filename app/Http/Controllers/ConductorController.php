@@ -3,14 +3,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Viaje;
 use App\Models\Conductor;
+use App\Models\Comision;
+use App\Models\Notificacion;
+use App\Models\RecargaSaldo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Jobs\SimularLlegadaConductor;
 
 class ConductorController extends Controller
 {
-    // ── Helpers ────────────────────────────────────────
+    private const COMISION_ALTOKKE = 0.08;
 
+    // Helpers 
     private function calcularIniciales(string $nombre): string
     {
         $partes = explode(' ', trim($nombre));
@@ -49,8 +53,7 @@ class ConductorController extends Controller
         return $pasos;
     }
 
-    // ── Dashboard / Inicio ─────────────────────────────
-
+    // Dashboard / Inicio 
     public function index()
     {
         $conductor   = $this->getConductorActual();
@@ -75,7 +78,7 @@ class ConductorController extends Controller
         return view('conductor.inicio', [
             'header'       => 'header_conductor',
             'footer'       => 'footer',
-            'css'          => ['conductor/inicio.css'], // Se cambió el CSS para la vista de inicio del conductor
+            'css'          => ['conductor/inicio.css'], 
             'conductor'    => $conductor,
             'vehiculo'     => $vehiculo,
             'viajeActivo'  => $viajeActivo,
@@ -85,8 +88,7 @@ class ConductorController extends Controller
         ]);
     }
 
-    // ── Perfil ─────────────────────────────────────────
-
+    // Perfil
     public function perfil()
     {
         $conductor     = $this->getConductorActual();
@@ -129,11 +131,12 @@ class ConductorController extends Controller
             ->with('mensaje', 'Perfil actualizado correctamente.');
     }
 
-    // ── Solicitudes ────────────────────────────────────
-
+    // Solicitudes
     public function solicitudes()
     {
         $conductor = $this->getConductorActual();
+        $puedeTomarViajes = $conductor->estado_conductor === 'activo'
+            && (float) $conductor->saldo_disponible > 0;
 
         // Solo muestra viajes en estado 'buscando' sin conductor asignado
         $solicitudes = Viaje::where('estado_viaje', 'buscando')
@@ -153,6 +156,7 @@ class ConductorController extends Controller
             'iniciales'    => $iniciales,
             'seccionActiva'=> $seccionActiva,
             'solicitudes' => $solicitudes,
+            'puedeTomarViajes' => $puedeTomarViajes, 
         ]);
     }
 
@@ -163,6 +167,19 @@ class ConductorController extends Controller
         ]);
 
         $viaje = Viaje::findOrFail($request->id_viaje);
+        $conductor = $this->getConductorActual();
+        
+        if ($conductor->estado_conductor !== 'activo') {
+            return redirect() 
+                ->route('conductor.solicitudes')
+                ->with('mensaje', 'Tu cuenta de conductor aún está en verificación. No puedes aceptar viajes todavía.');
+        }
+
+        if ((float) $conductor->saldo_disponible <= 0) {
+            return redirect()
+                ->route('conductor.billetera')
+                ->with('mensaje', 'Necesitas recargar saldo antes de aceptar viajes.');
+        }
 
         // Evitar que dos conductores acepten el mismo viaje
         if ($viaje->estado_viaje !== 'buscando' || $viaje->id_conductor !== null) {
@@ -180,8 +197,12 @@ class ConductorController extends Controller
 
         // 2. Disparar eventos
         event(new \App\Events\ViajeAceptado($viaje->load('conductor.user', 'conductor.vehiculo')));
-        
-        // CORRECCIÓN AQUÍ: Pasamos los 3 parámetros individuales con type-casting a entero
+        Notificacion::create([
+            'id_usuario' => $viaje->id_pasajero,
+            'titulo' => 'Viaje_aceptado',
+            'mensaje' => 'Un conductor aceptó tu solicitud de viaje',
+        ]);
+
         event(new \App\Events\ViajeActualizado(
             (int) $viaje->id_pasajero,
             'aceptado',
@@ -191,7 +212,6 @@ class ConductorController extends Controller
         // Inicia simulación de llegada del conductor
         dispatch(new SimularLlegadaConductor($viaje));
 
-        // CORRECCIÓN AQUÍ: Apuntamos al nombre de ruta correcto
         return redirect()
             ->route('conductor.viaje_activo')
             ->with('mensaje', '¡Viaje aceptado! Dirígete a recoger al pasajero.');
@@ -233,8 +253,7 @@ class ConductorController extends Controller
         return redirect()->route('conductor.viaje_activo');
     }
 
-    // ── Viaje activo ───────────────────────────────────
-
+    // Viaje activo 
     public function viajeActivo()
     {
         $conductor = $this->getConductorActual();
@@ -269,11 +288,39 @@ class ConductorController extends Controller
         ]);
 
         $viaje = Viaje::findOrFail($request->id_viaje);
+        $conductor = $this->getConductorActual();
+        $tarifaFinal = (float) ($viaje->tarifa_final ?? $viaje->tarifa_estimada ?? 0);
+        $montoComision = rount($tarifaFinal * self::COMISION_ALTOKKE, 2);
+
+        if ((float) $conductor->saldo_disponible < $montoComision) {
+            return redirect()
+                ->route('conductor.billetera')
+                ->with('mensaje', 'Tu saldo no alcanza para cubrir la comisión de este viaje.');
+        }
 
         // 2. Actualizar el estado del viaje en la base de datos
         $viaje->update([
             'estado_viaje' => 'completado',
+            'tarifa_final' => $tarifaFinal,
             'fecha_fin'    => now()
+        ]);
+
+        Comision::updateOrCreate(
+            ['id_viaje' => $viaje->id_viaje],
+            [
+                'id_conductor' => $viaje->id_conductor,
+                'monto_comision' => $montoComision,
+                'fecha_descuento' => now()->toDateString(),
+            ]
+        );
+
+        $conductor->decrement('saldo_disponible', $montoComision);
+        $conductor->increment('total_viajes');
+
+        Notificacion::create([
+            'id_usuario' => $viaje->id_pasajero,
+            'titulo' => 'Viaje completado',
+            'mensaje' => 'Tu viaje finalizó correctamente. Ya puedes calificar al conductor.',
         ]);
 
         // 3.  Pasar los 3 parámetros individuales al constructor del evento
@@ -285,7 +332,7 @@ class ConductorController extends Controller
 
         // 4. Redirigir al conductor a su historial, dashboard o solicitudes con un mensaje de éxito
         return redirect()
-            ->route('conductor.solicitudes') // O la ruta que prefieras mandar al terminar
+            ->route('conductor.solicitudes') 
             ->with('mensaje', '¡Viaje terminado con éxito! Buen trabajo.');
     }
 
@@ -301,7 +348,12 @@ class ConductorController extends Controller
             'estado_viaje' => 'cancelado',
         ]);
 
-        // ── ENVIAR ALERTA EN TIEMPO REAL AL PASAJERO ──
+        Notificacion::create([
+            'id_usuario' => $viaje->id_pasajero,
+            'titulo' => 'Viaje cancelado',
+            'mensaje' => 'El conductor canceló el viaje.',
+        ]);
+
         event(new \App\Events\ViajeActualizado(
             (int) $viaje->id_pasajero,
             'cancelado',
@@ -312,8 +364,7 @@ class ConductorController extends Controller
             ->route('conductor.solicitudes');
     }
 
-    // ── Historial ──────────────────────────────────────
-
+    // Historial 
     public function historial()
     {
         $conductor = $this->getConductorActual();
@@ -363,8 +414,7 @@ class ConductorController extends Controller
         ]);
     }
 
-    // ── Billetera ──────────────────────────────────────
-
+    // Billetera
     public function billetera()
     {
         $conductor = $this->getConductorActual();
@@ -387,6 +437,14 @@ class ConductorController extends Controller
                               ->orderByDesc('fecha_fin')
                               ->limit(10)
                               ->get();
+        $recargas = RecargaSaldo::where('id_conductor', Auth::id())
+                                ->orderByDesc('fecha_solicitud')
+                                ->limit(5)
+                                ->get();
+        $comisiones = Comision::where('id_conductor', Auth::id())
+                              ->orderByDesc('fecha_descuento')
+                              ->limit(5)
+                              ->get();
 
         $iniciales     = $this->calcularIniciales($conductor->user->nombre_completo ?? '');
         $seccionActiva = 'billetera';
@@ -400,7 +458,42 @@ class ConductorController extends Controller
             'iniciales'    => $iniciales,
             'seccionActiva'=> $seccionActiva,
             'ultimosViajes' => $ultimosViajes,
+            'recargas' => $recargas,
+            'comisiones' => $comisiones,
+            'porcentajeComision' => self::COMISION_ALTOKKE * 100,
         ]);
+    }
+
+    public function recargarSaldo(Request $request) 
+    {
+        $request->validate([
+            'monto' => 'required|numeric|min:5|max:500',
+            'metodo_recarga' => 'required|in:yape,plin,efectivo',
+            'referencia' => 'nullable|string|max:150',
+        ]);
+
+        $conductor = $this->getConductorActual();
+
+        RecargaSaldo::create([
+            'id_conductor' => $conductor->id_conductor,
+            'monto' => $request->monto,
+            'metodo_recarga' => $request->metodo_recarga,
+            'referencia' => $request->referencia,
+            'estado_recarga' => 'aprobada',
+            'fecha_aprobacion' => now(),
+        ]);
+
+        $conductor->increment('saldo_disponible', $request->monto);
+
+        Notificacion::create([
+            'id_usuario' => $conductor->id_conductor,
+            'titulo' => 'Recarga aprobada',
+            'mensaje' => 'Se agregó saldo a tu billetera de conductor.',
+        ]);
+
+        return redirect()
+            ->route('conductor.billetera')
+            ->with('mensaje', 'Recarga simulada aprobada correctamente.');
     }
 
     public function actualizarUbicacion(Request $request) 
@@ -411,6 +504,15 @@ class ConductorController extends Controller
             'lng' => 'required|numeric',
         ]);
 
+        $viaje = Viaje::where('id_viaje', $request->viaje_id)
+            ->where('id_conductor', Auth::id())
+            ->whereIn('estado_viaje', ['aceptado', 'recogiendo', 'en_curso'])
+            ->first();
+        
+        if (!$viaje) {
+            return response()->json(['ok' => false, 'mensaje' => 'Viaje no autorizado'], 403);
+        }
+        
         // Dispara evento - Reverb lo manda al mapa del pasajero
         event(new \App\Events\ConductorMovido(
             $request->viaje_id,
