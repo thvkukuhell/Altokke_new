@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Viaje;
 use App\Models\Pasajero;
+use App\Models\ConfiguracionTarifa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -49,17 +50,27 @@ class PasajeroController extends Controller
             ]);
         }
 
+        // Obtener tarifa desde la base de datos
+        $config      = ConfiguracionTarifa::where('tipo_servicio', $request->tipo_servicio)
+                                        ->where('activo', 1)
+                                        ->first();
+
+        $tarifaBase  = $config ? (float) $config->tarifa_base   : 3.00;
+        $precioPorKm = $config ? (float) $config->precio_por_km : 1.50;
+        $distanciaKm = (float) ($request->distancia_km ?? 0);
+        $tarifaFinal = round($tarifaBase + ($distanciaKm * $precioPorKm), 2);
+
         $viaje = Viaje::create([
             'id_pasajero'         => Auth::id(),
             'origen_texto'        => $request->origen,
             'destino_texto'       => $request->destino,
-            'lat_origen'          => $request->origen_lat      ?: null,
-            'lng_origen'          => $request->origen_lng      ?: null,
-            'lat_destino'         => $request->destino_lat     ?: null,
-            'lng_destino'         => $request->destino_lng     ?: null,
-            'tarifa_estimada'     => $request->tarifa_estimada ?: 3.00,
-            'distancia_km'        => $request->distancia_km    ?: null,
-            'tiempo_estimado_min' => $request->tiempo_min      ?: null,
+            'lat_origen'          => $request->origen_lat  ?: null,
+            'lng_origen'          => $request->origen_lng  ?: null,
+            'lat_destino'         => $request->destino_lat ?: null,
+            'lng_destino'         => $request->destino_lng ?: null,
+            'tarifa_estimada'     => $tarifaFinal, // ← ahora viene de la BD
+            'distancia_km'        => $request->distancia_km  ?: null,
+            'tiempo_estimado_min' => $request->tiempo_min    ?: null,
             'tipo_servicio'       => $request->tipo_servicio,
             'metodo_pago'         => $request->metodo_pago,
             'estado_viaje'        => 'buscando',

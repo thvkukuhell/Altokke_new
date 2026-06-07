@@ -2,9 +2,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Viaje extends Model
 {
+    use SoftDeletes;
     protected $table      = 'viajes';
     protected $primaryKey = 'id_viaje';
 

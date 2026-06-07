@@ -1,9 +1,8 @@
 
 .solicitar-grid {
-    display: grid;
-    grid-template-columns: 1fr 380px;
-    gap: 24px;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
     width: 100%;
 }
 
@@ -18,8 +17,7 @@
     border: 1px solid var(--border);
     border-radius: 16px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
-    position: sticky;
-    top: 76px;
+    position: static;
 }
 
 /* Animación del Icono de Radar */
@@ -165,7 +163,7 @@
 .mapa-decorativo {
     position: relative;
     width: 100%;
-    height: 550px;
+    height: 280px;
     background: #e2e8f0;
     border-radius: 20px;
     overflow: hidden;
@@ -241,4 +239,21 @@
 
 .pagina-pasajero {
     padding: 20px;
+}
+
+@media (min-width: 1024px) {
+    .solicitar-grid {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        align-items: start;
+    }
+
+    .mapa-decorativo {
+        height: 550px;
+    }
+
+    .buscando-centro {
+        position: sticky;
+        top: 76px;
+    }
 }

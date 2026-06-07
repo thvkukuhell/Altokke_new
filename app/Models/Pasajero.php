@@ -2,9 +2,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes; 
 
 class Pasajero extends Model
 {
+    use SoftDeletes;
     protected $table      = 'pasajeros';
     protected $primaryKey = 'id_pasajero';
     public    $incrementing = false; // la PK no es autoincremental

@@ -619,30 +619,39 @@ main {
 .nav-dot-pulse-app.red { background-color: #ef4444; }
 .nav-dot-pulse-app.green { background-color: #22c55e; }
 
-/* Ajustes responsivos */
-@media (max-width: 1200px) {
+/* BASE = móvil (sin media query) */
+.pagina-pasajero { padding: 16px 14px 40px; }
+.perfil-grid     { grid-template-columns: 1fr; gap: 16px; }
+.perfil-sidebar  { position: static; }
+.panel-solicitud { position: static; }
+.panel-viaje     { position: static; }
+.servicio-chips  { flex-direction: column; }
+.pago-opciones   { flex-direction: column; }
+.mapa-decorativo { height: 260px; min-height: 260px; }
+.mapa-viaje      { height: 240px; min-height: 240px; }
+.viaje-cuerpo    { flex-direction: column; align-items: flex-start; }
+.viaje-derecha   { text-align: left; }
+
+@media (min-width: 480px) {
+  .servicio-chips { flex-direction: row; }
+  .pago-opciones  { flex-direction: row; }
+}
+
+@media (min-width: 768px) {
   .pagina-pasajero { padding: 28px 24px 48px; }
-  .solicitar-grid  { grid-template-columns: 1fr; }
-  .viaje-grid      { grid-template-columns: 1fr; }
-  .perfil-layout   { grid-template-columns: 1fr; }
+  .barra-navegacion { padding: 0 32px !important; }
+  .enlaces-nav a { font-size: 14px !important; padding: 6px 14px !important; }
+  .perfil-grid   { grid-template-columns: 1fr 1fr; gap: 24px; }
+  .perfil-sidebar { position: sticky; top: 76px; }
+  .panel-solicitud { position: sticky; top: 76px; }
+  .viaje-cuerpo  { flex-direction: row; align-items: center; }
+  .viaje-derecha { text-align: right; }
 }
 
-@media (max-width: 768px) {
-  .pagina-pasajero { padding: 16px 14px 40px; }
-  .barra-navegacion { padding: 0 16px !important; }
-  .enlaces-nav a { font-size: 12px !important; padding: 5px 8px !important; }
-  .perfil-grid  { grid-template-columns: 1fr; gap: 16px; }
-  .perfil-sidebar { position: static; }
-  .panel-solicitud { position: static; }
-  .panel-viaje  { position: static; }
-  .viaje-cuerpo { flex-direction: coumn; align-items: flex-start; }
-  .viaje-derecha { text-align: left; }
+@media (min-width: 1200px) {
+  .pagina-pasajero { padding: 32px 40px 64px; }
+  .perfil-layout   { grid-template-columns: 240px 1fr; }
+  .mapa-decorativo { height: 450px; min-height: 450px; }
+  .mapa-viaje      { height: 400px; min-height: 400px; }
 }
-
-@media (max-width: 480px) {
-  .servicio-chips { flex-direction: column; }
-  .pago-opciones  { flex-direction: column; }
-  .mapa-decorativo { height: 260px; min-height: 260px; }
-  .mapa-viaje     { height: 240px; min-height: 240px; }
-} 
 

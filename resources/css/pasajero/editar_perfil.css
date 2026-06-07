@@ -8,10 +8,9 @@
 
 /* === LAYOUT ESTRUCTURAL (Dos Columnas) === */
 .perfil-layout {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 32px;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
 /* === SIDEBAR IZQUIERDO === */
@@ -133,8 +132,8 @@
 /* Formulario en Rejilla de Inputs */
 .perfil-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    grid-template-columns: 1fr;
+    gap: 16px;
 }
 
 .campo-label {
@@ -206,6 +205,7 @@
     gap: 12px;
     border-top: 1px solid var(--border);
     padding-top: 24px;
+    flex-direction: column;
 }
 
 .btn-guardar-cambios-perfil {
@@ -219,6 +219,8 @@
     cursor: pointer;
     box-shadow: 0 2px 6px rgba(45, 106, 45, 0.15);
     transition: background 0.15s, transform 0.1s;
+    width: 100%;
+    text-align: center;
 }
 
 .btn-guardar-cambios-perfil:hover {
@@ -240,6 +242,8 @@
     text-decoration: none;
     display: inline-block;
     transition: background 0.15s;
+    width: 100%;
+    text-align: center;
 }
 
 .btn-cancelar-perfil:hover {
@@ -248,25 +252,27 @@
 }
 
 /* === ADAPTABILIDAD (RESPONSIVE) === */
-@media (max-width: 991px) {
-    .perfil-layout {
-        grid-template-columns: 1fr;
-        gap: 24px;
-    }
-}
-
 @media (max-width: 580px) {
     .perfil-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
     }
     
     .perfil-botones-acciones-footer {
-        flex-direction: column;
+        flex-direction: row;
+        justify-content: flex-end;
     }
     
     .btn-guardar-cambios-perfil, .btn-cancelar-perfil {
-        width: 100%;
-        text-align: center;
+        width: auto;
+    }
+}
+
+@media (max-width: 991px) {
+    .perfil-layout {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 32px;
+        align-items: start;
     }
 }
