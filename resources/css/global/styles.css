@@ -78,7 +78,7 @@ main {
 }
 
 main.main-wrapper {
-    padding: 0 !important;
+    padding-top: 60px !important;
     margin: 0 !important;
     display: block !important;
     background: transparent !important;
@@ -93,9 +93,14 @@ header {
     display: flex;
     align-items: center;
     padding: 0;
-    position: sticky;
-    top: 0;
+    position: relative;
+    top: auto;
     z-index: 100;
+}
+
+header.encabezado {
+    position: static;
+    top: auto;
 }
 
 .barra-navegacion {

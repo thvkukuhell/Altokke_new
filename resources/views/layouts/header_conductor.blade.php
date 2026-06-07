@@ -16,10 +16,17 @@
                 Solicitudes
             </a>
 
-            <a href="{{ route('conductor.viaje_activo') }}"
-                class="{{ ($seccionActiva ?? '') === 'viaje_activo' ? 'activo' : '' }}">
-                Viaje activo
-            </a>
+            @php
+                use App\Models\Viaje;
+            @endphp
+            @if(Viaje::where('id_conductor', auth()->id())
+                    ->whereIn('estado_viaje', ['aceptado', 'recogiendo', 'en_curso'])
+                    ->exists())
+                <a href="{{ route('conductor.viaje_activo') }}"
+                    class="{{ ($seccionActiva ?? '') === 'viaje_activo' ? 'activo' : '' }}">
+                    Viaje activo
+                </a>
+            @endif
 
             <a href="{{ route('conductor.historial') }}"
                 class="{{ ($seccionActiva ?? '') === 'historial' ? 'activo' : '' }}">

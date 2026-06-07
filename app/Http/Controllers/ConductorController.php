@@ -263,6 +263,11 @@ class ConductorController extends Controller
                       ->with('pasajero.user')
                       ->first();
 
+        if (! $viaje) {
+            return redirect()->route('conductor.dashboard')
+                             ->with('mensaje', 'No tienes ningún viaje activo en este momento.');
+        }
+
         $iniciales     = $this->calcularIniciales($conductor->user->nombre_completo ?? '');
         $pasos         = $viaje ? $this->construirPasos($viaje->estado_viaje) : [];
 
