@@ -86,14 +86,72 @@
             </form>
 
             {{-- Cancelar viaje --}}
-            <form method="POST" action="{{ route('conductor.cancelarViaje') }}" style="margin-top:10px;"
-                onsubmit="return confirm('¿Seguro que quieres cancelar este viaje?')">
-                @csrf
-                <input type="hidden" name="id_viaje" value="{{ $viaje->id_viaje }}">
-                <button type="submit" class="btn btn-rojo btn-ancho">
-                    ✕ Cancelar viaje
-                </button>
-            </form>
+            @if($viaje->metodo_pago === 'efectivo')
+                <div class="tarjeta" style="background:#f0fdf4; border:1px solid #bbf7d0; padding:16px; margin-top:16px;">
+                    <p style="margin:0 0 4px; font-size:12px; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">
+                        💵 Pago en efectivo
+                    </p>
+                    <p style="font-size:24px; font-weight:900; color:#15803d; margin:4px 0 12px; letter-spacing:-0.5px;">
+                        S/ {{ number_format($tarifaVista, 2) }}
+                    </p>
+                    <p style="font-size:12.5px; color:#166534; margin:0 0 14px;">
+                        Cobra el monto al pasajero antes de confirmar.
+                    </p>
+                    <form method="POST" action="{{ route('conductor.completarViaje') }}">
+                        @csrf
+                        <input type="hidden" name="id_viaje" value="{{ $viaje->id_viaje }}">
+                        <button type="submit" class="btn btn-verde btn-ancho">
+                            ✓ Confirmar pago en efectivo recibido
+                        </button>
+                    </form>
+                </div>
+
+            @elseif($viaje->metodo_pago === 'yape')
+                <div class="tarjeta" style="background:#faf5ff; border:1px solid #ddd6fe; padding:16px; margin-top:16px;">
+                    <p style="margin:0 0 4px; font-size:12px; font-weight:700; color:#6d28d9; text-transform:uppercase; letter-spacing:0.5px;">
+                        💜 Pago por Yape
+                    </p>
+                    <p style="font-size:24px; font-weight:900; color:#7c3aed; margin:4px 0 6px; letter-spacing:-0.5px;">
+                        S/ {{ number_format($tarifaVista, 2) }}
+                    </p>
+                    <p style="font-size:12.5px; color:#6d28d9; margin:0 0 4px;">
+                        Pídele al pasajero que yapee a tu número:
+                    </p>
+                    <p style="font-size:16px; font-weight:800; color:#5b21b6; margin:0 0 14px;">
+                        📱 {{ $conductor->user->telefono ?? '—' }}
+                    </p>
+                    <form method="POST" action="{{ route('conductor.completarViaje') }}">
+                        @csrf
+                        <input type="hidden" name="id_viaje" value="{{ $viaje->id_viaje }}">
+                        <button type="submit" class="btn btn-ancho" style="background:#7c3aed; color:#fff;">
+                            ✓ Confirmar Yape recibido
+                        </button>
+                    </form>
+                </div>
+
+            @elseif($viaje->metodo_pago === 'plin')
+                <div class="tarjeta" style="background:#eff6ff; border:1px solid #bfdbfe; padding:16px; margin-top:16px;">
+                    <p style="margin:0 0 4px; font-size:12px; font-weight:700; color:#1d4ed8; text-transform:uppercase; letter-spacing:0.5px;">
+                        💙 Pago por Plin
+                    </p>
+                    <p style="font-size:24px; font-weight:900; color:#2563eb; margin:4px 0 6px; letter-spacing:-0.5px;">
+                        S/ {{ number_format($tarifaVista, 2) }}
+                    </p>
+                    <p style="font-size:12.5px; color:#1d4ed8; margin:0 0 4px;">
+                        Pídele al pasajero que plinee a tu número:
+                    </p>
+                    <p style="font-size:16px; font-weight:800; color:#1e40af; margin:0 0 14px;">
+                        📱 {{ $conductor->user->telefono ?? '—' }}
+                    </p>
+                    <form method="POST" action="{{ route('conductor.completarViaje') }}">
+                        @csrf
+                        <input type="hidden" name="id_viaje" value="{{ $viaje->id_viaje }}">
+                        <button type="submit" class="btn btn-ancho" style="background:#2563eb; color:#fff;">
+                            ✓ Confirmar Plin recibido
+                        </button>
+                    </form>
+                </div>
+            @endif
 
             @else
             <div class="tarjeta" style="text-align:center; padding:48px 24px;">
