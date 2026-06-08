@@ -246,6 +246,15 @@ class PasajeroController extends Controller
     {
         $user          = Auth::user();
         $pasajero      = $user->pasajero;
+        
+        // Si no existe registro en pasajeros, crearlo automáticamente
+        if (!$pasajero) {
+            $pasajero = \App\Models\Pasajero::create([
+                'id_pasajero'           => $user->id_usuario,
+                'metodo_pago_preferido' => 'efectivo',
+            ]);
+        }
+        
         $iniciales     = $this->calcularIniciales($user->nombre_completo);
         $seccionActiva = 'perfil';
 
@@ -264,6 +273,15 @@ class PasajeroController extends Controller
     {
         $user          = Auth::user();
         $pasajero      = $user->pasajero;
+        
+        // Si no existe registro en pasajeros, crearlo automáticamente
+        if (!$pasajero) {
+            $pasajero = \App\Models\Pasajero::create([
+                'id_pasajero'           => $user->id_usuario,
+                'metodo_pago_preferido' => 'efectivo',
+            ]);
+        }
+        
         $iniciales     = $this->calcularIniciales($user->nombre_completo);
         $seccionActiva = 'perfil';
 
