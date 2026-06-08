@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ViajeService;
 use App\Models\Viaje;
 use App\Models\Pasajero;
-use App\Models\ConfiguracionTarifa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PasajeroController extends Controller
 {
-    //  Sin __construct — el middleware está en web.php 
+    public function __construct(private ViajeService $viajeService) {}
 
     public function index()
     {
@@ -28,56 +28,25 @@ class PasajeroController extends Controller
 
     public function crearViaje(Request $request)
     {
-        $request->validate([
-            'origen'        => 'required|string',
-            'destino'       => 'required|string|different:origen',
+        // Validación de entrada (saneamiento contra datos maliciosos)
+        $datos = $request->validate([
+            'origen'        => 'required|string|max:300',
+            'destino'       => 'required|string|different:origen|max:300',
             'tipo_servicio' => 'required|in:normal,express',
             'metodo_pago'   => 'required|in:efectivo,yape,plin',
+            'origen_lat'    => 'nullable|numeric|between:-90,90',
+            'origen_lng'    => 'nullable|numeric|between:-180,180',
+            'destino_lat'   => 'nullable|numeric|between:-90,90',
+            'destino_lng'   => 'nullable|numeric|between:-180,180',
+            'distancia_km'  => 'nullable|numeric|min:0|max:500',
+            'tiempo_min'    => 'nullable|integer|min:0',
         ], [
             'destino.different' => 'El origen y destino no pueden ser iguales.',
         ]);
-
-        // Cancelar viajes buscando anteriores del mismo pasajero
-        Viaje::where('id_pasajero', Auth::id())
-             ->where('estado_viaje', 'buscando')
-             ->update(['estado_viaje' => 'cancelado']);
-
-        $pasajero = Pasajero::find(Auth::id());
-        if (!$pasajero) {
-            Pasajero::create([
-                'id_pasajero'          => Auth::id(),
-                'metodo_pago_preferido' => 'efectivo',
-            ]);
-        }
-
-        // Obtener tarifa desde la base de datos
-        $config      = ConfiguracionTarifa::where('tipo_servicio', $request->tipo_servicio)
-                                        ->where('activo', 1)
-                                        ->first();
-
-        $tarifaBase  = $config ? (float) $config->tarifa_base   : 3.00;
-        $precioPorKm = $config ? (float) $config->precio_por_km : 1.50;
-        $distanciaKm = (float) ($request->distancia_km ?? 0);
-        $tarifaFinal = round($tarifaBase + ($distanciaKm * $precioPorKm), 2);
-
-        $viaje = Viaje::create([
-            'id_pasajero'         => Auth::id(),
-            'origen_texto'        => $request->origen,
-            'destino_texto'       => $request->destino,
-            'lat_origen'          => $request->origen_lat  ?: null,
-            'lng_origen'          => $request->origen_lng  ?: null,
-            'lat_destino'         => $request->destino_lat ?: null,
-            'lng_destino'         => $request->destino_lng ?: null,
-            'tarifa_estimada'     => $tarifaFinal, // ← ahora viene de la BD
-            'distancia_km'        => $request->distancia_km  ?: null,
-            'tiempo_estimado_min' => $request->tiempo_min    ?: null,
-            'tipo_servicio'       => $request->tipo_servicio,
-            'metodo_pago'         => $request->metodo_pago,
-            'estado_viaje'        => 'buscando',
-        ]);
-
-        event(new \App\Events\ViajeCreado($viaje));
-
+ 
+        // Toda la lógica de negocio queda en el Service
+        $viaje = $this->viajeService->crearViaje(Auth::id(), $datos);
+ 
         return redirect()->route('pasajero.buscando', $viaje->id_viaje);
     }
 
@@ -117,29 +86,22 @@ class PasajeroController extends Controller
 
     public function cancelarViaje(Request $request)
     {
-        $viaje = Viaje::where('id_viaje', $request->viaje_id)
-                      ->where('id_pasajero', Auth::id())
-                      ->first();
-
-        if ($viaje && in_array($viaje->estado_viaje, ['buscando', 'aceptado'])) {
-            $viaje->update(['estado_viaje' => 'cancelado']);
-        }
-
+        $this->viajeService->cancelarViaje(
+            (int) $request->viaje_id,
+            Auth::id()
+        );
+ 
         return redirect()->route('pasajero.solicitarViaje');
     }
 
     public function expirarViaje(Request $request)
     {
-        $viaje = Viaje::where('id_viaje', $request->viaje_id)
-                      ->where('id_pasajero', Auth::id())
-                      ->where('estado_viaje', 'buscando')
-                      ->first();
-
-        if ($viaje) {
-            $viaje->update(['estado_viaje' => 'expirado']);
-        }
-
-        return response()->json(['ok' => true]);
+        $ok = $this->viajeService->expirarViaje(
+            (int) $request->viaje_id,
+            Auth::id()
+        );
+ 
+        return response()->json(['ok' => $ok]);
     }
 
     public function enCurso(int $viajeId)
@@ -250,70 +212,26 @@ class PasajeroController extends Controller
             'estrellas'    => 'required|integer|min:1|max:5',
             'comentario'   => 'nullable|string|max:500',
         ]);
-
-        \App\Models\Calificacion::updateOrCreate(
-            ['id_viaje' => $request->viaje_id],
-            [
-                'puntuacion' => $request->estrellas,
-                'comentario' => $request->comentario ?? '',
-            ]
+ 
+        $this->viajeService->calificarViaje(
+            (int) $request->viaje_id,
+            (int) $request->conductor_id,
+            (int) $request->estrellas,
+            (string) ($request->comentario ?? '')
         );
-
-        $promedio = Viaje::where('id_conductor', $request->conductor_id)
-                         ->join('calificaciones', 'calificaciones.id_viaje', '=', 'viajes.id_viaje')
-                         ->avg('calificaciones.puntuacion');
-
-        \App\Models\Conductor::where('id_conductor', $request->conductor_id)
-                             ->update(['calificacion_promedio' => $promedio]);
-
+ 
         return redirect()->route('pasajero.historial');
     }
 
     public function historial(Request $request)
     {
-        $filtros = [
-            'todos'  => 'Todos',
-            'hoy'    => 'Hoy',
-            'semana' => 'Esta semana',
-            'mes'    => 'Este mes',
-        ];
-
-        $filtro = $request->get('filtro', 'todos');
-        $query  = Viaje::where('id_pasajero', Auth::id())
-                       ->with('conductor.user', 'calificacion');
-
-        $query = match($filtro) {
-            'hoy'    => $query->whereDate('fecha_solicitud', today()),
-            'semana' => $query->whereBetween('fecha_solicitud', [now()->startOfWeek(), now()->endOfWeek()]),
-            'mes'    => $query->whereMonth('fecha_solicitud', now()->month),
-            default  => $query,
-        };
-
-        $viajes = $query->orderByDesc('fecha_solicitud')->get()->map(function ($v) {
-            return [
-                'id'           => $v->id_viaje,
-                'origen'       => $v->origen_texto,
-                'destino'      => $v->destino_texto,
-                'precio'       => number_format($v->tarifa_final ?? $v->tarifa_estimada, 2),
-                'fecha'        => $v->fecha_solicitud?->format('d/m/Y') ?? '—',
-                'distancia'    => $v->distancia_km ? $v->distancia_km . ' km' : '—',
-                'tiempo'       => $v->tiempo_estimado_min ? $v->tiempo_estimado_min . ' min' : '—',
-                'conductor'    => $v->conductor->user->nombre_completo ?? '—',
-                'calificacion' => $v->calificacion->puntuacion ?? 0,
-                'estado_viaje' => $v->estado_viaje,
-                'borde_clase'  => match($v->estado_viaje) {
-                    'completado' => 'borde-verde',
-                    'cancelado'  => 'borde-rojo',
-                    default      => 'borde-dorado',
-                },
-                'badge_estado' => match($v->estado_viaje) {
-                    'completado' => '<span class="badge badge-verde">Completado</span>',
-                    'cancelado'  => '<span class="badge badge-rojo">Cancelado</span>',
-                    default      => '<span class="badge badge-gris">' . ucfirst($v->estado_viaje) . '</span>',
-                },
-            ];
-        });
-
+        $filtro  = $request->get('filtro', 'todos');
+        $filtros = ['todos' => 'Todos', 'hoy' => 'Hoy', 'semana' => 'Esta semana', 'mes' => 'Este mes'];
+ 
+        $viajes = $this->viajeService
+            ->historialPasajero(Auth::id(), $filtro)
+            ->map(fn($v) => $this->formatearViaje($v));
+ 
         return view('pasajero.historial', [
             'header'  => 'header_pasajero',
             'footer'  => 'footer',
@@ -427,4 +345,31 @@ class PasajeroController extends Controller
 
         return $pasos;
     }
+
+    private function formatearViaje($v): array
+    {
+        return [
+            'id'           => $v->id_viaje,
+            'origen'       => $v->origen_texto,
+            'destino'      => $v->destino_texto,
+            'precio'       => number_format($v->tarifa_final ?? $v->tarifa_estimada, 2),
+            'fecha'        => $v->fecha_solicitud?->format('d/m/Y') ?? '—',
+            'distancia'    => $v->distancia_km ? $v->distancia_km . ' km' : '—',
+            'tiempo'       => $v->tiempo_estimado_min ? $v->tiempo_estimado_min . ' min' : '—',
+            'conductor'    => $v->conductor->user->nombre_completo ?? '—',
+            'calificacion' => $v->calificacion->puntuacion ?? 0,
+            'estado_viaje' => $v->estado_viaje,
+            'borde_clase'  => match($v->estado_viaje) {
+                'completado' => 'borde-verde',
+                'cancelado'  => 'borde-rojo',
+                default      => 'borde-dorado',
+            },
+            'badge_estado' => match($v->estado_viaje) {
+                'completado' => '<span class="badge badge-verde">Completado</span>',
+                'cancelado'  => '<span class="badge badge-rojo">Cancelado</span>',
+                default      => '<span class="badge badge-gris">' . ucfirst($v->estado_viaje) . '</span>',
+            },
+        ];
+    }
 }
+
