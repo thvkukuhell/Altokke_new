@@ -493,7 +493,7 @@ main {
 }
 
 .encabezado-app {
-    background: var(--primary) !important; /* Fuerza el uso de tu verde oscuro principal */
+    background: var(--primary) !important; /* Fuerza el uso del verde oscuro principal */
     border-bottom: none !important;
     height: 60px;
     display: flex;

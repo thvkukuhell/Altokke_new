@@ -1,16 +1,23 @@
+/* login.css - ajustes auth mobile first */
+
 main {
-    min-height: 100vh;
-    display: flex;
-    align-items: stretch;
-    padding: 0;
     width: 100%;
+    min-height: auto;
+    display: block;
+    padding: 0;
 }
 
 .auth-layout {
-    display: flex;
-    padding: 0 100px;
+    width: 100%;
+    min-height: auto;
 }
 
 .auth-banner {
-    height: 445px;
+    min-height: 0;
+}
+
+@media (min-width: 1025px) {
+    main {
+        min-height: calc(100vh - 64px);
+    }
 }

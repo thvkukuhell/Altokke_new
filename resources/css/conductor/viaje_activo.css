@@ -1,29 +1,33 @@
+/* viaje_activo.css - base mobile first */
+
 .pagina-conductor {
+    width: 100%;
     max-width: 1400px;
     margin: 0 auto;
-    padding: 32px 24px;
+    padding: 16px 12px 32px;
 }
 
 .viaje-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
-    gap: 24px;
+    grid-template-columns: 1fr;
+    gap: 18px;
     align-items: start;
     width: 100%;
 }
 
-/* Asegurar que los hijos se ubiquen en la columna correcta */
-.viaje-grid > .mapa-viaje { grid-column: 1; }
-.viaje-grid > .panel-viaje { grid-column: 2; align-self: start; }
-/* ── Mapa en curso ── */
+.viaje-grid > .mapa-viaje,
+.viaje-grid > .panel-viaje {
+    grid-column: 1;
+    min-width: 0;
+}
+
+/* Mapa en curso */
 .mapa-viaje {
     background: #f3f4f6;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    height: 520px;
-    min-width: 0; /* permitir que la columna se reduzca sin forzar overflow */
-    height: auto;
-    min-height: 480px;
+    min-height: 280px;
+    height: clamp(280px, 58vh, 420px);
     min-width: 0;
     position: relative;
     overflow: hidden;
@@ -44,17 +48,21 @@
 
 .pagina-conductor > .titulo-pagina {
     display: block;
-    margin: 0 0 8px 0;
+    margin: 0 0 6px 0;
     text-align: left;
     width: 100%;
+    font-size: 24px;
+    line-height: 1.15;
 }
 
 .pagina-conductor > .subtitulo-pagina {
     display: block;
-    margin: 0 0 24px 0;
+    margin: 0 0 18px 0;
     text-align: left;
     color: var(--gray);
     width: 100%;
+    font-size: 14px;
+    line-height: 1.4;
 }
 
 .pagina-conductor:has(.viaje-grid) > .titulo-pagina,
@@ -81,6 +89,7 @@
     color: var(--verde);
     line-height: 1;
 }
+
 .eta-unidad {
     font-size: 10px;
     color: var(--gray);
@@ -124,7 +133,7 @@
 .mapa-pin-origen {
     width: 14px;
     height: 14px;
-    background: #2d6a2d; /* Verde Altokke */
+    background: #2d6a2d;
     border: 2px solid #fff;
     border-radius: 50%;
     box-shadow: 0 0 10px rgba(45, 106, 45, 0.3);
@@ -134,7 +143,7 @@
 .mapa-pin-destino {
     width: 14px;
     height: 14px;
-    background: #dc2626; /* Rojo destino */
+    background: #dc2626;
     border: 2px solid #fff;
     border-radius: 50%;
     box-shadow: 0 0 10px rgba(220, 38, 38, 0.3);
@@ -156,47 +165,60 @@
 .panel-viaje {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     position: relative;
     z-index: 2;
+    min-width: 0;
+}
+
+.panel-viaje .tarjeta {
+    width: 100%;
+    min-width: 0;
 }
 
 .conductor-fila {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     background: var(--verde);
-    padding: 12px 16px;
+    padding: 12px;
     border-radius: var(--radius);
     box-shadow: var(--shadow-md);
     margin-bottom: 10px;
+    min-width: 0;
 }
 
 .avatar {
-    width: 50px;
-    height: 50px;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--verde), var(--verde-claro));
+    background: linear-gradient(135deg, var(--verde), var(--primary-lite, #4a9b4a));
     color: #fff;
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
+    flex: 0 0 auto;
     border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.conductor-fila > div:not(.avatar) {
+    min-width: 0;
 }
 
 .conductor-nombre {
     font-size: 15px;
     font-weight: 700;
     color: #ffffff;
+    overflow-wrap: anywhere;
 }
 
 .conductor-dato {
     font-size: 12px;
     color: rgba(255, 255, 255, 0.8);
     margin-top: 2px;
+    overflow-wrap: anywhere;
 }
 
 .placa {
@@ -209,6 +231,7 @@
     margin-left: auto;
     letter-spacing: 0.5px;
     box-shadow: 0 1px 4px rgba(45, 106, 45, 0.3);
+    flex: 0 0 auto;
 }
 
 .timeline {
@@ -235,6 +258,7 @@
 .paso.hecho::after {
     background: var(--verde);
 }
+
 .paso.activo::after {
     background: linear-gradient(to bottom, var(--verde), #e5e7eb);
 }
@@ -257,11 +281,13 @@
     background: var(--verde);
     color: #fff;
 }
+
 .paso.activo .paso-icono {
     background: var(--verde);
     color: #fff;
     box-shadow: 0 0 0 3px rgba(45, 106, 45, 0.2);
 }
+
 .paso.pendiente .paso-icono {
     background: #f3f4f6;
     color: #9ca3af;
@@ -274,23 +300,36 @@
     color: var(--texto);
     margin-top: 1px;
 }
+
 .paso.pendiente .paso-titulo {
     color: var(--gray-lite);
 }
+
 .paso-sub {
     font-size: 11px;
     color: var(--gray);
     margin-top: 2px;
 }
 
+.fila-dato {
+    gap: 10px;
+    min-width: 0;
+}
+
+.fila-dato span,
+.fila-dato strong {
+    overflow-wrap: anywhere;
+}
+
 .texto-centro {
     text-align: center;
 }
+
 .tarjeta-espera {
     display: grid;
     place-items: center;
     gap: 14px;
-    padding: 32px 24px;
+    padding: 28px 18px;
     background: linear-gradient(
         180deg,
         rgba(255, 255, 255, 0.95),
@@ -299,6 +338,7 @@
     border: 1px solid rgba(102, 153, 102, 0.18);
     box-shadow: 0 20px 60px rgba(40, 80, 40, 0.08);
 }
+
 .espera-icono {
     font-size: 42px;
     line-height: 1;
@@ -311,48 +351,74 @@
     color: var(--verde);
     box-shadow: inset 0 0 0 2px rgba(70, 146, 76, 0.12);
 }
+
 .tarjeta-espera h2 {
     margin: 0;
-    font-size: 24px;
+    font-size: 22px;
     color: var(--texto);
 }
+
 .tarjeta-espera p {
     margin: 0;
-    color: var(--gris);
+    color: var(--gray);
     max-width: 320px;
 }
 
-@media (min-width: 768px) and (max-width: 1023px) {
+@media (min-width: 768px) {
     .pagina-conductor {
         padding: 24px 20px;
     }
+
     .viaje-grid {
         grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
         gap: 22px;
     }
+
+    .viaje-grid > .mapa-viaje {
+        grid-column: 1;
+    }
+
+    .viaje-grid > .panel-viaje {
+        grid-column: 2;
+        align-self: start;
+    }
+
     .mapa-viaje {
-        min-height: 420px;
         height: auto;
+        min-height: 420px;
+    }
+
+    .panel-viaje {
+        gap: 16px;
+    }
+
+    .conductor-fila {
+        gap: 14px;
+        padding: 12px 16px;
+    }
+
+    .avatar {
+        width: 50px;
+        height: 50px;
+        font-size: 17px;
+    }
+
+    .tarjeta-espera {
+        padding: 32px 24px;
     }
 }
 
-@media (max-width: 767px) {
+@media (min-width: 1024px) {
     .pagina-conductor {
-        padding: 16px 12px 32px;
+        padding: 32px 24px;
     }
+
     .viaje-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
+        gap: 24px;
     }
+
     .mapa-viaje {
-        height: 280px;
-        min-height: 280px;
-    }
-    .viaje-grid > .mapa-viaje,
-    .viaje-grid > .panel-viaje {
-        grid-column: 1;
-    }
-    .panel-viaje {
-        gap: 12px;
+        min-height: 480px;
     }
 }

@@ -1,7 +1,4 @@
-main {
-  justify-items: center;
-  align-content: center;
-}
+/* eleccion_registro.css - rol responsive sobre layout auth compartido */
 
 .crear-cuenta {
   display: flex;
@@ -12,107 +9,37 @@ main {
 }
 
 .registro {
+  width: 100%;
   text-align: center;
-  padding: 50px 20px;
+  padding: 24px 14px;
 }
 
 .registro h1 {
   margin-bottom: 10px;
   color: var(--text);
+  font-size: 1.45rem;
+  line-height: 1.2;
 }
 
 .registro p {
   color: var(--gray);
-  margin-bottom: 30px;
+  margin-bottom: 24px;
 }
 
 .tarjetas-rol {
   display: flex;
   justify-content: center;
-  gap: 25px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
 .tarjeta-rol {
-  display: block;
-  width: 280px;
+  width: 100%;
+  min-width: 0;
   text-decoration: none;
-  padding: 25px;
-  border-radius: 12px;
-  background: #ffffff;
-  color: #2b2b2b;
-  text-align: left;
-  transition: all 0.3s ease;
-  border: 2px solid #000000;
 }
 
-.tarjeta-rol:hover {
-  transform: translateY(-6px);
-  border-color: #000000;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-}
-
-.tarjeta-rol h2 {
-  margin-bottom: 10px;
-  color: #000000;
-}
-
-.tarjeta-rol p {
-  font-size: 14px;
-  margin-bottom: 15px;
-  color: #333;
-}
-
-.tarjeta-rol span {
-  display: inline-block;
-  font-weight: 700;
-  font-size: 13px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: #e7b775;
-  color: #2b2b2b;
-}
-
-/* =========================
-   MÓVIL (UNIFICADO)
-========================= */
-@media (max-width: 480px) {
-  .registro {
-    padding: 18px 10px;
-  }
-
-  .registro h1 {
-    font-size: 1.25rem;
-  }
-
-  .tarjetas-rol {
-    flex-direction: column;
-    gap: 12px;
-    align-items: center;
-    padding: 0 8px;
-  }
-
-  .tarjeta-rol {
-    width: 100%;
-    max-width: 460px;
-    padding: 14px;
-    border-radius: 10px;
-  }
-
-  .tarjeta-rol p {
-    font-size: 13px;
-  }
-
-  .tarjeta-rol span {
-    font-size: 12px;
-    padding: 6px 10px;
-  }
-}
-
-/* =========================
-   TABLET (UNIFICADO)
-========================= */
-@media (max-width: 768px) {
+@media (min-width: 481px) {
   .registro {
     padding: 36px 18px;
   }
@@ -120,30 +47,24 @@ main {
   .registro h1 {
     font-size: 1.6rem;
   }
+}
 
-  .tarjetas-rol {
-    gap: 14px;
-  }
-
+@media (min-width: 768px) {
   .tarjeta-rol {
     width: calc(50% - 14px);
-    padding: 18px;
   }
 }
 
-/* =========================
-   LAPTOP (UNIFICADO)
-========================= */
-@media (max-width: 1024px) {
+@media (min-width: 1025px) {
   .registro {
     padding: 50px 20px;
   }
 
   .tarjetas-rol {
-    gap: 20px;
+    gap: 25px;
   }
 
   .tarjeta-rol {
-    width: calc(33.333% - 20px);
+    width: 280px;
   }
 }

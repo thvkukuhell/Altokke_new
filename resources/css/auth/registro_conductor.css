@@ -1,61 +1,48 @@
+/* registro_conductor.css - formulario conductor mobile first */
+
 .registro {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
+  width: 100%;
+  padding: 18px 14px 32px;
 }
 
 .paso-form {
-  display: flex;
-  flex-direction: column;
-  background: var(--white);
-  border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  max-width: 880px;
-  margin: 10px auto;
-  padding: 18px;
+  display: none;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
-#paso-1 {
-  max-width: 420px;
-}
-
-#paso-2 {
-  max-width: 420px;
+.registro .paso-form.active,
+.paso-form.active {
+  display: block;
 }
 
 .registro h1 {
   text-align: center;
   margin-bottom: 12px;
-}
-
-.registro .paso-form {
-  display: none;
-}
-.registro .paso-form.active {
-  display: block;
+  line-height: 1.2;
 }
 
 .registro .paso-form h2 {
-  color: var(--primary-dark);
+  color: var(--primary-dark, var(--primary));
 }
 
 .registro .paso-form input,
 .registro .paso-form select,
 .registro .paso-form textarea {
   width: 100%;
-  padding: 10px 12px;
-  margin-bottom: 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: #fff;
-  font-size: 14px;
+  min-width: 0;
 }
 
 .registro .botones {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
   margin-top: 10px;
 }
 
@@ -64,38 +51,19 @@
   margin-top: 10px;
 }
 
-.grid-vehiculo {
-  margin-bottom: 25px;
+.grid-vehiculo,
+.registro .grid-vehiculo {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
 .registro .botones button,
 #siguienteBtn,
 #atrasBtn {
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-#siguienteBtn {
-  background: var(--primary);
-  color: #fff;
-}
-#atrasBtn {
-  background: #f0f0f0;
-  color: #222;
-}
-
-.registro .botones button[type="submit"] {
-  background: var(--primary-dark);
-  color: #fff;
-}
-
-.registro .grid-vehiculo {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  width: 100%;
+  min-height: 44px;
 }
 
 #confirmar {
@@ -103,96 +71,29 @@
   background-color: var(--primary);
 }
 
-/* ===================== RESPONSIVE GENERAL ===================== */
-
-/* 📱 MÓVIL */
-@media (max-width: 480px) {
+@media (min-width: 768px) {
   .registro {
-    padding: 12px;
-    margin: 12px;
-  }
-
-  .registro h1 {
-    font-size: 1.2rem;
-  }
-
-  .registro .grid-vehiculo {
-    grid-template-columns: 1fr;
+    padding: 24px 18px 44px;
   }
 
   .registro .botones {
-    flex-direction: column;
-    gap: 8px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .grid-vehiculo,
+  .registro .grid-vehiculo {
+    grid-template-columns: 1fr 1fr;
   }
 
   #siguienteBtn,
   #atrasBtn {
-    width: 100%;
-  }
-
-  .paso-form {
-    width: 100%;
-    max-width: 100%;
-    padding: 12px;
-  }
-
-  .formulario-login {
-    padding: 24px 20px;
-  }
-
-  .inicio h1 {
-    font-size: 22px;
-  }
-
-  .tarjetas-rol {
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 0 8px;
-  }
-
-  .tarjeta-rol {
-    width: 100%;
-    max-width: 460px;
+    width: auto;
   }
 }
 
-/* 📲 TABLET */
-@media (min-width: 481px) and (max-width: 1024px) {
-  .registro {
-    padding: 16px;
-    margin: 18px;
-  }
-
-  .registro .grid-vehiculo {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .registro .botones {
-    justify-content: space-around;
-    flex-wrap: wrap;
-  }
-
-  .paso-form {
-    max-width: 100%;
-    padding: 14px;
-  }
-
-  .tarjetas-rol {
-    gap: 18px;
-  }
-
-  .tarjeta-rol {
-    width: calc(50% - 18px);
-  }
-
-  .formulario-login {
-    max-width: 420px;
-  }
-}
-
-/* 💻 LAPTOP / DESKTOP */
 @media (min-width: 1025px) {
   .registro {
     padding: 50px 20px;
@@ -200,13 +101,5 @@
 
   .paso-form {
     max-width: 880px;
-  }
-
-  .tarjetas-rol {
-    gap: 25px;
-  }
-
-  .tarjeta-rol {
-    width: 280px;
   }
 }

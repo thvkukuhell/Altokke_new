@@ -1,3 +1,5 @@
+/* inicio.css */
+
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap");
 
 /* ── Variables ── */
@@ -999,21 +1001,20 @@ header.scrolled {
 
 /* Layout: banner + panel */
 .auth-layout {
-    height: calc(100vh - 64px);
-    width: 100vw;
+    min-height: calc(100vh - 64px);
+    width: 100%;
     display: grid;
-    grid-template-columns: 1fr 620px;
+    grid-template-columns: 1fr;
     background: var(--negro);
-    position: absolute;  
-    top: 64px;           
-    left: 0;
+    position: relative;
+    overflow: visible;
 }
 
 /* Banner izquierdo */
 .auth-banner {
     position: relative;
     background: linear-gradient(160deg, #0c180c 0%, #1c2e1c 100%);
-    display: flex;
+    display: none;
     flex-direction: column;
     justify-content: space-between;
     padding: 48px;
@@ -1101,9 +1102,12 @@ header.scrolled {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    padding: 48px 44px;
-    overflow-y: auto;
-    max-height: calc(100vh - 64px);
+    width: 100%;
+    min-width: 0;
+    min-height: calc(100vh - 64px);
+    padding: 34px 18px 44px;
+    overflow: visible;
+    max-height: none;
     scrollbar-width: thin; 
     scrollbar-color: var(--verde-mid) transparent;   
 }
@@ -1122,7 +1126,7 @@ header.scrolled {
 }
 
 .auth-panel-logo {
-    display: none;
+    display: block;
     font-size: 20px;
     font-weight: 900;
     color: var(--verde-mid);
@@ -1134,7 +1138,7 @@ header.scrolled {
 }
 
 .auth-titulo {
-    font-size: 26px;
+    font-size: clamp(23px, 7vw, 28px);
     font-weight: 900;
     color: var(--text);
     letter-spacing: -0.8px;
@@ -1143,13 +1147,14 @@ header.scrolled {
 .auth-sub {
     font-size: 14px;
     color: var(--gris);
-    margin-bottom: 28px;
+    margin-bottom: 22px;
     line-height: 1.5;
 }
 
 /* Campos */
 .auth-campo {
     margin-bottom: 15px;
+    min-width: 0;
 }
 .auth-campo label {
     display: block;
@@ -1163,10 +1168,12 @@ header.scrolled {
 .auth-campo input,
 .auth-campo select {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     padding: 12px 14px;
     border: 1.5px solid #e5e7eb;
     border-radius: 10px;
-    font-size: 14.5px;
+    font-size: 16px;
     font-family: var(--font);
     color: var(--text);
     background: var(--blanco);
@@ -1190,8 +1197,12 @@ header.scrolled {
 /* Grid 2 columnas */
 .auth-grid-2 {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
+    grid-template-columns: 1fr;
+    gap: 0;
+    min-width: 0;
+}
+.auth-grid-2 > * {
+    min-width: 0;
 }
 
 /* Subtítulo de sección dentro del form */
@@ -1230,6 +1241,9 @@ header.scrolled {
     box-shadow: 0 3px 12px rgba(58, 140, 58, 0.28);
     margin-top: 8px;
     text-decoration: none;
+    min-height: 46px;
+    min-width: 0;
+    text-align: center;
 }
 .btn-auth:hover {
     background: var(--verde);
@@ -1256,6 +1270,7 @@ header.scrolled {
     transition: all 0.15s;
     margin-top: 8px;
     text-decoration: none;
+    min-height: 46px;
 }
 .btn-auth-outline:hover {
     border-color: var(--verde-mid);
@@ -1266,7 +1281,7 @@ header.scrolled {
 /* Fila de botones atrás + confirmar */
 .auth-botones-fila {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 1fr;
     gap: 10px;
     margin-top: 6px;
 }
@@ -1305,14 +1320,15 @@ header.scrolled {
 .auth-stepper {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 24px;
+    gap: 7px;
+    margin-bottom: 22px;
+    min-width: 0;
 }
 .auth-step {
     display: flex;
     align-items: center;
     gap: 7px;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 700;
     color: rgba(107, 114, 128, 0.55);
 }
@@ -1322,6 +1338,7 @@ header.scrolled {
 .auth-step-num {
     width: 24px;
     height: 24px;
+    flex: 0 0 auto;
     border-radius: 50%;
     background: #e5e7eb;
     display: flex;
@@ -1342,6 +1359,7 @@ header.scrolled {
     height: 2px;
     background: #e5e7eb;
     border-radius: 1px;
+    min-width: 20px;
 }
 
 /* Pasos multistep */
@@ -1355,16 +1373,17 @@ header.scrolled {
 /* Elección de rol */
 .eleccion-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 14px;
-    margin-top: 24px;
+    margin-top: 20px;
 }
 .tarjeta-rol {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
-    padding: 26px 22px;
+    min-width: 0;
+    padding: 20px 18px;
     background: var(--gris-lite);
     border: 2px solid var(--border);
     border-radius: 16px;
@@ -1381,7 +1400,7 @@ header.scrolled {
     transform: translateY(-3px);
 }
 .tarjeta-rol-icono {
-    font-size: 34px;
+    font-size: 30px;
     margin-bottom: 4px;
 }
 .tarjeta-rol h2 {
@@ -1405,7 +1424,7 @@ header.scrolled {
 /* Grid vehículo */
 .grid-vehiculo {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 14px;
 }
 
@@ -1465,7 +1484,9 @@ header.scrolled {
     }
     .auth-panel {
         padding: 52px 32px;
-        min-height: 100vh;
+        min-height: calc(100vh - 64px);
+        max-height: none;
+        overflow: visible;
         justify-content: flex-start;
     }
     .auth-panel-logo {
@@ -1537,5 +1558,103 @@ header.scrolled {
     .hero-botones a {
         width: 100%;
         justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-layout {
+        min-height: calc(100vh - 64px);
+    }
+
+    .auth-panel {
+        padding: 30px 16px 40px;
+    }
+
+    .auth-panel-logo {
+        margin-bottom: 24px;
+    }
+
+    .auth-sub {
+        margin-bottom: 18px;
+    }
+
+    .auth-stepper {
+        align-items: flex-start;
+    }
+
+    .auth-step {
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        text-align: center;
+        line-height: 1.2;
+    }
+
+    .tarjeta-rol {
+        padding: 18px 16px;
+    }
+}
+
+@media (min-width: 1025px) {
+    .auth-layout {
+        height: calc(100vh - 64px);
+        min-height: 620px;
+        width: 100%;
+        grid-template-columns: minmax(0, 1fr) 620px;
+        overflow: hidden;
+    }
+
+    .auth-banner {
+        display: flex;
+    }
+
+    .auth-panel {
+        min-height: 0;
+        max-height: calc(100vh - 64px);
+        padding: 48px 44px;
+        overflow-y: auto;
+    }
+
+    .auth-panel-logo {
+        display: none;
+    }
+
+    .auth-titulo {
+        font-size: 26px;
+    }
+
+    .auth-sub {
+        margin-bottom: 28px;
+    }
+
+    .auth-campo input,
+    .auth-campo select {
+        font-size: 14.5px;
+    }
+
+    .auth-grid-2 {
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    .auth-botones-fila {
+        grid-template-columns: 1fr 2fr;
+    }
+
+    .eleccion-grid {
+        grid-template-columns: 1fr 1fr;
+        margin-top: 24px;
+    }
+
+    .tarjeta-rol {
+        padding: 26px 22px;
+    }
+
+    .tarjeta-rol-icono {
+        font-size: 34px;
+    }
+
+    .grid-vehiculo {
+        grid-template-columns: 1fr 1fr;
     }
 }

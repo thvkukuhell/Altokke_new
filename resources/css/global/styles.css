@@ -89,7 +89,8 @@ main.main-wrapper {
 header {
     background: var(--white);
     border-bottom: 1px solid var(--border);
-    height: 60px;
+    height: auto;
+    min-height: 56px;
     display: flex;
     align-items: center;
     padding: 0;
