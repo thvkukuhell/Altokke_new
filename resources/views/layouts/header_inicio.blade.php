@@ -1,30 +1,21 @@
-<header>
+<header class="site-header">
     <div class="barra-navegacion">
-
-        {{-- Te redirige a la raíz y luego sube al inicio --}}
         <a href="{{ url('/#inicio') }}" class="logo">
-            <img src="{{ asset('img/logo_moto.png') }}" alt="Logo">
+            <img src="{{ asset('img/logo_moto.png') }}" alt="Altokke">
             <span class="logo-texto">Altokke</span>
         </a>
 
-        <nav class="enlaces-nav">
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Abrir menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
 
-            {{-- Fuerza a ir a la página principal antes de buscar el anclaje --}}
+        <nav class="enlaces-nav" id="menu-principal" aria-label="Navegacion principal">
             <a href="{{ url('/#inicio') }}">Inicio</a>
-
-            <a href="{{ url('/#como-funciona') }}">
-                ¿Cómo funciona?
-            </a>
-
-            <a href="{{ url('/#sobre-nosotros') }}">
-                Sobre nosotros
-            </a>
-
-            <a href="{{ route('login') }}" class="btn-iniciar-sesion">
-                Iniciar sesión
-            </a>
-
+            <a href="{{ url('/#como-funciona') }}">Como funciona</a>
+            <a href="{{ url('/#sobre-nosotros') }}">Sobre nosotros</a>
+            <a href="{{ route('login') }}" class="btn-iniciar-sesion">Iniciar sesion</a>
         </nav>
-
     </div>
 </header>

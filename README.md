@@ -295,3 +295,262 @@ Altokke_new
 └─ vite.config.js
 
 ```
+
+```
+Altokke_new
+├─ .editorconfig
+├─ app
+│  ├─ Events
+│  │  ├─ ConductorMovido.php
+│  │  ├─ ViajeAceptado.php
+│  │  ├─ ViajeActualizado.php
+│  │  └─ ViajeCreado.php
+│  ├─ Http
+│  │  ├─ Controllers
+│  │  │  ├─ AuthController.php
+│  │  │  ├─ ConductorController.php
+│  │  │  ├─ Controller.php
+│  │  │  ├─ InicioController.php
+│  │  │  └─ PasajeroController.php
+│  │  └─ Middleware
+│  │     ├─ CheckRole.php
+│  │     └─ RedirectIfAuthenticatedRole.php
+│  ├─ Jobs
+│  │  ├─ IniciarViaje.php
+│  │  └─ SimularLlegadaConductor.php
+│  ├─ Models
+│  │  ├─ Calificacion.php
+│  │  ├─ Comision.php
+│  │  ├─ Conductor.php
+│  │  ├─ ConfiguracionTarifa.php
+│  │  ├─ DocumentoVerificacion.php
+│  │  ├─ Notificacion.php
+│  │  ├─ Pasajero.php
+│  │  ├─ RecargaSaldo.php
+│  │  ├─ User.php
+│  │  ├─ Vehiculo.php
+│  │  └─ Viaje.php
+│  ├─ Providers
+│  │  └─ AppServiceProvider.php
+│  └─ Services
+│     └─ ViajeService.php
+├─ artisan
+├─ bootstrap
+│  ├─ app.php
+│  ├─ cache
+│  │  ├─ packages.php
+│  │  └─ services.php
+│  └─ providers.php
+├─ composer.json
+├─ composer.lock
+├─ config
+│  ├─ app.php
+│  ├─ auth.php
+│  ├─ broadcasting.php
+│  ├─ cache.php
+│  ├─ database.php
+│  ├─ filesystems.php
+│  ├─ logging.php
+│  ├─ mail.php
+│  ├─ queue.php
+│  ├─ reverb.php
+│  ├─ services.php
+│  └─ session.php
+├─ database
+│  ├─ factories
+│  │  └─ UserFactory.php
+│  ├─ migrations
+│  │  ├─ 0001_01_01_000000_create_users_table.php
+│  │  ├─ 0001_01_01_000001_create_cache_table.php
+│  │  ├─ 0001_01_01_000002_create_jobs_table.php
+│  │  ├─ 2026_05_12_030942_create_usuarios_table.php
+│  │  ├─ 2026_05_12_030950_create_pasajeros_table.php
+│  │  ├─ 2026_05_12_030958_create_conductores_table.php
+│  │  ├─ 2026_05_12_031003_create_vehiculos_table.php
+│  │  ├─ 2026_05_12_031008_create_viajes_table.php
+│  │  ├─ 2026_05_12_031013_create_calificaciones_table.php
+│  │  ├─ 2026_05_12_031021_create_notificaciones_table.php
+│  │  ├─ 2026_05_12_031026_create_soporte_tickets_table.php
+│  │  ├─ 2026_05_12_031033_create_documento_verificacion_table.php
+│  │  ├─ 2026_05_12_031038_create_metodo_pago_conductor_table.php
+│  │  ├─ 2026_05_12_031043_create_recarga_saldo_table.php
+│  │  ├─ 2026_05_12_031048_create_comisiones_table.php
+│  │  ├─ 2026_05_12_031055_create_solicitud_viaje_temporal_table.php
+│  │  ├─ 2026_05_12_031102_create_auditoria_viaje_table.php
+│  │  ├─ 2026_05_19_174541_add_foto_perfil_to_usuarios_table.php
+│  │  ├─ 2026_05_20_151034_add_expirado_toestado_viaje.php
+│  │  ├─ 2026_06_06_103146_replace_user_cascade_deletes_with_restrict.php
+│  │  ├─ 2026_06_07_150204_add_soft_deletes_to_main_tables.php
+│  │  └─ 2026_06_07_152944_create_configuracion_tarifas_table.php
+│  └─ seeders
+│     └─ DatabaseSeeder.php
+├─ GUIA.md
+├─ package-lock.json
+├─ package.json
+├─ phpunit.xml
+├─ public
+│  ├─ .htaccess
+│  ├─ favicon.ico
+│  ├─ img
+│  │  ├─ email.png
+│  │  ├─ estrella.png
+│  │  ├─ icon_phone.jpg
+│  │  ├─ location.png
+│  │  ├─ login_client_icon.png
+│  │  ├─ logo_moto.png
+│  │  └─ perfil.png
+│  ├─ index.php
+│  └─ robots.txt
+├─ README.md
+├─ resources
+│  ├─ css
+│  │  ├─ app.css
+│  │  ├─ auth
+│  │  │  ├─ eleccion_registro.css
+│  │  │  ├─ login.css
+│  │  │  ├─ registro_conductor.css
+│  │  │  └─ registro_pasajero.css
+│  │  ├─ conductor
+│  │  │  ├─ perfil.css
+│  │  │  └─ viaje_activo.css
+│  │  ├─ global
+│  │  │  └─ styles.css
+│  │  ├─ inicio
+│  │  │  └─ inicio.css
+│  │  └─ pasajero
+│  │     ├─ buscando_conductor.css
+│  │     ├─ calificar_viaje.css
+│  │     ├─ editar_perfil.css
+│  │     ├─ historial.css
+│  │     ├─ pasajero.css
+│  │     ├─ perfil.css
+│  │     ├─ solicitar_viaje.css
+│  │     └─ viaje_en_curso.css
+│  ├─ js
+│  │  ├─ app.js
+│  │  ├─ bootstrap.js
+│  │  └─ echo.js
+│  └─ views
+│     ├─ auth
+│     │  ├─ eleccion_registro.blade.php
+│     │  ├─ login.blade.php
+│     │  ├─ recuperar_contrasena.blade.php
+│     │  ├─ registro_conductor.blade.php
+│     │  └─ registro_pasajero.blade.php
+│     ├─ conductor
+│     │  ├─ billetera.blade.php
+│     │  ├─ historial_viaje.blade.php
+│     │  ├─ inicio.blade.php
+│     │  ├─ partials
+│     │  │  └─ sidebar.blade.php
+│     │  ├─ perfil.blade.php
+│     │  ├─ solicitudes.blade.php
+│     │  └─ viaje_activo.blade.php
+│     ├─ inicio
+│     │  └─ inicio.blade.php
+│     ├─ layouts
+│     │  ├─ footer.blade.php
+│     │  ├─ footer_inicio.blade.php
+│     │  ├─ header_conductor.blade.php
+│     │  ├─ header_inicio.blade.php
+│     │  ├─ header_pasajero.blade.php
+│     │  └─ main.blade.php
+│     └─ pasajero
+│        ├─ buscando_conductor.blade.php
+│        ├─ calificar_viaje.blade.php
+│        ├─ editar_perfil.blade.php
+│        ├─ historial.blade.php
+│        ├─ perfil.blade.php
+│        ├─ solicitar_viaje.blade.php
+│        └─ viaje_en_curso.blade.php
+├─ routes
+│  ├─ api.php
+│  ├─ channels.php
+│  ├─ console.php
+│  └─ web.php
+├─ storage
+│  ├─ app
+│  │  ├─ private
+│  │  └─ public
+│  ├─ framework
+│  │  ├─ cache
+│  │  │  └─ data
+│  │  ├─ sessions
+│  │  ├─ testing
+│  │  └─ views
+│  │     ├─ 05a67caeffc800615a2ea03dfff23670.php
+│  │     ├─ 07a5a73fac1fe5633bcbd542555ed26b.php
+│  │     ├─ 09c76156c24269ffd27b713a1630c3e7.php
+│  │     ├─ 0d41238f2b0cc2f222b902738ef331be.php
+│  │     ├─ 0e01b2547c79a66dc560717e3b85b19e.php
+│  │     ├─ 119f15969b1761badbbe7ab59842038a.php
+│  │     ├─ 1b6754e8acdbfa2eda5856380f57d5a3.php
+│  │     ├─ 1cb48ae648fd11b71fa27dedcd6192f7.php
+│  │     ├─ 1cfb4e1dbab6c0dd7920d6447b23ba57.php
+│  │     ├─ 1e19a95a557bcf68c309434eac2854d9.php
+│  │     ├─ 228295662fb40797cd5156f3b0636d97.php
+│  │     ├─ 2c33cca7812918b4dc99ba6d9e7e0247.php
+│  │     ├─ 321543e40e772d2b1b22711c9844cdec.php
+│  │     ├─ 37e4f048c59a5ef6d603b86604145315.php
+│  │     ├─ 381a81234c9c5458101c1568a8b80fd4.php
+│  │     ├─ 39fbfbbdea7ead1b36440ee251b0c69c.php
+│  │     ├─ 3d60a75db4fe78ee8ba60270bb1e489e.php
+│  │     ├─ 3ebcaa42af1bb617c8e8c3dd259a2202.php
+│  │     ├─ 43f1abe41e4220e34a96df7d632dac51.php
+│  │     ├─ 46963587457c6df0d5982c0a4aab1847.php
+│  │     ├─ 4c412f40a89695b1deef669b74d7e163.php
+│  │     ├─ 4ccf7236285ddbc6a2c25fd9191be705.php
+│  │     ├─ 4fb5881eb2a15a051f14a66da0931d37.php
+│  │     ├─ 5a267aabdac9c5ec9b66e6b070080608.php
+│  │     ├─ 5d348318dd24170c47f9c4eb45910768.php
+│  │     ├─ 5ed3165e9349d6b6dc69acaa7f5aede2.php
+│  │     ├─ 619a479249cd798c8b227c4b7998ebc1.php
+│  │     ├─ 63cb476e315be630d229d4873d39750f.php
+│  │     ├─ 6731e59b63b28877d7a2f52f19d42468.php
+│  │     ├─ 6c2dfc2e9c23806df1bbd885427bccfb.php
+│  │     ├─ 6e17df5470816b55023a224051d60679.php
+│  │     ├─ 7148a581cfb8bd6db48b54fe5ddc473d.php
+│  │     ├─ 7364008258c64530b6382005beba56c8.php
+│  │     ├─ 75c0eac71945905d09b1b3c4fee30ce5.php
+│  │     ├─ 76441fdd160e2d75a76a88aeac40a3a6.php
+│  │     ├─ 7f28eb4c84f3095fff8f6fb7b11f6874.php
+│  │     ├─ 817dcda2c41e26e0148990922eb8dc64.php
+│  │     ├─ 856c75b3a4de0e89401d953f178c5a2d.php
+│  │     ├─ 85856ce8ff7da95d5bdf19302034ccb7.php
+│  │     ├─ 88e5c13feb2ca001d9ae99e6a57e3b50.php
+│  │     ├─ 8aaa001c49143f8aec84d7bcb78c29db.php
+│  │     ├─ 8ab9a2c5d85d1231c3c565dcc7d5485c.php
+│  │     ├─ 9e7e43fece264eb3c20433af4fbee826.php
+│  │     ├─ a31af4421c74b189c10a593ffd53cbe3.php
+│  │     ├─ a439e22dabef5f25911d7476a9945046.php
+│  │     ├─ aaf8bfe5d3ef112e8114776992f13143.php
+│  │     ├─ b0ca3630e5304f9b103a3d51327a1610.php
+│  │     ├─ b23116b6a8cee41362bd3022ca359cdc.php
+│  │     ├─ bd15ad5cc9cc8a5bb2f023f87fa5b22c.php
+│  │     ├─ c7cd5436d68d1fd5b731840b855fc293.php
+│  │     ├─ c960fecc6a52678e9aa135c2330e6402.php
+│  │     ├─ cc8e4cb4e89d44eee765823525deb47f.php
+│  │     ├─ ce09fc6dc0c6bf4dbae3e2ae31bff2d1.php
+│  │     ├─ ce5d201133280a0fd9d4b23b3acd5bb6.php
+│  │     ├─ e2c10f18b075d10edad7ae11e9cb9605.php
+│  │     ├─ e5cab8ff775660218ed9cf673ceb0d0d.php
+│  │     ├─ e923d467c79eeffc90de58932694d8fe.php
+│  │     ├─ eb51f44e1dc9dccd468a66b1373afccf.php
+│  │     ├─ f3d70a6f7482aef8f78967f1c398abcc.php
+│  │     ├─ f67c17ffa2a84b153a11ea67275867ce.php
+│  │     ├─ fa42ea7693aa355dc9cb3d96ccb42f76.php
+│  │     ├─ fb14ecb5f6ecda2f10e276ac6a769c31.php
+│  │     ├─ fc51d29ad136b26ace7fa2caaccd9918.php
+│  │     ├─ fcf1a307cbe7509f85bfbeab5f197632.php
+│  │     ├─ fd3c40e5639eda76c4abc34cc355ba87.php
+│  │     └─ fdeb16894ced8ec2f0c9000de0e4505e.php
+│  └─ logs
+├─ tests
+│  ├─ Feature
+│  │  └─ ExampleTest.php
+│  ├─ TestCase.php
+│  └─ Unit
+│     └─ ExampleTest.php
+└─ vite.config.js
+
+```
