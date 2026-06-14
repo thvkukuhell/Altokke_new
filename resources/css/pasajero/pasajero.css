@@ -13,32 +13,6 @@
   --font-display: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
 }
 
-/* Header override */
-
-header {
-  background: var(--p-verde-mid) !important;
-  border-bottom: none !important;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15) !important;
-}
-
-.barra-navegacion { padding: 0 32px !important; }
-.logo-texto {
-  color: #fff !important;
-  font-weight: 700;
-}
-
-.enlaces-nav a { color: rgba(255, 255, 255, 0.85) !important; }
-.enlaces-nav a:hover {
-  background: rgba(255, 255, 255, 0.14) !important;
-  color: #fff !important;
-}
-
-main {
-  background: #f4f6f4 !important;
-  display: block !important;
-  height: auto !important;
-}
-
 .imagen-perfil {
   width: 34px;
   height: 34px;
@@ -637,15 +611,71 @@ main {
   .pago-opciones  { flex-direction: row; }
 }
 
-@media (min-width: 768px) {
-  .pagina-pasajero { padding: 28px 24px 48px; }
-  .barra-navegacion { padding: 0 32px !important; }
-  .enlaces-nav a { font-size: 14px !important; padding: 6px 14px !important; }
-  .perfil-grid   { grid-template-columns: 1fr 1fr; gap: 24px; }
-  .perfil-sidebar { position: sticky; top: 76px; }
-  .panel-solicitud { position: sticky; top: 76px; }
-  .viaje-cuerpo  { flex-direction: row; align-items: center; }
-  .viaje-derecha { text-align: right; }
+@media (max-width: 768px) {
+  #header-pasajero .barra-navegacion {
+    flex-wrap: nowrap !important;
+  }
+
+  #header-pasajero .enlaces-nav {
+    position: fixed !important;
+    top: 0;
+    right: 0; 
+    width: 280px;
+    max-width: 82vw;
+    height: 100vh;
+
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 10px;
+
+    padding: 90px 18px 24px !important;
+    background: rgba(5, 8, 7, 0.98);
+    box-shadow: -18px 0 45px rgba(0, 0, 0, 0.35);
+
+    transform: translateX(100%);
+    opacity: 1 !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+
+    pointer-events: none;
+    transition: transform 0.25s ease;
+    z-index: 350;
+  }
+
+  #header-pasajero.nav-open .enlaces-nav {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  #header-pasajero .enlaces-nav a {
+    width: 100%;
+    justify-content: flex-start;
+    min-height: 46px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  #header-pasajero.nav-open::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 300;
+  }
+
+  #header-pasajero .barra-navegacion {
+    z-index: 360;
+  }
+
+  #header-pasajero .nav-toggle {
+    position: relative;
+    z-index: 370;
+  }
 }
 
 @media (min-width: 1200px) {

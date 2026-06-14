@@ -1,74 +1,63 @@
-<header class="encabezado-app">
-    <div class="barra-navegacion-app">
+<header class="site-header" id="header-pasajero">
+    <div class="barra-navegacion">
+        <a href="{{ url('/pasajero/solicitarViaje') }}" class="logo">
+            <img src="{{ asset('img/logo_moto.png') }}" alt="Altokke">
+            <span class="logo-texto">Altokke</span>
+        </a>
 
-        <div class="logo-app">
-            <img src="{{ asset('img/logo_moto.png') }}" alt="Logo Altokke">
-            <span class="logo-texto-app">Altokke</span>
-        </div>
+        <button class="nav-toggle" type="button" aria-expanded="false"
+                aria-controls="menu-pasajero" aria-label="Abrir menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
 
-        <nav class="enlaces-nav-app">
+        <nav class="enlaces-nav" id="menu-pasajero" aria-label="Navegacion pasajero">
             <a href="{{ route('pasajero.solicitarViaje') }}"
-            class="enlace-menu-app {{ Request::is('pasajero/solicitar-viaje') ? 'activo' : '' }}">
+               class="{{ ($seccionActiva ?? '') === 'solicitar' ? 'activo' : '' }}">
                 Solicitar viaje
             </a>
-
             <a href="{{ route('pasajero.historial') }}"
-                class="enlace-menu-app {{ Request::is('pasajero/historial*') ? 'activo' : '' }}">
+               class="{{ ($seccionActiva ?? '') === 'historial' ? 'activo' : '' }}">
                 Mis viajes
             </a>
-
-            {{-- Lógica de viaje activo --}}
-            @php
-                $viajeActivo = null;
-
-                if (auth()->check()) {
-                    // Expirar viajes buscando de más de 3 minutos sin conductor
-                    \App\Models\Viaje::where('id_pasajero', auth()->id())
-                        ->where('estado_viaje', 'buscando')
-                        ->where('created_at', '<', now()->subMinutes(3))
-                        ->update(['estado_viaje' => 'expirado']);
-
-                    // Buscar solo el viaje activo más reciente
-                    $viajeActivo = \App\Models\Viaje::where('id_pasajero', auth()->id())
-                        ->whereIn('estado_viaje', ['buscando', 'aceptado', 'recogiendo', 'en_curso'])
-                        ->latest('id_viaje')
-                        ->first();
-                }
-            @endphp
-
-            {{-- Solo muestra el badge si hay viaje activo --}}
-            @if($viajeActivo)
-                @if($viajeActivo->estado_viaje === 'buscando')
-                    <a href="{{ route('pasajero.buscando', $viajeActivo->id_viaje) }}"
-                    class="enlace-menu-app nav-viaje-activo">
-                        <span class="nav-dot-pulse"></span>
-                        Buscando conductor
-                    </a>
-                @else
-                    <a href="{{ route('pasajero.enCurso', $viajeActivo->id_viaje) }}"
-                    class="enlace-menu-app nav-viaje-activo">
-                        <span class="nav-dot-pulse"></span>
-                        Viaje en curso
-                    </a>
-                @endif
-            @endif
-
-            {{-- Avatar de Perfil Circular Limpio --}}
-            <a href="{{ route('pasajero.perfil') }}" class="perfil-contenedor-app">
-                <div class="avatar-circular-app">
-                    <img src="{{ asset('img/perfil.png') }}" alt="Perfil">
-                </div>
+            <a href="{{ route('pasajero.perfil') }}"
+               class="{{ ($seccionActiva ?? '') === 'perfil' ? 'activo' : '' }}">
+                Perfil
             </a>
-
-            <a href="{{ route('logout') }}" class="btn-cerrar-sesion-app"
-                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+            <a href="{{ route('logout') }}" class="btn-iniciar-sesion"
+               onclick="event.preventDefault(); document.getElementById('logout-pasajero').submit();">
                 Cerrar sesión
             </a>
-
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
+            <form id="logout-pasajero" action="{{ route('logout') }}"
+                  method="POST" style="display:none;">
                 @csrf
             </form>
         </nav>
-
     </div>
 </header>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const header  = document.getElementById('header-pasajero');
+    const toggle  = header?.querySelector('.nav-toggle');
+
+    toggle?.addEventListener('click', () => {
+        const isOpen = header.classList.toggle('nav-open');
+        toggle.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    // Cerrar al hacer click fuera
+    document.addEventListener('click', (e) => {
+        if (header && !header.contains(e.target)) {
+            header.classList.remove('nav-open');
+            toggle?.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    // Scroll
+    window.addEventListener('scroll', () => {
+        header?.classList.toggle('scrolled', window.scrollY > 20);
+    }, { passive: true });
+});
+</script>
