@@ -19,9 +19,20 @@ class Conductor extends Model
         'calificacion_promedio',
         'total_viajes',
         'verificado_dni',
+        'fecha_verificacion_dni',
     ];
 
-    // Relaciones
+    protected function casts(): array
+    {
+        return [
+            'saldo_disponible'        => 'decimal:2',
+            'calificacion_promedio'   => 'decimal:1',
+            'total_viajes'            => 'integer',
+            'verificado_dni'          => 'boolean',
+            'fecha_verificacion_dni'  => 'datetime',
+        ];
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'id_conductor', 'id_usuario');

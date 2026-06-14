@@ -15,6 +15,14 @@ class Calificacion extends Model
         'fecha_calificacion',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'puntuacion'           => 'decimal:1',
+            'fecha_calificacion'   => 'datetime',
+        ];
+    }
+
     public function viaje()
     {
         return $this->belongsTo(Viaje::class, 'id_viaje', 'id_viaje');

@@ -35,9 +35,17 @@ class Viaje extends Model
     protected function casts(): array
     {
         return [
-            'fecha_solicitud' => 'datetime',
-            'fecha_inicio'    => 'datetime',
-            'fecha_fin'       => 'datetime',
+            'tarifa_estimada'     => 'decimal:2',
+            'tarifa_final'        => 'decimal:2',
+            'lat_origen'          => 'decimal:7',
+            'lng_origen'          => 'decimal:7',
+            'lat_destino'         => 'decimal:7',
+            'lng_destino'         => 'decimal:7',
+            'distancia_km'        => 'decimal:2',
+            'compartido'          => 'boolean',
+            'fecha_solicitud'     => 'datetime',
+            'fecha_inicio'        => 'datetime',
+            'fecha_fin'           => 'datetime',
         ];
     }
 

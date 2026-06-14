@@ -17,7 +17,17 @@ class Vehiculo extends Model
         'anio',
         'numero_soat',
         'verificado_placa',
+        'fecha_verificacion_placa',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'anio'                       => 'integer',
+            'verificado_placa'           => 'boolean',
+            'fecha_verificacion_placa'   => 'datetime',
+        ];
+    }
 
     public function conductor()
     {

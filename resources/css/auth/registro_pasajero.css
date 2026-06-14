@@ -1,27 +1,11 @@
-/* registro_pasajero.css - ajustes para layout auth actual */
+/* Registro pasajero */
 
-.auth-panel form {
-  width: 100%;
-  min-width: 0;
+.main-wrapper .auth-panel .btn-auth {
+  margin-top: 8px;
 }
 
-.auth-grid-2 {
-  min-width: 0;
-}
-
-.auth-grid-2 > *,
-.auth-campo {
-  min-width: 0;
-}
-
-.auth-campo input,
-.auth-campo select,
-.auth-campo textarea {
-  max-width: 100%;
-}
-
-@media (max-width: 767px) {
-  .auth-panel .btn-auth {
-    min-height: 46px;
+@media (max-width: 639px) {
+  .main-wrapper .auth-panel .btn-auth {
+    min-height: 50px;
   }
 }

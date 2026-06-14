@@ -6,7 +6,11 @@
     width: 100%;
     margin-top: -60px;
     background:
-        linear-gradient(180deg, rgba(22, 163, 74, 0.12) 0%, rgba(22, 163, 74, 0) 34%),
+        linear-gradient(
+            180deg,
+            rgba(22, 163, 74, 0.12) 0%,
+            rgba(22, 163, 74, 0) 34%
+        ),
         linear-gradient(135deg, #050807 0%, #0a0f0c 55%, #101914 100%);
     position: relative;
     display: flex;
@@ -25,7 +29,12 @@
     height: 200px;
     border-radius: 18px;
     background:
-        linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.22), transparent),
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(34, 197, 94, 0.22),
+            transparent
+        ),
         repeating-linear-gradient(
             135deg,
             transparent 0 28px,
@@ -44,13 +53,12 @@
     bottom: -1px;
     z-index: 1;
     height: clamp(46px, 8vw, 78px);
-    background:
-        linear-gradient(
-            180deg,
-            rgba(7, 20, 16, 0) 0%,
-            rgba(13, 31, 22, 0.14) 48%,
-            #f5f8f6 100%
-        );
+    background: linear-gradient(
+        180deg,
+        rgba(7, 20, 16, 0) 0%,
+        rgba(13, 31, 22, 0.12) 48%,
+        rgba(245, 248, 246, 0.18) 100%
+    );
     pointer-events: none;
 }
 
@@ -77,7 +85,11 @@
     border: 1px solid rgba(54, 200, 122, 0.18);
     border-radius: 8px;
     background:
-        linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(255, 255, 255, 0.025)),
+        linear-gradient(
+            135deg,
+            rgba(34, 197, 94, 0.12),
+            rgba(255, 255, 255, 0.025)
+        ),
         repeating-linear-gradient(
             90deg,
             transparent 0 38px,
@@ -100,7 +112,8 @@
     max-width: 1180px;
     width: 100%;
     margin: 0 auto;
-    padding: clamp(70px, 8vw, 100px) clamp(18px, 4vw, 40px) clamp(64px, 8vw, 104px);
+    padding: clamp(70px, 8vw, 100px) clamp(18px, 4vw, 40px)
+        clamp(64px, 8vw, 104px);
     display: grid;
     grid-template-columns: minmax(0, 1.04fr) minmax(320px, 440px);
     gap: clamp(32px, 7vw, 76px);
@@ -258,7 +271,11 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06));
+    background: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.16),
+        rgba(255, 255, 255, 0.06)
+    );
     border: 2px solid rgba(54, 200, 122, 0.28);
     display: flex;
     align-items: center;
@@ -279,7 +296,11 @@
 .hero-card {
     position: relative;
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.055)),
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.12),
+            rgba(255, 255, 255, 0.055)
+        ),
         rgba(8, 12, 10, 0.92);
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 18px;
@@ -297,7 +318,12 @@
     inset: 12px 12px auto;
     height: 3px;
     border-radius: 999px;
-    background: linear-gradient(90deg, var(--ruta-green), var(--ruta-action), transparent);
+    background: linear-gradient(
+        90deg,
+        var(--ruta-green),
+        var(--ruta-action),
+        transparent
+    );
     opacity: 0.85;
 }
 @keyframes hero-float {
@@ -539,10 +565,17 @@
 /* COMO FUNCIONA */
 .como-funciona {
     background:
-        radial-gradient(circle at 10% 6%, rgba(34, 197, 94, 0.12), transparent 28%),
+        radial-gradient(
+            circle at 10% 6%,
+            rgba(34, 197, 94, 0.12),
+            transparent 28%
+        ),
         linear-gradient(90deg, rgba(16, 25, 20, 0.04) 1px, transparent 1px),
         linear-gradient(180deg, #f5f8f6 0%, #ffffff 46%, #f2f7f4 100%);
-    background-size: auto, 84px 84px, auto;
+    background-size:
+        auto,
+        84px 84px,
+        auto;
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.72),
         inset 0 -1px 0 rgba(6, 17, 14, 0.08);
@@ -575,22 +608,20 @@
 .como-funciona::before {
     top: -1px;
     height: 48px;
-    background:
-        linear-gradient(
-            180deg,
-            rgba(5, 8, 7, 0.08) 0%,
-            rgba(245, 248, 246, 0) 100%
-        );
+    background: linear-gradient(
+        180deg,
+        rgba(5, 8, 7, 0.12) 0%,
+        rgba(245, 248, 246, 0) 100%
+    );
 }
 .como-funciona::after {
     bottom: -1px;
     height: 64px;
-    background:
-        linear-gradient(
-            180deg,
-            rgba(245, 248, 246, 0) 0%,
-            rgba(6, 17, 14, 0.18) 100%
-        );
+    background: linear-gradient(
+        180deg,
+        rgba(245, 248, 246, 0) 0%,
+        rgba(6, 17, 14, 0.14) 100%
+    );
 }
 
 .pasos-grid {
@@ -607,14 +638,13 @@
     right: 10%;
     z-index: 0;
     height: 2px;
-    background:
-        linear-gradient(
-            90deg,
-            rgba(16, 131, 63, 0) 0%,
-            rgba(16, 131, 63, 0.32) 22%,
-            rgba(16, 131, 63, 0.22) 78%,
-            rgba(16, 131, 63, 0) 100%
-        );
+    background: linear-gradient(
+        90deg,
+        rgba(16, 131, 63, 0) 0%,
+        rgba(16, 131, 63, 0.32) 22%,
+        rgba(16, 131, 63, 0.22) 78%,
+        rgba(16, 131, 63, 0) 100%
+    );
     pointer-events: none;
 }
 
@@ -622,8 +652,7 @@
     position: relative;
     z-index: 1;
     min-height: 100%;
-    background:
-        linear-gradient(180deg, #ffffff 0%, #f8fbf9 100%);
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbf9 100%);
     border: 1px solid rgba(16, 25, 20, 0.1);
     border-radius: 8px;
     padding: clamp(24px, 3vw, 34px);
@@ -664,8 +693,7 @@
 
 /* Paso destacado (card verde) */
 .paso-card-destacado {
-    background:
-        linear-gradient(155deg, #06110e 0%, #0d2919 62%, #16a34a 100%);
+    background: linear-gradient(155deg, #06110e 0%, #0d2919 62%, #16a34a 100%);
     border-color: rgba(22, 163, 74, 0.42);
     box-shadow:
         0 24px 58px rgba(5, 8, 7, 0.18),
@@ -679,8 +707,7 @@
 }
 .paso-card-destacado:hover {
     transform: translateY(-10px);
-    background:
-        linear-gradient(155deg, #07130f 0%, #0f2f1f 58%, #16a34a 100%);
+    background: linear-gradient(155deg, #07130f 0%, #0f2f1f 58%, #16a34a 100%);
     border-color: rgba(22, 163, 74, 0.62);
     box-shadow:
         0 28px 64px rgba(5, 8, 7, 0.24),
@@ -739,10 +766,17 @@
 /* SEGURIDAD */
 .seguridad {
     background:
-        radial-gradient(circle at 82% 10%, rgba(54, 200, 122, 0.15), transparent 30%),
+        radial-gradient(
+            circle at 82% 10%,
+            rgba(54, 200, 122, 0.15),
+            transparent 30%
+        ),
         linear-gradient(90deg, rgba(34, 197, 94, 0.075) 1px, transparent 1px),
         linear-gradient(155deg, #050807 0%, #06110e 44%, #10231d 100%);
-    background-size: auto, 96px 96px, auto;
+    background-size:
+        auto,
+        96px 96px,
+        auto;
     position: relative;
     overflow: hidden;
     border-top: 1px solid rgba(34, 197, 94, 0.14);
@@ -759,12 +793,11 @@
     z-index: 0;
     width: 720px;
     height: 720px;
-    background:
-        repeating-linear-gradient(
-            128deg,
-            rgba(54, 200, 122, 0.1) 0 2px,
-            transparent 2px 38px
-        );
+    background: repeating-linear-gradient(
+        128deg,
+        rgba(54, 200, 122, 0.1) 0 2px,
+        transparent 2px 38px
+    );
     opacity: 0.34;
     pointer-events: none;
 }
@@ -776,13 +809,11 @@
     bottom: -1px;
     z-index: 1;
     height: 76px;
-    background:
-        linear-gradient(
-            180deg,
-            rgba(6, 17, 14, 0) 0%,
-            rgba(245, 248, 246, 0.16) 58%,
-            #f5f8f6 100%
-        );
+    background: linear-gradient(
+        180deg,
+        rgba(6, 17, 14, 0) 0%,
+        rgba(245, 248, 246, 0) 100%
+    );
     pointer-events: none;
 }
 .seguridad .seccion-chip-claro {
@@ -809,8 +840,11 @@
 .seguridad-card {
     position: relative;
     overflow: hidden;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.072), rgba(255, 255, 255, 0.038));
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.072),
+        rgba(255, 255, 255, 0.038)
+    );
     border: 1px solid rgba(255, 255, 255, 0.11);
     border-radius: 14px;
     padding: clamp(24px, 3vw, 32px);
@@ -830,12 +864,20 @@
     left: 24px;
     right: 24px;
     height: 2px;
-    background: linear-gradient(90deg, rgba(34, 197, 94, 0), rgba(54, 200, 122, 0.7), rgba(34, 197, 94, 0));
+    background: linear-gradient(
+        90deg,
+        rgba(34, 197, 94, 0),
+        rgba(54, 200, 122, 0.7),
+        rgba(34, 197, 94, 0)
+    );
     opacity: 0.72;
 }
 .seguridad-card:hover {
-    background:
-        linear-gradient(180deg, rgba(54, 200, 122, 0.12), rgba(255, 255, 255, 0.045));
+    background: linear-gradient(
+        180deg,
+        rgba(54, 200, 122, 0.12),
+        rgba(255, 255, 255, 0.045)
+    );
     border-color: rgba(22, 163, 74, 0.34);
     transform: translateY(-4px);
     box-shadow:
@@ -870,8 +912,11 @@
 
 /* SOBRE NOSOTROS */
 .sobre-nosotros-sec {
-    background:
-        linear-gradient(180deg, #f5f8f6 0%, #ffffff 36%, #f5f8f6 100%);
+    background: linear-gradient(
+        180deg,
+        rgba(6, 17, 14, 0.1) 0%,
+        rgba(245, 248, 246, 0) 100%
+    );
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.76),
         inset 0 -1px 0 rgba(6, 17, 14, 0.08);
@@ -888,22 +933,20 @@
 .sobre-nosotros-sec::before {
     top: -1px;
     height: 52px;
-    background:
-        linear-gradient(
-            180deg,
-            rgba(6, 17, 14, 0.07) 0%,
-            rgba(245, 248, 246, 0) 100%
-        );
+    background: linear-gradient(
+        180deg,
+        rgba(6, 17, 14, 0.07) 0%,
+        rgba(245, 248, 246, 0) 100%
+    );
 }
 .sobre-nosotros-sec::after {
     bottom: -1px;
     height: 76px;
-    background:
-        linear-gradient(
-            180deg,
-            rgba(245, 248, 246, 0) 0%,
-            rgba(6, 17, 14, 0.2) 100%
-        );
+    background: linear-gradient(
+        180deg,
+        rgba(245, 248, 246, 0) 0%,
+        rgba(6, 17, 14, 0.12) 100%
+    );
 }
 
 .sobre-grid {
@@ -996,15 +1039,9 @@
 }
 
 .sobre-tarjeta-oscura {
-    background:
-        linear-gradient(
-            135deg,
-            #052e16 0%,
-            #0b3f20 100%
-        );
+    background: linear-gradient(135deg, #052e16 0%, #0b3f20 100%);
 
-    box-shadow:
-        0 20px 50px rgba(22, 163, 74, 0.18);
+    box-shadow: 0 20px 50px rgba(22, 163, 74, 0.18);
 }
 .sobre-tarjeta-oscura:hover {
     background: #1e231e;
@@ -1065,22 +1102,20 @@
 .cta-final::before {
     top: -1px;
     height: 44px;
-    background:
-        linear-gradient(
-            180deg,
-            rgba(222, 248, 232, 0.08) 0%,
-            rgba(6, 17, 14, 0) 100%
-        );
+    background: linear-gradient(
+        180deg,
+        rgba(222, 248, 232, 0.1) 0%,
+        rgba(6, 17, 14, 0) 100%
+    );
 }
 .cta-final::after {
     bottom: -1px;
     height: 64px;
-    background:
-        linear-gradient(
-            180deg,
-            rgba(5, 8, 7, 0) 0%,
-            rgba(5, 8, 7, 0.72) 100%
-        );
+    background: linear-gradient(
+        180deg,
+        rgba(5, 8, 7, 0) 0%,
+        rgba(5, 8, 7, 0.72) 100%
+    );
 }
 .cta-bg-dots {
     position: absolute;
@@ -1255,8 +1290,8 @@
     padding: 34px 18px 44px;
     overflow: visible;
     max-height: none;
-    scrollbar-width: thin; 
-    scrollbar-color: var(--verde-mid) transparent;   
+    scrollbar-width: thin;
+    scrollbar-color: var(--verde-mid) transparent;
 }
 
 .auth-panel::-webkit-scrollbar {
@@ -1398,7 +1433,7 @@
     box-shadow: 0 6px 18px rgba(58, 140, 58, 0.35);
 }
 
-/* BotÃ³n outline */
+/* Boton outline */
 .btn-auth-outline {
     display: flex;
     align-items: center;
@@ -1517,7 +1552,7 @@
     display: block;
 }
 
-/* ElecciÃ³n de rol */
+/* Eleccion de rol */
 .eleccion-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -1739,8 +1774,6 @@
     .hero-card {
         border-radius: 16px;
     }
-
-    
 
     .hero-card-precio {
         gap: 16px;

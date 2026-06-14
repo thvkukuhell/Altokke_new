@@ -15,4 +15,13 @@ class ConfiguracionTarifa extends Model
         'precio_por_km',
         'activo',
     ];
+
+        protected function casts(): array
+        {
+            return [
+                'tarifa_base'   => 'decimal:2',
+                'precio_por_km' => 'decimal:2',
+                'activo'        => 'boolean',
+            ];
+        }
 }

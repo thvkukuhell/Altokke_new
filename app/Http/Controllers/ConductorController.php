@@ -223,7 +223,10 @@ class ConductorController extends Controller
             'id_viaje' => 'required|integer|exists:viajes,id_viaje',
         ]);
 
-        $viaje = Viaje::findOrFail($request->id_viaje);
+        $viaje = Viaje::where('id_viaje', $request->id_viaje)
+            ->where('id_conductor', Auth::id())
+            ->where('estado_viaje', 'aceptado')
+            ->firstOrFail();
         $viaje->update(['estado_viaje' => 'recogiendo']);
 
         event(new \App\Events\ViajeActualizado(
@@ -241,7 +244,10 @@ class ConductorController extends Controller
             'id_viaje' => 'required|integer|exists:viajes,id_viaje',
         ]);
 
-        $viaje = Viaje::findOrFail($request->id_viaje);
+        $viaje = Viaje::where('id_viaje', $request->id_viaje)
+            ->where('id_conductor', Auth::id())
+            ->where('estado_viaje', 'recogiendo')
+            ->firstOrFail();
         $viaje->update(['estado_viaje' => 'en_curso']);
 
         event(new \App\Events\ViajeActualizado(
@@ -292,7 +298,10 @@ class ConductorController extends Controller
             'id_viaje' => 'required|integer|exists:viajes,id_viaje',
         ]);
 
-        $viaje = Viaje::findOrFail($request->id_viaje);
+        $viaje = Viaje::where('id_viaje', $request->id_viaje)
+            ->where('id_conductor', Auth::id())
+            ->whereIn('estado_viaje', ['aceptado', 'recogiendo', 'en_curso'])
+            ->firstOrFail();
         $conductor = $this->getConductorActual();
         $tarifaFinal = (float) ($viaje->tarifa_final ?? $viaje->tarifa_estimada ?? 0);
         $montoComision = round($tarifaFinal * self::COMISION_ALTOKKE, 2);
@@ -347,7 +356,10 @@ class ConductorController extends Controller
             'id_viaje' => 'required|integer|exists:viajes,id_viaje',
         ]);
 
-        $viaje = Viaje::findOrFail($request->id_viaje);
+        $viaje = Viaje::where('id_viaje', $request->id_viaje)
+            ->where('id_conductor', Auth::id())
+            ->whereIn('estado_viaje', ['aceptado', 'recogiendo', 'en_curso'])
+            ->firstOrFail();
 
         $viaje->update([
             'estado_viaje' => 'cancelado',

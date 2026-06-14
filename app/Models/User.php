@@ -38,6 +38,7 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
+            'activo'          => 'boolean',
             'contrasena_hash' => 'hashed',
         ];
     }
@@ -51,6 +52,11 @@ class User extends Authenticatable
     public function conductor()
     {
         return $this->hasOne(Conductor::class, 'id_conductor', 'id_usuario');
+    }
+
+    public function notificaciones()
+    {
+        return $this->hasMany(Notificacion::class, 'id_usuario', 'id_usuario');
     }
 
     // Helper — reemplaza tu método iniciales()

@@ -52,7 +52,9 @@ class PasajeroController extends Controller
 
     public function buscando(int $viajeId)
     {
-        $viajeRaw = Viaje::find($viajeId);
+        $viajeRaw = Viaje::where('id_viaje', $viajeId)
+            ->where('id_pasajero', Auth::id())
+            ->first();
 
         // Si el viaje fue aceptado mientras llegaba aquí, redirigir directo
         if ($viajeRaw && in_array($viajeRaw->estado_viaje, ['aceptado', 'recogiendo', 'en_curso'])) {
@@ -106,7 +108,9 @@ class PasajeroController extends Controller
 
     public function enCurso(int $viajeId)
     {
-        $viajeRaw = Viaje::with('conductor.user', 'conductor.vehiculo')->find($viajeId);
+        $viajeRaw = Viaje::with('conductor.user', 'conductor.vehiculo')
+            ->where('id_pasajero', Auth::id())
+            ->find($viajeId);
 
         if (!$viajeRaw || !$viajeRaw->conductor) {
             $viaje = [
@@ -172,7 +176,9 @@ class PasajeroController extends Controller
 
     public function calificar(int $viajeId)
     {
-        $viajeRaw = Viaje::with('conductor.user', 'conductor.vehiculo')->find($viajeId);
+        $viajeRaw = Viaje::with('conductor.user', 'conductor.vehiculo')
+            ->where('id_pasajero', Auth::id())
+            ->find($viajeId);
 
         if (!$viajeRaw || !$viajeRaw->conductor) {
             $viaje     = ['id' => 0, 'origen' => '—', 'destino' => '—', 'tarifa' => '0.00'];
@@ -212,6 +218,18 @@ class PasajeroController extends Controller
             'estrellas'    => 'required|integer|min:1|max:5',
             'comentario'   => 'nullable|string|max:500',
         ]);
+
+        $viaje = Viaje::where('id_viaje', $request->viaje_id)
+            ->where('id_pasajero', Auth::id())
+            ->where('id_conductor', $request->conductor_id)
+            ->where('estado_viaje', 'completado')
+            ->first();
+
+        if (!$viaje) {
+            return redirect()
+                ->route('pasajero.historial')
+                ->withErrors(['viaje_id' => 'No puedes calificar este viaje.']);
+        }
  
         $this->viajeService->calificarViaje(
             (int) $request->viaje_id,
@@ -390,4 +408,3 @@ class PasajeroController extends Controller
         ];
     }
 }
-
