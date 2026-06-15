@@ -83,6 +83,14 @@
     margin-bottom: 12px;
 }
 
+.buscando-tiempo-ajax {
+    margin-bottom: 8px;
+}
+
+.buscando-ajax {
+    margin-bottom: 18px;
+}
+
 .buscando-desc {
     font-size: 13.5px;
     color: var(--gray);

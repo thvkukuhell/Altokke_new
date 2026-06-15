@@ -54,6 +54,49 @@
     letter-spacing: -0.5px;
 }
 
+.sidebar-avatar-img {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(45, 106, 45, 0.18);
+}
+
+.perfil-upload-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.perfil-upload-form input[type="file"] {
+    min-height: 42px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 10px;
+    background: #fff;
+    font: inherit;
+}
+
+.perfil-ayuda {
+    margin: 10px 0 0;
+    color: var(--gray);
+    font-size: 12px;
+}
+
+.btn-comprobante {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--p-verde-mid);
+    color: var(--p-verde-mid);
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
 .sidebar-nombre {
     font-size: 16px;
     font-weight: 700;

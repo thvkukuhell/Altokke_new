@@ -55,6 +55,60 @@ function initAuthNavigation(attempt = 0) {
     });
 }
 
+function initAppDrawerNavigation() {
+    const headers = document.querySelectorAll('[data-app-header]');
+    if (!headers.length) return;
+
+    headers.forEach((header) => {
+        if (header.dataset.drawerReady === 'true') return;
+
+        const toggle = header.querySelector('.app-nav-toggle');
+        const drawer = header.querySelector('.app-drawer-nav');
+        const overlay = header.querySelector('[data-app-nav-overlay]');
+        const closeButton = header.querySelector('[data-app-nav-close]');
+
+        if (!toggle || !drawer || !overlay) return;
+
+        header.dataset.drawerReady = 'true';
+
+        const setOpen = (isOpen) => {
+            header.classList.toggle('nav-open', isOpen);
+            document.body.classList.toggle('app-drawer-open', isOpen);
+            toggle.setAttribute('aria-expanded', String(isOpen));
+            overlay.hidden = !isOpen;
+        };
+
+        toggle.addEventListener('click', (event) => {
+            event.stopPropagation();
+            setOpen(!header.classList.contains('nav-open'));
+        });
+
+        closeButton?.addEventListener('click', () => setOpen(false));
+        overlay.addEventListener('click', () => setOpen(false));
+
+        drawer.addEventListener('click', (event) => {
+            if (event.target.closest('a')) {
+                setOpen(false);
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                setOpen(false);
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.matchMedia('(min-width: 1024px)').matches) {
+                setOpen(false);
+            }
+        });
+    });
+}
+
 initAuthNavigation();
+initAppDrawerNavigation();
 document.addEventListener('DOMContentLoaded', () => initAuthNavigation());
+document.addEventListener('DOMContentLoaded', () => initAppDrawerNavigation());
 window.addEventListener('load', () => initAuthNavigation());
+window.addEventListener('load', () => initAppDrawerNavigation());

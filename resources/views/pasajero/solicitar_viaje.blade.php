@@ -14,6 +14,7 @@
 {{-- Librerías de Leaflet necesarias --}}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+@include('mapa.partials.leaflet_helpers')
 
 
 <div class="pagina-pasajero">
@@ -22,6 +23,17 @@
         {{-- MAPA --}}
         <div class="mapa-decorativo">
             <div id="mapa-solicitud-pasajero"></div>
+            <div class="mapa-panel-eta">
+                <div class="eta-superior">
+                    <div>
+                        <div class="eta-numero" id="eta-solicitud">-- min</div>
+                        <div class="eta-unidad">Ruta</div>
+                    </div>
+                    <div class="eta-unidad" id="distancia-solicitud">-- km</div>
+                </div>
+                <div class="eta-estado" id="estado-ruta-solicitud">GPS activo</div>
+                <div class="eta-detalle" id="detalle-ruta-solicitud">Elige tu destino</div>
+            </div>
             <div class="mapa-etiqueta">
                 <span class="mapa-etiqueta-icono">📍</span>
                 <span id="ubicacion-texto">Obteniendo tu ubicación...</span>
@@ -38,7 +50,7 @@
             <p class="panel-solicitud-titulo">¿A dónde vamos?</p>
             <p class="panel-solicitud-sub">Ingresa tu origen y destino para solicitar tu mototaxi</p>
 
-            <form action="{{ route('pasajero.crearViaje') }}" method="POST">
+            <form action="{{ route('pasajero.crearViaje') }}" method="POST" id="form-solicitar-viaje">
                 @csrf
 
                 <div class="ruta-selector">
@@ -100,6 +112,7 @@
                     </div>
                 </div>
 
+                <div class="mapa-form-error" id="mapa-form-error" hidden></div>
                 <button type="submit" class="btn btn-verde btn-ancho">Solicitar mototaxi</button>
             </form>
         </div>
@@ -112,6 +125,7 @@ let mapa;
 let marcadorOrigen = null;
 let marcadorDestino = null;
 let lineaRuta = null;
+let campoActivo = 'destino';
 
 const DEFAULT_LOCATION = {
     lat: -5.63889,
@@ -129,18 +143,8 @@ window.addEventListener('load', () => {
 // MAPA
 // ===============================
 function inicializarMapa() {
-    mapa = L.map('mapa-solicitud-pasajero', {
-        zoomControl: false
-    }).setView(
-        [DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lng],
-        15
-    );
-
-    L.tileLayer(
-        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }
-    ).addTo(mapa);
+    mapa = AltokkeMapa.crearMapa('mapa-solicitud-pasajero', DEFAULT_LOCATION, 15);
+    if (!mapa) return;
 
     // BOTONES
     document.getElementById('zoom-in')
@@ -154,7 +158,39 @@ function inicializarMapa() {
             obtenerUbicacion();
         });
 
+    document.getElementById('origen-input')?.addEventListener('focus', () => {
+        campoActivo = 'origen';
+        actualizarEstadoSeleccion('Toca el mapa para marcar tu origen');
+    });
+
+    document.getElementById('destino-input')?.addEventListener('focus', () => {
+        campoActivo = 'destino';
+        actualizarEstadoSeleccion('Toca el mapa para marcar tu destino');
+    });
+
+    mapa.on('click', async (evento) => {
+        const punto = AltokkeMapa.puntoValido(evento.latlng.lat, evento.latlng.lng);
+        if (!punto) return;
+
+        if (campoActivo === 'origen' || !marcadorOrigen) {
+            colocarOrigen(punto.lat, punto.lng, false);
+            document.getElementById('origen-input').value = await obtenerDireccion(punto.lat, punto.lng);
+            campoActivo = 'destino';
+            actualizarEstadoSeleccion('Origen marcado. Ahora marca tu destino');
+            return;
+        }
+
+        colocarDestino(punto.lat, punto.lng);
+        document.getElementById('destino-input').value = await obtenerDireccion(punto.lat, punto.lng);
+        actualizarEstadoSeleccion('Destino marcado');
+    });
+
     obtenerUbicacion();
+}
+
+function actualizarEstadoSeleccion(mensaje) {
+    const ubicacionTexto = document.getElementById('ubicacion-texto');
+    if (ubicacionTexto) ubicacionTexto.textContent = mensaje;
 }
 
 // ===============================
@@ -174,6 +210,11 @@ function obtenerUbicacion() {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
 
+            if (!AltokkeMapa.esLatLngValido(lat, lng)) {
+                ubicacionTexto.textContent = 'No se pudo obtener una ubicacion valida';
+                return;
+            }
+
             colocarOrigen(lat, lng, true);
             const direccion =
                 await obtenerDireccion(lat, lng);
@@ -185,9 +226,8 @@ function obtenerUbicacion() {
         },
 
         function(error) {
-            console.log(error);
             ubicacionTexto.textContent =
-                'Permite acceso a ubicación para detectar tu origen';
+                'Permite acceso a ubicacion o marca tu origen en el mapa';
         },
 
         {
@@ -241,7 +281,6 @@ async function obtenerDireccion(lat, lng) {
         return direccion || 'Ubicación actual';
 
     } catch (e) {
-        console.log(e);
         return 'Ubicación actual';
     }
 }
@@ -250,16 +289,20 @@ async function obtenerDireccion(lat, lng) {
 // MARCADOR ORIGEN
 // ===============================
 function colocarOrigen(lat, lng, centrarMapa = false) {
+    const punto = AltokkeMapa.puntoValido(lat, lng);
+    if (!punto || !mapa) return;
+
     if (marcadorOrigen) {
         mapa.removeLayer(marcadorOrigen);
     }
      marcadorOrigen = L.marker(
-        [lat, lng]
+        [punto.lat, punto.lng],
+        { icon: AltokkeMapa.icono('origen', 'O') }
     ).addTo(mapa);
 
     if (centrarMapa) {
         mapa.flyTo(
-            [lat, lng],
+            [punto.lat, punto.lng],
             17, {
                 animate: true,
                 duration: 0.8
@@ -269,11 +312,11 @@ function colocarOrigen(lat, lng, centrarMapa = false) {
 
     document.getElementById(
         'origen-lat'
-    ).value = lat;
+    ).value = punto.lat;
 
     document.getElementById(
         'origen-lng'
-    ).value = lng;
+    ).value = punto.lng;
 
     actualizarRuta();
 }
@@ -282,15 +325,19 @@ function colocarOrigen(lat, lng, centrarMapa = false) {
 // MARCADOR DESTINO
 // ===============================
 function colocarDestino(lat, lng) {
+    const punto = AltokkeMapa.puntoValido(lat, lng);
+    if (!punto || !mapa) return;
+
     if (marcadorDestino) {
         mapa.removeLayer(marcadorDestino);
     }
     marcadorDestino = L.marker(
-        [lat, lng]
+        [punto.lat, punto.lng],
+        { icon: AltokkeMapa.icono('destino', 'D') }
     ).addTo(mapa);
 
-    document.getElementById('destino-lat').value = lat;  
-    document.getElementById('destino-lng').value = lng;
+    document.getElementById('destino-lat').value = punto.lat;
+    document.getElementById('destino-lng').value = punto.lng;
 
     actualizarRuta();
 }
@@ -299,108 +346,77 @@ function colocarDestino(lat, lng) {
 // DIBUJAR RUTA REAL
 // ===============================
 async function actualizarRuta() {
-    if (!marcadorOrigen || !marcadorDestino) return;
-    const origen = marcadorOrigen.getLatLng();
-    const destino = marcadorDestino.getLatLng();
-    if (lineaRuta) mapa.removeLayer(lineaRuta);
-    
-    try {
-        const response = await fetch(
-            `https://router.project-osrm.org/route/v1/driving/${origen.lng},${origen.lat};${destino.lng},${destino.lat}?overview=full&geometries=geojson`
-        );
-        const data = await response.json();
-        if (!data.routes || !data.routes.length) return;
-        const ruta = data.routes[0];
-        const coordenadas = ruta.geometry.coordinates.map(coord => [coord[1], coord[0]]);
-
-        lineaRuta = L.polyline(coordenadas, {
-            color: '#16a34a',
-            weight: 6,
-            opacity: 0.9,
-            lineJoin: 'round'
-        }).addTo(mapa);
-
-        mapa.fitBounds(lineaRuta.getBounds(), { padding: [50, 50] });
-        
-        const distanciaKm = ruta.distance / 1000;
-        const tiempoMin = Math.ceil(ruta.duration / 60);
-        
-        // --- Detectar cuál servicio está marcado ---
-        const radioExpress = document.querySelector('input[name="tipo_servicio"][value="express"]');
-        let tarifaBase = 3.00;
-        
-        // Validamos si el elemento existe y además su contenedor tiene la clase "seleccionado"
-        if (radioExpress && radioExpress.closest('.servicio-chip').classList.contains('seleccionado')) {
-            tarifaBase = 5.00;
-        }
-
-        // Realizar el cálculo matemático con la base correspondiente
-        let tarifa = tarifaBase + (distanciaKm * 1.5);
-        tarifa = tarifa.toFixed(2);
-        
-        // Renderizar los datos actualizados en la tarjeta verde
-        document.getElementById('tarifa-numero').innerHTML = `S/ ${tarifa}`;
-        document.getElementById('tarifa-detalle').innerHTML = `~${distanciaKm.toFixed(1)} km · ${tiempoMin} min`;
-
-        document.getElementById('tarifa-hidden').value    = tarifa;
-        document.getElementById('distancia-hidden').value = distanciaKm.toFixed(2);
-        document.getElementById('tiempo-hidden').value    = tiempoMin;
-        
-    } catch (e) {
-        console.log(e);
+    if (!marcadorOrigen || !marcadorDestino) {
+        limpiarResumenRuta();
+        return;
     }
-}
+    const origenLeaflet = marcadorOrigen.getLatLng();
+    const destinoLeaflet = marcadorDestino.getLatLng();
+    const origen = AltokkeMapa.puntoValido(origenLeaflet.lat, origenLeaflet.lng);
+    const destino = AltokkeMapa.puntoValido(destinoLeaflet.lat, destinoLeaflet.lng);
+    const estadoRuta = document.getElementById('estado-ruta-solicitud');
+    const detalleRuta = document.getElementById('detalle-ruta-solicitud');
 
-// DISTANCIA Y TARIFA
-function calcularTarifa(
-    lat1,
-    lon1,
-    lat2,
-    lon2
-) {
+    if (!origen || !destino || !AltokkeMapa.puntosDistintos(origen, destino)) {
+        if (lineaRuta && mapa) {
+            mapa.removeLayer(lineaRuta);
+            lineaRuta = null;
+        }
+        if (estadoRuta) estadoRuta.textContent = 'Sin ruta disponible';
+        if (detalleRuta) detalleRuta.textContent = 'Marca origen y destino diferentes';
+        limpiarResumenRuta();
+        return;
+    }
 
-    const R = 6371;
-    const dLat =
-        (lat2 - lat1) * Math.PI / 180;
-    const dLon =
-        (lon2 - lon1) * Math.PI / 180;
-    const a =
-        Math.sin(dLat / 2) *
-        Math.sin(dLat / 2) +
+    if (estadoRuta) estadoRuta.textContent = 'Calculando ruta';
+    const ruta = await AltokkeMapa.consultarRuta(origen, destino);
+    lineaRuta = AltokkeMapa.dibujarRuta(mapa, lineaRuta, ruta, {
+        color: '#2d6a2d',
+        weight: 6,
+        opacity: 0.9,
+    });
 
-        Math.cos(lat1 * Math.PI / 180) *
-        Math.cos(lat2 * Math.PI / 180) *
+    if (lineaRuta) {
+        mapa.fitBounds(lineaRuta.getBounds(), { padding: [50, 50] });
+    }
 
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c =
-        2 * Math.atan2(
-            Math.sqrt(a),
-            Math.sqrt(1 - a)
-        );
-    const distancia = R * c;
+    const distanciaKm = Number(ruta.distancia_km || 0);
+    const tiempoMin = Number(ruta.duracion_min || 0);
+    const radioExpress = document.querySelector('input[name="tipo_servicio"][value="express"]');
+    let tarifaBase = 3.00;
 
-    // TARIFA SIMPLE
-    let tarifa =
-        3 + (distancia * 1.5);
+    if (radioExpress && radioExpress.closest('.servicio-chip')?.classList.contains('seleccionado')) {
+        tarifaBase = 5.00;
+    }
 
+    let tarifa = tarifaBase + (distanciaKm * 1.5);
     tarifa = tarifa.toFixed(2);
 
-    // TIEMPO APROX
-    const tiempo =
-        Math.ceil(distancia * 3);
+    document.getElementById('tarifa-numero').innerHTML = `S/ ${tarifa}`;
+    document.getElementById('tarifa-detalle').innerHTML = `~${distanciaKm.toFixed(1)} km | ${tiempoMin} min`;
+    document.getElementById('eta-solicitud').textContent = `${tiempoMin || '--'} min`;
+    document.getElementById('distancia-solicitud').textContent = `${distanciaKm.toFixed(1)} km`;
+    if (estadoRuta) estadoRuta.textContent = ruta.ok ? 'Ruta estimada' : 'Sin ruta disponible';
+    if (detalleRuta) detalleRuta.textContent = ruta.ok ? 'Ruta real calculada' : 'Usando linea simple entre puntos';
 
-    document.getElementById(
-            'tarifa-numero'
-        ).innerHTML =
-        `S/ ${tarifa}`;
-
-    document.getElementById(
-            'tarifa-detalle'
-        ).innerHTML =
-        `~${distancia.toFixed(1)} km · ${tiempo} min`;
+    document.getElementById('tarifa-hidden').value    = tarifa;
+    document.getElementById('distancia-hidden').value = distanciaKm.toFixed(2);
+    document.getElementById('tiempo-hidden').value    = tiempoMin;
 }
 
+function limpiarResumenRuta() {
+    const distancia = document.getElementById('distancia-hidden');
+    const tiempo = document.getElementById('tiempo-hidden');
+    const eta = document.getElementById('eta-solicitud');
+    const distanciaLabel = document.getElementById('distancia-solicitud');
+    const tarifaDetalle = document.getElementById('tarifa-detalle');
+
+    if (distancia) distancia.value = '';
+    if (tiempo) tiempo.value = '';
+    if (eta) eta.textContent = '-- min';
+    if (distanciaLabel) distanciaLabel.textContent = '-- km';
+    if (tarifaDetalle) tarifaDetalle.textContent = '~0 km | 0 min';
+}
 // AUTOCOMPLETE
 crearAutocomplete(
     document.getElementById('origen-input'),
@@ -413,6 +429,7 @@ crearAutocomplete(
 );
 
 function crearAutocomplete(input, tipo) {
+    if (!input) return;
 
     const lista =
         document.createElement('div');
@@ -425,6 +442,7 @@ function crearAutocomplete(input, tipo) {
     let timeoutBusqueda;
 
     input.addEventListener('input', function() {
+        limpiarCoordenadas(tipo);
         clearTimeout(timeoutBusqueda);
         const query = this.value;
         if (query.length < 3) {
@@ -519,7 +537,7 @@ function crearAutocomplete(input, tipo) {
 
             } catch (e) {
 
-                console.log(e);
+                lista.style.display = 'none';
             }
 
         }, 300);
@@ -536,6 +554,49 @@ function crearAutocomplete(input, tipo) {
             }
         }
     );
+}
+
+function limpiarCoordenadas(tipo) {
+    if (tipo === 'origen') {
+        document.getElementById('origen-lat').value = '';
+        document.getElementById('origen-lng').value = '';
+        if (marcadorOrigen && mapa) {
+            mapa.removeLayer(marcadorOrigen);
+            marcadorOrigen = null;
+        }
+        if (lineaRuta && mapa) {
+            mapa.removeLayer(lineaRuta);
+            lineaRuta = null;
+        }
+        limpiarResumenRuta();
+        return;
+    }
+
+    document.getElementById('destino-lat').value = '';
+    document.getElementById('destino-lng').value = '';
+    if (marcadorDestino && mapa) {
+        mapa.removeLayer(marcadorDestino);
+        marcadorDestino = null;
+    }
+    if (lineaRuta && mapa) {
+        mapa.removeLayer(lineaRuta);
+        lineaRuta = null;
+    }
+    limpiarResumenRuta();
+}
+
+function leerPuntoFormulario(prefijo) {
+    return AltokkeMapa.puntoValido(
+        document.getElementById(`${prefijo}-lat`)?.value,
+        document.getElementById(`${prefijo}-lng`)?.value
+    );
+}
+
+function mostrarErrorMapa(mensaje) {
+    const caja = document.getElementById('mapa-form-error');
+    if (!caja) return;
+    caja.textContent = mensaje;
+    caja.hidden = false;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -575,6 +636,33 @@ document.addEventListener('DOMContentLoaded', () => {
             const radio = this.querySelector('input[type="radio"]');
             if (radio) radio.checked = true;
         });
+    });
+
+    document.getElementById('form-solicitar-viaje')?.addEventListener('submit', (event) => {
+        const cajaError = document.getElementById('mapa-form-error');
+        if (cajaError) cajaError.hidden = true;
+
+        const origen = leerPuntoFormulario('origen');
+        const destino = leerPuntoFormulario('destino');
+        const origenTexto = document.getElementById('origen-input')?.value?.trim();
+        const destinoTexto = document.getElementById('destino-input')?.value?.trim();
+
+        if (!origenTexto || !destinoTexto) {
+            event.preventDefault();
+            mostrarErrorMapa('Ingresa origen y destino antes de solicitar.');
+            return;
+        }
+
+        if (!origen || !destino) {
+            event.preventDefault();
+            mostrarErrorMapa('Marca origen y destino en el mapa antes de solicitar.');
+            return;
+        }
+
+        if (!AltokkeMapa.puntosDistintos(origen, destino)) {
+            event.preventDefault();
+            mostrarErrorMapa('El origen y destino deben ser puntos diferentes.');
+        }
     });
 });
 </script>

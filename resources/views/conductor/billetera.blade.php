@@ -1,8 +1,6 @@
 @extends('layouts.main')
 @section('content')
 
-<link rel="stylesheet" href="{{ asset('assets/css/conductor/perfil.css') }}">
-
 <div class="pagina-conductor">
     <div class="perfil-layout">
 

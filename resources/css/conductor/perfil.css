@@ -57,6 +57,58 @@
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
 
+.perfil-foto-bloque {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.perfil-foto-preview,
+.perfil-foto-placeholder {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.perfil-foto-preview {
+  object-fit: cover;
+  border: 3px solid rgba(45, 106, 45, 0.18);
+}
+
+.perfil-foto-placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--verde);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.perfil-upload-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.perfil-upload-form input[type="file"] {
+  min-height: 42px;
+  border: 1px solid #dfe5df;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fff;
+  font: inherit;
+}
+
+.perfil-ayuda {
+  width: 100%;
+  margin: 0;
+  color: var(--gray);
+  font-size: 12px;
+}
+
 .sidebar-nombre {
   font-size: 14px;
   font-weight: 700;

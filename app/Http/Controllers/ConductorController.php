@@ -9,6 +9,7 @@ use App\Models\RecargaSaldo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Jobs\SimularLlegadaConductor;
+use App\Services\ViajeNotificacionService;
 
 class ConductorController extends Controller
 {
@@ -143,6 +144,7 @@ class ConductorController extends Controller
                             ->whereNull('id_conductor')
                             ->with('pasajero.user')
                             ->orderByDesc('fecha_solicitud')
+                            ->limit(25)
                             ->get();
 
         $iniciales     = $this->calcularIniciales($conductor->user->nombre_completo ?? '');
@@ -158,6 +160,56 @@ class ConductorController extends Controller
             'solicitudes' => $solicitudes,
             'puedeTomarViajes' => $puedeTomarViajes, 
         ]);
+    }
+
+    public function solicitudesJson()
+    {
+        try {
+            $conductor = $this->getConductorActual();
+            $puedeTomarViajes = $conductor->estado_conductor === 'activo'
+                && (float) $conductor->saldo_disponible > 0;
+
+            $solicitudes = Viaje::where('estado_viaje', 'buscando')
+                ->whereNull('id_conductor')
+                ->with('pasajero.user')
+                ->orderByDesc('fecha_solicitud')
+                ->limit(25)
+                ->get()
+                ->map(fn (Viaje $viaje) => $this->formatearSolicitudJson($viaje));
+
+            return response()->json([
+                'ok' => true,
+                'mensaje' => 'Solicitudes actualizadas',
+                'puede_tomar_viajes' => $puedeTomarViajes,
+                'total' => $solicitudes->count(),
+                'solicitudes' => $solicitudes,
+            ], 200);
+        } catch (\Throwable) {
+            return response()->json([
+                'ok' => false,
+                'mensaje' => 'No se pudieron cargar las solicitudes.',
+            ], 500);
+        }
+    }
+
+    private function formatearSolicitudJson(Viaje $viaje): array
+    {
+        return [
+            'id' => $viaje->id_viaje,
+            'origen' => $viaje->origen_texto,
+            'destino' => $viaje->destino_texto,
+            'origen_lat' => $viaje->lat_origen !== null ? (float) $viaje->lat_origen : null,
+            'origen_lng' => $viaje->lng_origen !== null ? (float) $viaje->lng_origen : null,
+            'destino_lat' => $viaje->lat_destino !== null ? (float) $viaje->lat_destino : null,
+            'destino_lng' => $viaje->lng_destino !== null ? (float) $viaje->lng_destino : null,
+            'pasajero' => $viaje->pasajero->user->nombre_completo ?? 'Pasajero',
+            'metodo_pago' => ucfirst($viaje->metodo_pago ?? 'efectivo'),
+            'tipo_servicio' => $viaje->tipo_servicio ?? 'normal',
+            'tarifa' => number_format((float) ($viaje->tarifa_estimada ?? 0), 2),
+            'distancia' => $viaje->distancia_km ? number_format((float) $viaje->distancia_km, 1) . ' km' : 'Sin distancia',
+            'tiempo' => $viaje->tiempo_estimado_min ? (int) $viaje->tiempo_estimado_min . ' min' : 'Sin ETA',
+            'fecha' => $viaje->fecha_solicitud?->diffForHumans() ?? 'Reciente',
+        ];
     }
 
     public function aceptarViaje(Request $request) 
@@ -344,6 +396,10 @@ class ConductorController extends Controller
             (int) $viaje->id_viaje
         ));
 
+        app(ViajeNotificacionService::class)->enviarResumenCompletado(
+            $viaje->fresh(['pasajero.user', 'conductor.user'])
+        );
+
         // 4. Redirigir al conductor a su historial, dashboard o solicitudes con un mensaje de éxito
         return redirect()
             ->route('conductor.solicitudes') 
@@ -390,8 +446,9 @@ class ConductorController extends Controller
                           ->whereIn('estado_viaje', ['completado', 'cancelado'])
                           ->with('pasajero.user', 'calificacion')
                           ->orderByDesc('fecha_solicitud')
-                          ->get()
-                          ->map(function ($v) {
+                          ->simplePaginate(10)
+                          ->withQueryString()
+                          ->through(function ($v) {
                               return [
                                   ...$v->toArray(),
                                   'borde_clase'  => match($v->estado_viaje) {
@@ -517,8 +574,8 @@ class ConductorController extends Controller
     {
         $request->validate([
             'viaje_id' => 'required|integer',
-            'lat' => 'required|numeric',
-            'lng' => 'required|numeric',
+            'lat' => 'required|numeric|between:-90,90',
+            'lng' => 'required|numeric|between:-180,180',
         ]);
 
         $viaje = Viaje::where('id_viaje', $request->viaje_id)
@@ -529,6 +586,12 @@ class ConductorController extends Controller
         if (!$viaje) {
             return response()->json(['ok' => false, 'mensaje' => 'Viaje no autorizado'], 403);
         }
+
+        Conductor::where('id_conductor', Auth::id())->update([
+            'lat_actual' => (float) $request->lat,
+            'lng_actual' => (float) $request->lng,
+            'ubicacion_actualizada_en' => now(),
+        ]);
         
         // Dispara evento - Reverb lo manda al mapa del pasajero
         event(new \App\Events\ConductorMovido(
@@ -537,6 +600,11 @@ class ConductorController extends Controller
             $request->lng
         ));
 
-        return response()->json(['ok' => true]);
+        return response()->json([
+            'ok' => true,
+            'mensaje' => 'Ubicacion actualizada',
+            'lat' => (float) $request->lat,
+            'lng' => (float) $request->lng,
+        ]);
     }
 }

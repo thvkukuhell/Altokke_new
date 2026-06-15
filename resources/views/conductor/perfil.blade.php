@@ -1,6 +1,10 @@
 @extends('layouts.main')
 @section('content')
 
+@php
+    $fotoPerfilUrl = $conductor->user->foto_perfil ? \Illuminate\Support\Facades\Storage::url($conductor->user->foto_perfil) : null;
+@endphp
+
 <div class="pagina-conductor">
     <div class="perfil-layout">
  
@@ -11,6 +15,25 @@
             @if(session('mensaje'))
                 <div class="alert alert-success">{{ session('mensaje') }}</div>
             @endif
+
+            <div class="tarjeta">
+                <div class="perfil-encabezado">
+                    <h2>Foto de perfil</h2>
+                </div>
+                <div class="perfil-foto-bloque">
+                    @if($fotoPerfilUrl)
+                        <img src="{{ $fotoPerfilUrl }}" alt="Foto de perfil" class="perfil-foto-preview">
+                    @else
+                        <div class="perfil-foto-placeholder">{{ $conductor->user->iniciales() }}</div>
+                    @endif
+                    <form method="POST" action="{{ route('perfil.foto') }}" enctype="multipart/form-data" class="perfil-upload-form">
+                        @csrf
+                        <input type="file" name="foto_perfil" accept="image/png,image/jpeg" required>
+                        <button type="submit" class="btn btn-verde">Subir foto</button>
+                        <p class="perfil-ayuda">JPG o PNG. Maximo 2 MB.</p>
+                    </form>
+                </div>
+            </div>
  
             {{-- Datos personales --}}
             <div class="tarjeta">

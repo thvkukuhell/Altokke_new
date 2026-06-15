@@ -1,0 +1,89 @@
+/* historial conductor */
+
+.viaje-item {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+
+.viaje-borde {
+  width: 6px;
+  flex: 0 0 6px;
+}
+
+.borde-verde {
+  background: var(--verde-mid);
+}
+
+.borde-rojo {
+  background: var(--rojo);
+}
+
+.borde-dorado {
+  background: #6b7280;
+}
+
+.viaje-cuerpo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 16px;
+  padding: 16px 18px;
+}
+
+.viaje-ruta {
+  color: var(--texto);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.viaje-meta {
+  margin-top: 4px;
+  color: var(--gray);
+  font-size: 13px;
+}
+
+.viaje-derecha {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  min-width: 130px;
+}
+
+.viaje-precio {
+  color: var(--texto);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.viaje-estrellas {
+  color: #16a34a;
+  font-size: 12px;
+}
+
+.paginacion-historial {
+  margin-top: 22px;
+}
+
+.paginacion-historial nav {
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .viaje-cuerpo {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .viaje-derecha {
+    align-items: flex-start;
+    width: 100%;
+    min-width: 0;
+  }
+}

@@ -9,6 +9,11 @@
         <div class="perfil-contenido">
 
             <h1 class="titulo-pagina">Historial de Viajes</h1>
+            <div style="margin-bottom:16px;">
+                <a href="{{ route('conductor.historial.csv') }}" class="btn btn-verde">
+                    Exportar CSV
+                </a>
+            </div>
 
             <div class="tarjeta" style="margin-bottom:20px;">
                 <div style="display:flex; gap:32px; flex-wrap:wrap;">
@@ -60,10 +65,18 @@
                             {{ str_repeat('★', (int)$v['puntuacion']) }}{{ str_repeat('☆', 5 - (int)$v['puntuacion']) }}
                         </div>
                         @endif
+                        @if(($v['estado_viaje'] ?? '') === 'completado')
+                        <a href="{{ route('reportes.viajes.comprobante', $v['id_viaje']) }}" class="btn btn-outline btn-sm" style="margin-top:10px;">
+                            Descargar PDF
+                        </a>
+                        @endif
                     </div>
                 </div>
             </div>
             @endforeach
+            <div class="paginacion-historial">
+                {{ $historial->links() }}
+            </div>
             @endif
 
         </div>

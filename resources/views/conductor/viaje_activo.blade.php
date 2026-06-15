@@ -7,22 +7,26 @@
 
     <div class="viaje-grid">
 
-        {{-- Mapa decorativo --}}
         <div class="mapa-viaje">
-            {{-- Contenedor donde Leaflet va a renderizar el mapa --}}
-            <div id="mapa-leaflet-conductor" style="width:100%; height:100%; min-height: 350px; border-radius:16px;">
-            </div>
+            <div id="mapa-leaflet-conductor"></div>
 
-            {{-- Caja flotante del ETA --}}
-            <div class="eta-caja" style="position: absolute; top: 15px; left: 15px; z-index: 1000;">
-                <div class="eta-numero">GPS</div>
-                <div class="eta-unidad">activo</div>
+            <div class="mapa-panel-eta">
+                <div class="eta-superior">
+                    <div>
+                        <div class="eta-numero" id="eta-conductor">-- min</div>
+                        <div class="eta-unidad">ETA</div>
+                    </div>
+                    <div class="eta-unidad" id="distancia-conductor">-- km</div>
+                </div>
+                <div class="eta-estado" id="estado-ruta-conductor">GPS activo</div>
+                <div class="eta-detalle" id="detalle-ruta-conductor">Calculando ruta</div>
             </div>
         </div>
 
         {{-- Cargamos las librerías de Leaflet (CSS y JS) --}}
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        @include('mapa.partials.leaflet_helpers')
 
         {{-- Panel derecho --}}
         <div class="panel-viaje">
@@ -63,8 +67,8 @@
                 <div class="fila-dato">
                     <span>Tarifa</span>
                     @php
-                        $tarifaVista = $viaje->tarifa_final ?? $viaje->tarifa_estimada ?? 0;
-                        $tarifaLabel = $viaje->tarifa_final ? 'Tarifa final' : 'Tarifa estimada';
+                    $tarifaVista = $viaje->tarifa_final ?? $viaje->tarifa_estimada ?? 0;
+                    $tarifaLabel = $viaje->tarifa_final ? 'Tarifa final' : 'Tarifa estimada';
                     @endphp
                     <strong style="color:var(--p-verde-dark); font-size:17px;">
                         S/ {{ number_format($tarifaVista, 2) }}
@@ -76,81 +80,93 @@
                 </div>
             </div>
 
-            {{-- Completar viaje --}}
+            <div class="mapa-resumen-ruta">
+                <div class="dato-ruta">
+                    <span>Distancia</span>
+                    <strong id="panel-distancia-conductor">-- km</strong>
+                </div>
+                <div class="dato-ruta">
+                    <span>Tiempo</span>
+                    <strong id="panel-tiempo-conductor">-- min</strong>
+                </div>
+            </div>
+
+            @if($viaje->metodo_pago === 'efectivo')
+            <div class="tarjeta" style="background:#f0fdf4; border:1px solid #bbf7d0; padding:16px; margin-top:16px;">
+                <p
+                    style="margin:0 0 4px; font-size:12px; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">
+                    💵 Pago en efectivo
+                </p>
+                <p style="font-size:24px; font-weight:900; color:#15803d; margin:4px 0 12px; letter-spacing:-0.5px;">
+                    S/ {{ number_format($tarifaVista, 2) }}
+                </p>
+                <p style="font-size:12.5px; color:#166534; margin:0 0 14px;">
+                    Cobra el monto al pasajero antes de confirmar.
+                </p>
+                <form method="POST" action="{{ route('conductor.completarViaje') }}">
+                    @csrf
+                    <input type="hidden" name="id_viaje" value="{{ $viaje->id_viaje }}">
+                    <button type="submit" class="btn btn-verde btn-ancho">
+                        ✓ Confirmar pago en efectivo recibido
+                    </button>
+                </form>
+            </div>
+
+            @elseif($viaje->metodo_pago === 'yape')
+            <div class="tarjeta" style="background:#faf5ff; border:1px solid #ddd6fe; padding:16px; margin-top:16px;">
+                <p
+                    style="margin:0 0 4px; font-size:12px; font-weight:700; color:#6d28d9; text-transform:uppercase; letter-spacing:0.5px;">
+                    💜 Pago por Yape
+                </p>
+                <p style="font-size:24px; font-weight:900; color:#7c3aed; margin:4px 0 6px; letter-spacing:-0.5px;">
+                    S/ {{ number_format($tarifaVista, 2) }}
+                </p>
+                <p style="font-size:12.5px; color:#6d28d9; margin:0 0 4px;">
+                    Pídele al pasajero que yapee a tu número:
+                </p>
+                <p style="font-size:16px; font-weight:800; color:#5b21b6; margin:0 0 14px;">
+                    📱 {{ $conductor->user->telefono ?? '—' }}
+                </p>
+                <form method="POST" action="{{ route('conductor.completarViaje') }}">
+                    @csrf
+                    <input type="hidden" name="id_viaje" value="{{ $viaje->id_viaje }}">
+                    <button type="submit" class="btn btn-ancho" style="background:#7c3aed; color:#fff;">
+                        ✓ Confirmar Yape recibido
+                    </button>
+                </form>
+            </div>
+
+            @elseif($viaje->metodo_pago === 'plin')
+            <div class="tarjeta" style="background:#eff6ff; border:1px solid #bfdbfe; padding:16px; margin-top:16px;">
+                <p
+                    style="margin:0 0 4px; font-size:12px; font-weight:700; color:#1d4ed8; text-transform:uppercase; letter-spacing:0.5px;">
+                    💙 Pago por Plin
+                </p>
+                <p style="font-size:24px; font-weight:900; color:#2563eb; margin:4px 0 6px; letter-spacing:-0.5px;">
+                    S/ {{ number_format($tarifaVista, 2) }}
+                </p>
+                <p style="font-size:12.5px; color:#1d4ed8; margin:0 0 4px;">
+                    Pídele al pasajero que plinee a tu número:
+                </p>
+                <p style="font-size:16px; font-weight:800; color:#1e40af; margin:0 0 14px;">
+                    📱 {{ $conductor->user->telefono ?? '—' }}
+                </p>
+                <form method="POST" action="{{ route('conductor.completarViaje') }}">
+                    @csrf
+                    <input type="hidden" name="id_viaje" value="{{ $viaje->id_viaje }}">
+                    <button type="submit" class="btn btn-ancho" style="background:#2563eb; color:#fff;">
+                        ✓ Confirmar Plin recibido
+                    </button>
+                </form>
+            </div>
+            @else
             <form method="POST" action="{{ route('conductor.completarViaje') }}" style="margin-top:16px;">
                 @csrf
                 <input type="hidden" name="id_viaje" value="{{ $viaje->id_viaje }}">
                 <button type="submit" class="btn btn-verde btn-ancho">
-                     Completar Viaje
+                    Completar viaje
                 </button>
             </form>
-
-            {{-- Cancelar viaje --}}
-            @if($viaje->metodo_pago === 'efectivo')
-                <div class="tarjeta" style="background:#f0fdf4; border:1px solid #bbf7d0; padding:16px; margin-top:16px;">
-                    <p style="margin:0 0 4px; font-size:12px; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">
-                        💵 Pago en efectivo
-                    </p>
-                    <p style="font-size:24px; font-weight:900; color:#15803d; margin:4px 0 12px; letter-spacing:-0.5px;">
-                        S/ {{ number_format($tarifaVista, 2) }}
-                    </p>
-                    <p style="font-size:12.5px; color:#166534; margin:0 0 14px;">
-                        Cobra el monto al pasajero antes de confirmar.
-                    </p>
-                    <form method="POST" action="{{ route('conductor.completarViaje') }}">
-                        @csrf
-                        <input type="hidden" name="id_viaje" value="{{ $viaje->id_viaje }}">
-                        <button type="submit" class="btn btn-verde btn-ancho">
-                            ✓ Confirmar pago en efectivo recibido
-                        </button>
-                    </form>
-                </div>
-
-            @elseif($viaje->metodo_pago === 'yape')
-                <div class="tarjeta" style="background:#faf5ff; border:1px solid #ddd6fe; padding:16px; margin-top:16px;">
-                    <p style="margin:0 0 4px; font-size:12px; font-weight:700; color:#6d28d9; text-transform:uppercase; letter-spacing:0.5px;">
-                        💜 Pago por Yape
-                    </p>
-                    <p style="font-size:24px; font-weight:900; color:#7c3aed; margin:4px 0 6px; letter-spacing:-0.5px;">
-                        S/ {{ number_format($tarifaVista, 2) }}
-                    </p>
-                    <p style="font-size:12.5px; color:#6d28d9; margin:0 0 4px;">
-                        Pídele al pasajero que yapee a tu número:
-                    </p>
-                    <p style="font-size:16px; font-weight:800; color:#5b21b6; margin:0 0 14px;">
-                        📱 {{ $conductor->user->telefono ?? '—' }}
-                    </p>
-                    <form method="POST" action="{{ route('conductor.completarViaje') }}">
-                        @csrf
-                        <input type="hidden" name="id_viaje" value="{{ $viaje->id_viaje }}">
-                        <button type="submit" class="btn btn-ancho" style="background:#7c3aed; color:#fff;">
-                            ✓ Confirmar Yape recibido
-                        </button>
-                    </form>
-                </div>
-
-            @elseif($viaje->metodo_pago === 'plin')
-                <div class="tarjeta" style="background:#eff6ff; border:1px solid #bfdbfe; padding:16px; margin-top:16px;">
-                    <p style="margin:0 0 4px; font-size:12px; font-weight:700; color:#1d4ed8; text-transform:uppercase; letter-spacing:0.5px;">
-                        💙 Pago por Plin
-                    </p>
-                    <p style="font-size:24px; font-weight:900; color:#2563eb; margin:4px 0 6px; letter-spacing:-0.5px;">
-                        S/ {{ number_format($tarifaVista, 2) }}
-                    </p>
-                    <p style="font-size:12.5px; color:#1d4ed8; margin:0 0 4px;">
-                        Pídele al pasajero que plinee a tu número:
-                    </p>
-                    <p style="font-size:16px; font-weight:800; color:#1e40af; margin:0 0 14px;">
-                        📱 {{ $conductor->user->telefono ?? '—' }}
-                    </p>
-                    <form method="POST" action="{{ route('conductor.completarViaje') }}">
-                        @csrf
-                        <input type="hidden" name="id_viaje" value="{{ $viaje->id_viaje }}">
-                        <button type="submit" class="btn btn-ancho" style="background:#2563eb; color:#fff;">
-                            ✓ Confirmar Plin recibido
-                        </button>
-                    </form>
-                </div>
             @endif
 
             @else
@@ -172,96 +188,189 @@
 
 <script>
 const VIAJE_ID = @json($viaje->id_viaje ?? null);
-
-const PASAJERO_ORIG_LAT = parseFloat("{{ $viaje->lat_origen ?? -5.63889 }}");
-const PASAJERO_ORIG_LNG = parseFloat("{{ $viaje->lng_origen ?? -78.5311 }}");
-const DESTINO_LAT      = parseFloat("{{ $viaje->lat_destino ?? -5.6800 }}");
-const DESTINO_LNG      = parseFloat("{{ $viaje->lng_destino ?? -78.5400 }}");
+const ESTADO_VIAJE = @json($viaje->estado_viaje ?? 'aceptado');
+const CONDUCTOR_REAL = AltokkeMapa.puntoValido(
+    @json($conductor->lat_actual ?? null),
+    @json($conductor->lng_actual ?? null)
+);
 
 window.addEventListener('load', () => {
     if (!VIAJE_ID) return;
 
-    const safeNumber = (value, fallback) => {
-        const n = Number(value);
-        return Number.isFinite(n) ? n : fallback;
+    const origenReal = AltokkeMapa.puntoValido(
+        @json($viaje->lat_origen ?? null),
+        @json($viaje->lng_origen ?? null)
+    );
+    const destinoReal = AltokkeMapa.puntoValido(
+        @json($viaje->lat_destino ?? null),
+        @json($viaje->lng_destino ?? null)
+    );
+    const origen = origenReal || AltokkeMapa.puntoSeguro(
+        @json($viaje->lat_origen ?? null),
+        @json($viaje->lng_origen ?? null),
+        AltokkeMapa.BAGUA
+    );
+    const destino = destinoReal || AltokkeMapa.puntoSeguro(
+        @json($viaje->lat_destino ?? null),
+        @json($viaje->lng_destino ?? null),
+        AltokkeMapa.CAJARURO
+    );
+    let conductor = CONDUCTOR_REAL || {
+        lat: origen.lat - 0.006,
+        lng: origen.lng - 0.004,
     };
 
-    let conductorLat = safeNumber("{{ $viaje->conductor->lat ?? -5.6763 }}", -5.6763);
-    let conductorLng = safeNumber("{{ $viaje->conductor->lng ?? -78.5311 }}", -78.5311);
-    const origenLat    = safeNumber("{{ $viaje->lat_origen ?? -5.63889 }}", -5.63889);
-    const origenLng    = safeNumber("{{ $viaje->lng_origen ?? -78.5311 }}", -78.5311);
-    const destinoLat   = safeNumber("{{ $viaje->lat_destino ?? -5.6800 }}", -5.6800);
-    const destinoLng   = safeNumber("{{ $viaje->lng_destino ?? -78.5400 }}", -78.5400);
+    const mapaConductor = AltokkeMapa.crearMapa('mapa-leaflet-conductor', conductor, 15);
+    if (!mapaConductor) return;
 
-    const mapaConductor = L.map('mapa-leaflet-conductor').setView([conductorLat, conductorLng], 15);
+    const marcadorConductor = AltokkeMapa.crearMarcador(mapaConductor, conductor, 'conductor', 'M', 'Conductor');
+    if (origenReal) AltokkeMapa.crearMarcador(mapaConductor, origen, 'origen', 'O', 'Origen del pasajero');
+    if (destinoReal) AltokkeMapa.crearMarcador(mapaConductor, destino, 'destino', 'D', 'Destino');
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-    }).addTo(mapaConductor);
+    AltokkeMapa.ajustarVista(mapaConductor, [conductor, origen, destino]);
 
-    const marcadorConductor = L.marker([conductorLat, conductorLng]).addTo(mapaConductor).bindPopup('Conductor');
-    const marcadorPasajero = L.marker([origenLat, origenLng]).addTo(mapaConductor).bindPopup('Pasajero');
-    const marcadorDestino = L.marker([destinoLat, destinoLng]).addTo(mapaConductor).bindPopup('Destino');
+    let rutaConductor = null;
+    let rutaViaje = null;
+    let ultimaRutaMs = 0;
+    let gpsRealActivo = Boolean(CONDUCTOR_REAL);
+    let watchId = null;
 
-    mapaConductor.fitBounds(L.latLngBounds([
-        [conductorLat, conductorLng],
-        [origenLat, origenLng],
-        [destinoLat, destinoLng]
-    ]).pad(0.30));
+    const eta = document.getElementById('eta-conductor');
+    const distancia = document.getElementById('distancia-conductor');
+    const estado = document.getElementById('estado-ruta-conductor');
+    const detalle = document.getElementById('detalle-ruta-conductor');
+    const panelDistancia = document.getElementById('panel-distancia-conductor');
+    const panelTiempo = document.getElementById('panel-tiempo-conductor');
 
-    setTimeout(() => mapaConductor.invalidateSize(), 500);
+    async function actualizarRutas(forzar = false) {
+        if (!origenReal || !destinoReal || !marcadorConductor) {
+            if (estado) estado.textContent = 'Coordenadas pendientes';
+            if (detalle) detalle.textContent = 'No se encontraron puntos validos para este viaje';
+            AltokkeMapa.ajustarVista(mapaConductor, [conductor, origen, destino]);
+            return;
+        }
+
+        const ahora = Date.now();
+        if (!forzar && ahora - ultimaRutaMs < 12000) return;
+        ultimaRutaMs = ahora;
+
+        if (estado) estado.textContent = 'Calculando ruta';
+        const destinoActivo = ESTADO_VIAJE === 'en_curso' ? destino : origen;
+        const [rutaAlPasajero, rutaDestino] = await Promise.all([
+            AltokkeMapa.consultarRuta(conductor, destinoActivo),
+            AltokkeMapa.consultarRuta(origen, destino),
+        ]);
+
+        rutaConductor = AltokkeMapa.dibujarRuta(mapaConductor, rutaConductor, rutaAlPasajero, {
+            color: '#111827',
+            weight: 5,
+            opacity: 0.85,
+        });
+        rutaViaje = AltokkeMapa.dibujarRuta(mapaConductor, rutaViaje, rutaDestino, {
+            color: '#2d6a2d',
+            weight: 6,
+            opacity: 0.9,
+        });
+
+        const rutaVisible = ESTADO_VIAJE === 'en_curso' ? rutaDestino : rutaAlPasajero;
+        if (eta) eta.textContent = `${rutaVisible.duracion_min || '--'} min`;
+        if (distancia) distancia.textContent = `${Number(rutaVisible.distancia_km || 0).toFixed(1)} km`;
+        if (panelDistancia) panelDistancia.textContent = `${Number(rutaDestino.distancia_km || 0).toFixed(1)} km`;
+        if (panelTiempo) panelTiempo.textContent = `${rutaDestino.duracion_min || '--'} min`;
+        if (estado) estado.textContent = rutaVisible.ok ? 'Ruta estimada' : 'Sin ruta disponible';
+        if (detalle) detalle.textContent = rutaVisible.ok
+            ? 'Ruta real calculada'
+            : 'Usando linea simple entre puntos';
+
+        AltokkeMapa.ajustarVista(mapaConductor, [conductor, origen, destino]);
+        iniciarSimulacionSiHaceFalta(rutaAlPasajero);
+    }
 
     function emitirUbicacion(latitud, longitud) {
-        fetch('{{ route('conductor.ubicacion') }}', {
+        const punto = AltokkeMapa.puntoValido(latitud, longitud);
+        if (!punto || !VIAJE_ID) return;
+
+        fetch("{{ route('conductor.ubicacion') }}", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify({
                 viaje_id: VIAJE_ID,
-                lat: latitud,
-                lng: longitud
+                lat: punto.lat,
+                lng: punto.lng
             })
-        }).catch(err => console.error('Error enviando ubicacion:', err));
+        }).catch(() => {
+            if (detalle) detalle.textContent = 'No se pudo enviar la ubicacion';
+        });
     }
 
-    let simulacionActiva = false;
-    let simulacionTimer = null;
+    function moverConductor(latitud, longitud, esReal = false) {
+        const punto = AltokkeMapa.puntoValido(latitud, longitud);
+        if (!punto || !marcadorConductor) return;
 
-    function moverConductor(latitud, longitud) {
-        conductorLat = latitud;
-        conductorLng = longitud;
-        marcadorConductor.setLatLng([conductorLat, conductorLng]);
-        mapaConductor.panTo([conductorLat, conductorLng]);
-        emitirUbicacion(conductorLat, conductorLng);
+        if (esReal) {
+            gpsRealActivo = true;
+            AltokkeMapa.detenerSimulacion(`conductor-${VIAJE_ID}`);
+            if (estado) estado.textContent = 'GPS activo';
+        }
+
+        conductor = punto;
+        AltokkeMapa.moverMarcadorSuave(marcadorConductor, conductor, 900);
+        emitirUbicacion(conductor.lat, conductor.lng);
+        actualizarRutas();
     }
 
-    function iniciarSimulacionLocal() {
-        if (simulacionActiva) return;
-        simulacionActiva = true;
-        simulacionTimer = setInterval(() => {
-            moverConductor(conductorLat + 0.00012, conductorLng + 0.00012);
-        }, 4000);
+    function iniciarSimulacionSiHaceFalta(rutaAlPasajero) {
+        if (gpsRealActivo || !rutaAlPasajero?.coordenadas?.length || !marcadorConductor) return;
+
+        if (estado) estado.textContent = 'Modo simulacion';
+        if (detalle) detalle.textContent = ESTADO_VIAJE === 'en_curso'
+            ? 'Avanzando hacia el destino'
+            : 'Acercandote al pasajero';
+
+        AltokkeMapa.iniciarSimulacion(`conductor-${VIAJE_ID}`, {
+            marcador: marcadorConductor,
+            coordenadas: rutaAlPasajero.coordenadas,
+            intervaloMs: 2200,
+            minimoPasos: 64,
+            debeDetener: () => gpsRealActivo,
+            alMover: (punto) => {
+                conductor = punto;
+                emitirUbicacion(punto.lat, punto.lng);
+            },
+        });
     }
+
+    actualizarRutas(true);
 
     if (navigator.geolocation) {
-        navigator.geolocation.watchPosition((pos) => {
-            if (simulacionTimer) clearInterval(simulacionTimer);
-            simulacionActiva = false;
-            moverConductor(pos.coords.latitude, pos.coords.longitude);
-        }, (err) => {
-            console.warn('No se pudo obtener GPS real:', err.message);
-            iniciarSimulacionLocal();
+        watchId = navigator.geolocation.watchPosition((pos) => {
+            const puntoGps = AltokkeMapa.puntoValido(pos.coords.latitude, pos.coords.longitude);
+            if (!puntoGps) return;
+            moverConductor(puntoGps.lat, puntoGps.lng, true);
+        }, () => {
+            gpsRealActivo = false;
+            actualizarRutas(true);
         }, {
             enableHighAccuracy: true,
             maximumAge: 0,
-            timeout: 10000
+            timeout: 12000
         });
     } else {
-        iniciarSimulacionLocal();
+        gpsRealActivo = false;
+        actualizarRutas(true);
     }
+
+    window.addEventListener('beforeunload', () => {
+        AltokkeMapa.detenerSimulacion(`conductor-${VIAJE_ID}`);
+        if (watchId !== null && navigator.geolocation) {
+            navigator.geolocation.clearWatch(watchId);
+        }
+    });
 });
 </script>
-
 @endsection

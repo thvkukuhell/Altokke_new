@@ -1,0 +1,343 @@
+<script>
+window.AltokkeMapa = window.AltokkeMapa || (() => {
+    const BAGUA = { lat: -5.63889, lng: -78.5311 };
+    const CAJARURO = { lat: -5.6763, lng: -78.5311 };
+    const RUTA_URL = @json(route('mapa.rutaEstimada'));
+    const CSRF_TOKEN = @json(csrf_token());
+    const simulaciones = new Map();
+
+    function numeroSeguro(value, fallback = null) {
+        const n = Number(value);
+        return Number.isFinite(n) ? n : fallback;
+    }
+
+    function esLatLngValido(lat, lng) {
+        const latNum = Number(lat);
+        const lngNum = Number(lng);
+        return Number.isFinite(latNum)
+            && Number.isFinite(lngNum)
+            && latNum >= -90
+            && latNum <= 90
+            && lngNum >= -180
+            && lngNum <= 180;
+    }
+
+    function puntoSeguro(lat, lng, fallback = BAGUA) {
+        const fallbackSeguro = esLatLngValido(fallback?.lat, fallback?.lng) ? fallback : BAGUA;
+        if (!esLatLngValido(lat, lng)) {
+            return { lat: Number(fallbackSeguro.lat), lng: Number(fallbackSeguro.lng) };
+        }
+
+        return {
+            lat: Number(lat),
+            lng: Number(lng),
+        };
+    }
+
+    function puntoValido(lat, lng) {
+        if (!esLatLngValido(lat, lng)) return null;
+        return { lat: Number(lat), lng: Number(lng) };
+    }
+
+    function puntosDistintos(origen, destino, metrosMinimos = 25) {
+        if (!origen || !destino) return false;
+        return distanciaSimple(origen, destino) * 1000 >= metrosMinimos;
+    }
+
+    function puedeUsarMapa(id) {
+        const el = document.getElementById(id);
+        return Boolean(el && window.L && !el.dataset.leafletReady);
+    }
+
+    function marcarMapaListo(id) {
+        const el = document.getElementById(id);
+        if (el) el.dataset.leafletReady = '1';
+    }
+
+    function icono(tipo, texto) {
+        const labels = {
+            conductor: 'Moto',
+            origen: 'Origen',
+            destino: 'Destino',
+        };
+
+        return L.divIcon({
+            className: `altokke-pin altokke-pin-${tipo}`,
+            html: `<span>${texto}</span><small>${labels[tipo] || ''}</small>`,
+            iconSize: [46, 54],
+            iconAnchor: [23, 47],
+            popupAnchor: [0, -42],
+        });
+    }
+
+    function crearMapa(id, centro = BAGUA, zoom = 15) {
+        if (!puedeUsarMapa(id)) return null;
+        marcarMapaListo(id);
+
+        const punto = puntoSeguro(centro.lat, centro.lng, BAGUA);
+        const mapa = L.map(id, { zoomControl: false })
+            .setView([punto.lat, punto.lng], zoom);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'OpenStreetMap'
+        }).addTo(mapa);
+
+        window.setTimeout(() => mapa.invalidateSize(), 250);
+        return mapa;
+    }
+
+    function crearMarcador(mapa, punto, tipo, texto, popup = null) {
+        if (!mapa || !punto || !esLatLngValido(punto.lat, punto.lng)) return null;
+
+        const marcador = L.marker([punto.lat, punto.lng], {
+            icon: icono(tipo, texto),
+        }).addTo(mapa);
+
+        if (popup) marcador.bindPopup(popup);
+        return marcador;
+    }
+
+    function ajustarVista(mapa, puntos, padding = [42, 42]) {
+        if (!mapa) return;
+        const validos = puntos.filter((p) => p && esLatLngValido(p.lat, p.lng));
+        if (!validos.length) return;
+
+        if (validos.length === 1) {
+            mapa.setView([validos[0].lat, validos[0].lng], 15);
+            return;
+        }
+
+        const bounds = L.latLngBounds(validos.map((p) => [p.lat, p.lng]));
+        let distanciaMayor = 0;
+        validos.forEach((punto, index) => {
+            validos.slice(index + 1).forEach((siguiente) => {
+                distanciaMayor = Math.max(distanciaMayor, distanciaSimple(punto, siguiente));
+            });
+        });
+
+        if (distanciaMayor > 0 && distanciaMayor < 0.08) {
+            mapa.setView(bounds.getCenter(), 16);
+            return;
+        }
+
+        mapa.fitBounds(bounds, { padding, maxZoom: 17 });
+    }
+
+    async function consultarRuta(origen, destino) {
+        const origenSeguro = puntoValido(origen?.lat, origen?.lng);
+        const destinoSeguro = puntoValido(destino?.lat, destino?.lng);
+
+        if (!origenSeguro || !destinoSeguro) {
+            return {
+                ok: false,
+                estado: 'invalida',
+                coordenadas: [],
+                distancia_km: 0,
+                duracion_min: 0,
+            };
+        }
+
+        const fallback = {
+            ok: false,
+            estado: 'fallback',
+            coordenadas: [[origenSeguro.lat, origenSeguro.lng], [destinoSeguro.lat, destinoSeguro.lng]],
+            distancia_km: distanciaSimple(origenSeguro, destinoSeguro),
+            duracion_min: Math.max(1, Math.ceil(distanciaSimple(origenSeguro, destinoSeguro) * 3)),
+        };
+
+        try {
+            const response = await fetch(RUTA_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': CSRF_TOKEN,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ origen: origenSeguro, destino: destinoSeguro }),
+            });
+
+            if (!response.ok) return fallback;
+            const data = await response.json();
+            return {
+                ...fallback,
+                ...data,
+                coordenadas: Array.isArray(data.coordenadas) && data.coordenadas.length
+                    ? data.coordenadas
+                    : fallback.coordenadas,
+            };
+        } catch (e) {
+            return fallback;
+        }
+    }
+
+    function dibujarRuta(mapa, capaActual, data, opciones = {}) {
+        if (!mapa) return null;
+        if (capaActual) {
+            try {
+                mapa.removeLayer(capaActual);
+            } catch (e) {}
+        }
+
+        const coords = (data?.coordenadas || [])
+            .map((p) => [numeroSeguro(p[0], null), numeroSeguro(p[1], null)])
+            .filter((p) => esLatLngValido(p[0], p[1]));
+
+        if (coords.length < 2) return null;
+
+        return L.polyline(coords, {
+            color: opciones.color || '#1f7a3a',
+            weight: opciones.weight || 6,
+            opacity: opciones.opacity || 0.9,
+            dashArray: opciones.dashArray ?? (data.ok ? null : '8 7'),
+            lineCap: 'round',
+            lineJoin: 'round',
+        }).addTo(mapa);
+    }
+
+    function distanciaSimple(origen, destino) {
+        if (!puntoValido(origen?.lat, origen?.lng) || !puntoValido(destino?.lat, destino?.lng)) {
+            return 0;
+        }
+
+        const r = 6371;
+        const dLat = (destino.lat - origen.lat) * Math.PI / 180;
+        const dLng = (destino.lng - origen.lng) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) ** 2
+            + Math.cos(origen.lat * Math.PI / 180)
+            * Math.cos(destino.lat * Math.PI / 180)
+            * Math.sin(dLng / 2) ** 2;
+        return Number((r * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(2));
+    }
+
+    function textoRuta(data) {
+        const distancia = Number(data.distancia_km || 0).toFixed(1);
+        const minutos = Math.max(1, Number(data.duracion_min || 1));
+        return `${distancia} km | ${minutos} min`;
+    }
+
+    function actualizarTexto(id, texto) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = texto;
+    }
+
+    function interpolarPuntos(inicio, fin, pasos = 36) {
+        const puntos = [];
+        for (let i = 0; i <= pasos; i += 1) {
+            const t = i / pasos;
+            puntos.push({
+                lat: inicio.lat + ((fin.lat - inicio.lat) * t),
+                lng: inicio.lng + ((fin.lng - inicio.lng) * t),
+            });
+        }
+        return puntos;
+    }
+
+    function normalizarRutaParaMovimiento(coordenadas, minimoPasos = 48) {
+        const validas = (coordenadas || [])
+            .map((p) => puntoValido(p[0], p[1]))
+            .filter(Boolean);
+
+        if (validas.length < 2) return validas;
+
+        const puntos = [];
+        for (let i = 0; i < validas.length - 1; i += 1) {
+            const actual = validas[i];
+            const siguiente = validas[i + 1];
+            const segmentos = Math.max(6, Math.ceil(minimoPasos / (validas.length - 1)));
+            const interpolados = interpolarPuntos(actual, siguiente, segmentos);
+            if (i > 0) interpolados.shift();
+            puntos.push(...interpolados);
+        }
+
+        return puntos;
+    }
+
+    function moverMarcadorSuave(marcador, destino, duracionMs = 900) {
+        if (!marcador || !destino || !esLatLngValido(destino.lat, destino.lng)) return;
+
+        const inicio = marcador.getLatLng();
+        const desde = { lat: inicio.lat, lng: inicio.lng };
+        const inicioMs = performance.now();
+
+        function animar(ahora) {
+            const avance = Math.min(1, (ahora - inicioMs) / duracionMs);
+            const lat = desde.lat + ((destino.lat - desde.lat) * avance);
+            const lng = desde.lng + ((destino.lng - desde.lng) * avance);
+            marcador.setLatLng([lat, lng]);
+
+            if (avance < 1) {
+                window.requestAnimationFrame(animar);
+            }
+        }
+
+        window.requestAnimationFrame(animar);
+    }
+
+    function detenerSimulacion(id) {
+        const activa = simulaciones.get(id);
+        if (!activa) return;
+        window.clearInterval(activa.timer);
+        simulaciones.delete(id);
+    }
+
+    function iniciarSimulacion(id, opciones) {
+        detenerSimulacion(id);
+
+        const marcador = opciones.marcador;
+        const ruta = normalizarRutaParaMovimiento(opciones.coordenadas, opciones.minimoPasos || 54);
+        if (!marcador || ruta.length < 2) return null;
+
+        let indice = Math.max(0, opciones.indiceInicial || 0);
+        const intervaloMs = opciones.intervaloMs || 1700;
+
+        const timer = window.setInterval(() => {
+            if (typeof opciones.debeDetener === 'function' && opciones.debeDetener()) {
+                detenerSimulacion(id);
+                return;
+            }
+
+            indice += 1;
+            const punto = ruta[indice];
+
+            if (!punto) {
+                detenerSimulacion(id);
+                if (typeof opciones.alFinalizar === 'function') opciones.alFinalizar();
+                return;
+            }
+
+            moverMarcadorSuave(marcador, punto, Math.min(1200, intervaloMs));
+            if (typeof opciones.alMover === 'function') opciones.alMover(punto, indice, ruta.length);
+        }, intervaloMs);
+
+        simulaciones.set(id, { timer });
+        return timer;
+    }
+
+    return {
+        BAGUA,
+        CAJARURO,
+        safeNumber: numeroSeguro,
+        numeroSeguro,
+        esLatLngValido,
+        puntoSeguro,
+        puntoValido,
+        puntosDistintos,
+        puedeUsarMapa,
+        marcarMapaListo,
+        icono,
+        crearMapa,
+        crearMarcador,
+        ajustarVista,
+        consultarRuta,
+        dibujarRuta,
+        distanciaSimple,
+        textoRuta,
+        actualizarTexto,
+        moverMarcadorSuave,
+        iniciarSimulacion,
+        detenerSimulacion,
+        normalizarRutaParaMovimiento,
+    };
+})();
+</script>

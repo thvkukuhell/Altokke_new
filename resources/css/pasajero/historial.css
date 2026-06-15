@@ -274,6 +274,20 @@
     margin: 0 0 20px 0;
 }
 
+.paginacion-historial {
+    margin-top: 22px;
+}
+
+.paginacion-historial nav {
+    display: flex;
+    justify-content: center;
+}
+
+.paginacion-historial a,
+.paginacion-historial span {
+    color: var(--text-2);
+}
+
 /* === RESPONSIVE === */
 @media (max-width: 640px) {
     .historial-header {

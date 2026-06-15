@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\CalificacionController;
 use App\Http\Controllers\Api\ConductorController as ApiConductorController;
+use App\Http\Controllers\Api\InternalViajeController;
 use App\Http\Controllers\Api\PasajeroController as ApiPasajeroController;
 use App\Http\Controllers\Api\UsuarioController;
 use App\Http\Controllers\Api\ViajeController;
@@ -44,4 +45,17 @@ Route::controller(ApiPasajeroController::class)->prefix('pasajeros')->group(func
     Route::put('/{id}', 'update');
     Route::delete('/{id}', 'destroy');
     Route::get('/{id}/viajes', 'viajes');
+});
+
+Route::middleware(['web', 'auth'])->prefix('internal')->name('api.internal.')->group(function () {
+    Route::get('/viajes/{id}', [InternalViajeController::class, 'show'])->name('viajes.show');
+    Route::post('/viajes/{id}/aceptar', [InternalViajeController::class, 'aceptar'])->name('viajes.aceptar');
+    Route::post('/viajes/{id}/ubicacion', [InternalViajeController::class, 'actualizarUbicacion'])->name('viajes.ubicacion');
+    Route::post('/viajes/{id}/completar', [InternalViajeController::class, 'completar'])->name('viajes.completar');
+
+    Route::get('/conductor/solicitudes', [InternalViajeController::class, 'solicitudesConductor'])->name('conductor.solicitudes');
+    Route::get('/conductor/historial', [InternalViajeController::class, 'historialConductor'])->name('conductor.historial');
+
+    Route::get('/pasajero/viaje-activo', [InternalViajeController::class, 'viajeActivoPasajero'])->name('pasajero.viajeActivo');
+    Route::get('/pasajero/historial', [InternalViajeController::class, 'historialPasajero'])->name('pasajero.historial');
 });

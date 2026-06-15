@@ -20,6 +20,9 @@ class Conductor extends Model
         'total_viajes',
         'verificado_dni',
         'fecha_verificacion_dni',
+        'lat_actual',
+        'lng_actual',
+        'ubicacion_actualizada_en',
     ];
 
     protected function casts(): array
@@ -30,6 +33,9 @@ class Conductor extends Model
             'total_viajes'            => 'integer',
             'verificado_dni'          => 'boolean',
             'fecha_verificacion_dni'  => 'datetime',
+            'lat_actual'              => 'decimal:7',
+            'lng_actual'              => 'decimal:7',
+            'ubicacion_actualizada_en'=> 'datetime',
         ];
     }
 

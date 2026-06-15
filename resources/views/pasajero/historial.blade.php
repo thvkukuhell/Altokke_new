@@ -14,6 +14,9 @@
             </svg>
             Nuevo viaje
         </a>
+        <a href="{{ route('pasajero.historial.csv') }}" class="btn-nuevo-viaje">
+            Exportar CSV
+        </a>
     </div>
  
     <div class="filtros-contenedor">
@@ -25,7 +28,7 @@
         @endforeach
     </div>
  
-    @if($viajes->isEmpty())
+    @if($viajes->count() === 0)
         <div class="historial-vacio">
             <div class="estado-vacio-icono">🛺</div>
             <p>Aún no tienes viajes en este periodo.<br>¡Solicita tu primer mototaxi ahora!</p>
@@ -77,14 +80,37 @@
                                     {{ str_repeat('★', (int)$v['calificacion']) }}{{ str_repeat('☆', 5 - (int)$v['calificacion']) }}
                                 </div>
                             @endif
+                            @if(($v['estado_viaje'] ?? '') === 'completado')
+                                <div style="margin-top:10px;">
+                                    <span class="btn-comprobante" data-url="{{ route('reportes.viajes.comprobante', $v['id']) }}">
+                                        Descargar PDF
+                                    </span>
+                                </div>
+                            @endif
                         </div>
                     </div>
      
                 </a>
             @endforeach
         </div>
+        <div class="paginacion-historial">
+            {{ $viajes->links() }}
+        </div>
     @endif
  
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-comprobante').forEach((boton) => {
+        boton.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const url = boton.dataset.url;
+            if (url) window.location.href = url;
+        });
+    });
+});
+</script>
  
 @endsection

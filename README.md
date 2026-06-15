@@ -59,6 +59,251 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
 ```
+
+## Semana 13 - API REST interna
+
+La API interna de Altokke esta pensada para consumo desde vistas Blade autenticadas con sesion. Las rutas usan el prefijo `/api/internal` y estan protegidas con middleware `web` y `auth`, por lo que el usuario debe haber iniciado sesion.
+
+Formato base de exito:
+
+```json
+{
+  "ok": true,
+  "message": "Viaje encontrado",
+  "data": {}
+}
+```
+
+Formato base de error:
+
+```json
+{
+  "ok": false,
+  "message": "No tienes permiso para ver este viaje"
+}
+```
+
+| Metodo | Endpoint | Descripcion | Parametros |
+| --- | --- | --- | --- |
+| GET | `/api/internal/viajes/{id}` | Consulta un viaje permitido para el usuario autenticado. | `id` en URL |
+| GET | `/api/internal/conductor/solicitudes` | Lista solicitudes disponibles para conductores. | Ninguno |
+| GET | `/api/internal/pasajero/viaje-activo` | Devuelve el viaje activo del pasajero autenticado. | Ninguno |
+| POST | `/api/internal/viajes/{id}/aceptar` | Permite a un conductor activo aceptar un viaje buscando. | `id` en URL |
+| POST | `/api/internal/viajes/{id}/ubicacion` | Actualiza la ubicacion enviada por el conductor. | `lat`, `lng` |
+| POST | `/api/internal/viajes/{id}/completar` | Completa un viaje asignado al conductor autenticado. | `id` en URL |
+| GET | `/api/internal/conductor/historial` | Devuelve historial del conductor autenticado. | Ninguno |
+| GET | `/api/internal/pasajero/historial` | Devuelve historial del pasajero autenticado. | Ninguno |
+
+Codigos usados:
+
+- `200 OK`: consulta o accion ejecutada correctamente.
+- `400 Bad Request`: estado invalido para la accion solicitada.
+- `401 Unauthorized`: usuario no autenticado.
+- `403 Forbidden`: usuario autenticado sin permiso o rol incorrecto.
+- `404 Not Found`: recurso inexistente o no disponible para el usuario.
+- `422 Validation Error`: datos enviados no pasan validacion Laravel.
+
+Ejemplo de consumo con Fetch desde Blade:
+
+```js
+fetch('/api/internal/conductor/solicitudes', {
+    headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+    }
+})
+    .then((response) => response.json())
+    .then((json) => {
+        if (!json.ok) return;
+        // Actualizar el DOM con json.data.solicitudes
+    })
+    .catch(() => {
+        // Mostrar mensaje amigable en la interfaz
+    });
+```
+
+## Semana 14 - Servicios avanzados
+
+Esta semana agrega servicios aplicados al flujo real de Altokke: gestion de archivos con Storage, correo de resumen de viaje, comprobante PDF y exportacion CSV compatible con Excel.
+
+### Storage
+
+La foto de perfil usa la columna existente `usuarios.foto_perfil` y guarda archivos en el disco `public` de Laravel.
+
+| Ruta | Metodo | Descripcion |
+| --- | --- | --- |
+| `/perfil/foto` | POST | Sube foto de perfil del usuario autenticado. |
+
+Validaciones:
+
+- Formatos permitidos: `jpg`, `jpeg`, `png`.
+- Peso maximo: `2048 KB`.
+- Requiere usuario autenticado.
+
+Comando necesario para publicar archivos:
+
+```bash
+php artisan storage:link
+```
+
+### Correo
+
+Cuando un conductor completa un viaje, Altokke intenta enviar un correo de resumen al pasajero. Si el envio falla, el viaje no se rompe; el error se registra en logs.
+
+Archivos:
+
+- `app/Mail/ViajeCompletadoMail.php`
+- `resources/views/emails/viaje_completado.blade.php`
+
+Configuracion recomendada en desarrollo:
+
+```env
+MAIL_MAILER=log
+MAIL_FROM_ADDRESS="no-reply@altokke.test"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+Para Mailtrap o SMTP real, configurar `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME` y `MAIL_PASSWORD` en `.env`.
+
+### Reportes
+
+| Ruta | Metodo | Descripcion |
+| --- | --- | --- |
+| `/pasajero/historial/csv` | GET | Exporta historial del pasajero autenticado en CSV. |
+| `/conductor/historial/csv` | GET | Exporta historial del conductor autenticado en CSV. |
+| `/reportes/viajes/{viajeId}/comprobante` | GET | Descarga comprobante PDF de un viaje completado permitido. |
+
+Reglas de seguridad:
+
+- El pasajero solo descarga sus viajes.
+- El conductor solo descarga sus viajes.
+- El comprobante PDF solo se genera para viajes `completado`.
+- CSV usa datos reales filtrados por usuario autenticado.
+
+Comandos de verificacion:
+
+```bash
+php artisan storage:link
+php artisan route:list
+php artisan view:clear
+php artisan cache:clear
+composer dump-autoload
+npm run build
+```
+
+## Semana 15 - Performance y despliegue
+
+Esta seccion resume la preparacion de Altokke para una presentacion en produccion o servidor universitario.
+
+### Requisitos del servidor
+
+- PHP 8.2 o superior.
+- Composer 2.
+- Node.js 20 o superior y npm.
+- MySQL o MariaDB.
+- Extensiones PHP: `pdo_mysql`, `mbstring`, `openssl`, `fileinfo`, `curl`, `zip`, `tokenizer`, `xml`, `ctype`, `json`.
+- Servidor web Apache o Nginx con document root apuntando a la carpeta `public`.
+
+### Variables de entorno
+
+Copiar `.env.example` como `.env` y configurar valores reales solo en el servidor:
+
+```bash
+cp .env.example .env
+```
+
+Valores importantes:
+
+- `APP_ENV=production`
+- `APP_DEBUG=false`
+- `APP_URL=https://tu-dominio.com`
+- `DB_CONNECTION=mysql`
+- `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
+- `MAIL_MAILER=log` para pruebas o SMTP real para produccion
+- `MAIL_FROM_ADDRESS`
+- `FILESYSTEM_DISK=public`
+- `OPENROUTESERVICE_API_KEY=` opcional, sin clave hardcodeada
+- Variables `REVERB_*` solo si se activa tiempo real en servidor
+
+No subir `.env` al repositorio y no colocar claves reales en Blade, JS o README.
+
+### Comandos de produccion
+
+Ejecutar en el servidor desde la raiz del proyecto:
+
+```bash
+composer install --no-dev --optimize-autoloader
+npm install
+npm run build
+php artisan key:generate
+php artisan migrate --force
+php artisan storage:link
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan optimize
+php artisan queue:restart
+```
+
+Para limpiar cache durante pruebas:
+
+```bash
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+composer dump-autoload
+```
+
+### Hosting compartido
+
+- El dominio debe apuntar a `public`, no a la raiz del proyecto.
+- Si el hosting no permite cambiar document root, colocar el contenido de `public` en la carpeta publica del hosting y ajustar rutas con cuidado.
+- No exponer carpetas como `app`, `config`, `database`, `routes`, `storage`, `vendor` ni el archivo `.env`.
+- Verificar que `storage` y `bootstrap/cache` tengan permisos de escritura.
+
+### VPS con Nginx o Apache
+
+- Configurar el virtual host para que `root` o `DocumentRoot` sea `/ruta/Altokke_new/public`.
+- Activar HTTPS si el servidor lo permite.
+- Reiniciar PHP-FPM y el servidor web despues de cambiar configuracion.
+- Mantener `APP_URL` igual al dominio final.
+- Si se usan colas, ejecutar un worker o supervisor para `php artisan queue:work`.
+
+### Optimizaciones aplicadas
+
+- Historial del pasajero paginado para evitar cargar todos los viajes en una sola consulta.
+- Historial del conductor paginado para mantener estable la vista con muchos registros.
+- Solicitudes del conductor limitadas a las solicitudes recientes disponibles.
+- Consultas con relaciones `with(...)` conservadas para evitar N+1 en pasajero, conductor, vehiculo y calificaciones.
+- Migraciones de viajes ya incluyen indices por estado, pasajero, conductor y fecha.
+
+### Checklist de pruebas finales
+
+- Registro de pasajero.
+- Registro de conductor.
+- Login y cierre de sesion.
+- Solicitar viaje.
+- Refresco AJAX de solicitudes del conductor.
+- Aceptar viaje.
+- Actualizar estado: aceptado, recogiendo, en curso y completado.
+- Mapa de pasajero y conductor en laptop y celular.
+- Calificar viaje completado.
+- Historial de pasajero y conductor con paginacion.
+- Perfil y subida de foto si aplica.
+- Descarga de comprobante PDF.
+- Exportacion CSV.
+- Correo con `MAIL_MAILER=log` o SMTP configurado.
+- Endpoints API protegidos por autenticacion.
+- Respuestas 403 y 404 controladas.
+
+### Pruebas basicas de seguridad y estres
+
+- Intentar ver un viaje de otro pasajero y confirmar respuesta 403 o redireccion segura.
+- Intentar modificar un viaje de otro conductor y confirmar bloqueo.
+- Intentar aceptar dos veces el mismo viaje y confirmar que no se duplica.
+- Enviar formularios con datos invalidos y confirmar validacion.
+- Simular varias solicitudes normales de viaje y verificar que solicitudes/historial no se degraden.
+- Confirmar en produccion `APP_DEBUG=false`.
 Altokke_new
 ├─ .editorconfig
 ├─ app
