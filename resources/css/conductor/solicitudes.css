@@ -104,7 +104,7 @@
     }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
     .solicitud-cuerpo {
         align-items: flex-start;
         flex-direction: column;

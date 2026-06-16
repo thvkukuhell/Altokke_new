@@ -1,5 +1,4 @@
-/* ── Variables exclusivas del área pasajero ── */
-
+/* Passenger area tokens */
 :root {
   --p-verde:        #1a4f1a;
   --p-verde-mid:    #2d6a2d;
@@ -32,7 +31,7 @@
   padding-top: 40px !important;
 }
 
-/* Tipografía de página */
+/* Page typography */
 .titulo-pagina {
   font-size: 24px;
   font-weight: 800;
@@ -488,29 +487,7 @@
     height: 100%;
 }
 
-/* Logo e Isotipo */
-.logo-app {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-decoration: none;
-}
-
-.logo-app img {
-    height: 36px;
-    width: 36px;
-    border-radius: var(--radius-sm);
-    object-fit: cover;
-}
-
-.logo-texto-app {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--white);
-    letter-spacing: -0.5px;
-}
-
-/* Enlaces de Navegación */
+/* Navigation links */
 .enlaces-nav-app {
     display: flex;
     align-items: center;
@@ -534,10 +511,10 @@
 
 .enlaces-nav-app .enlace-menu-app.activo {
     color: var(--white);
-    background: var(--primary-mid); /* Mismo estilo de botón activo */
+    background: var(--primary-mid);
 }
 
-/* Botón Cerrar Sesión */
+/* Logout button */
 .btn-cerrar-sesion-app {
     color: rgba(255, 255, 255, 0.7);
     text-decoration: none;
@@ -571,29 +548,19 @@
     object-fit: cover;
 }
 
-/* Viajes Activos */
-.nav-viaje-activo-app {
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
+.avatar-circular-app__fallback {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    color: var(--white);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0;
 }
-.nav-viaje-activo-app.buscando { color: #fca5a5; }
-.nav-viaje-activo-app.en-curso { color: #86efac; }
 
-.nav-dot-pulse-app {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-}
-.nav-dot-pulse-app.red { background-color: #ef4444; }
-.nav-dot-pulse-app.green { background-color: #22c55e; }
-
-/* BASE = móvil (sin media query) */
+/* Mobile base layout */
 .pagina-pasajero { padding: 16px 14px 40px; }
 .perfil-grid     { grid-template-columns: 1fr; gap: 16px; }
 .perfil-sidebar  { position: static; }
@@ -611,74 +578,9 @@
   .pago-opciones  { flex-direction: row; }
 }
 
-@media (max-width: 768px) {
-  #header-pasajero .barra-navegacion {
-    flex-wrap: nowrap !important;
-  }
 
-  #header-pasajero .enlaces-nav {
-    position: fixed !important;
-    top: 0;
-    right: 0; 
-    width: 280px;
-    max-width: 82vw;
-    height: 100vh;
 
-    display: flex !important;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
-    gap: 10px;
-
-    padding: 90px 18px 24px !important;
-    background: rgba(5, 8, 7, 0.98);
-    box-shadow: -18px 0 45px rgba(0, 0, 0, 0.35);
-
-    transform: translateX(100%);
-    opacity: 1 !important;
-    max-height: none !important;
-    overflow-y: auto !important;
-
-    pointer-events: none;
-    transition: transform 0.25s ease;
-    z-index: 350;
-  }
-
-  #header-pasajero.nav-open .enlaces-nav {
-    transform: translateX(0);
-    pointer-events: auto;
-  }
-
-  #header-pasajero .enlaces-nav a {
-    width: 100%;
-    justify-content: flex-start;
-    min-height: 46px;
-    padding: 12px 14px;
-    border-radius: 12px;
-    font-size: 14px;
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-
-  #header-pasajero.nav-open::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    z-index: 300;
-  }
-
-  #header-pasajero .barra-navegacion {
-    z-index: 360;
-  }
-
-  #header-pasajero .nav-toggle {
-    position: relative;
-    z-index: 370;
-  }
-}
-
-@media (min-width: 1200px) {
+@media (min-width: 1025px) {
   .pagina-pasajero { padding: 32px 40px 64px; }
   .perfil-layout   { grid-template-columns: 240px 1fr; }
   .mapa-decorativo { height: 450px; min-height: 450px; }

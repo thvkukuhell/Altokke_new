@@ -268,6 +268,30 @@ header.encabezado-app {
         transform 0.12s ease;
 }
 
+.perfil-link-header {
+    padding: 4px !important;
+}
+
+.conductor-avatar--header {
+    width: 34px;
+    height: 34px;
+    margin: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.12);
+    border: 2px solid rgba(255, 255, 255, 0.24);
+    color: #ffffff;
+    flex: 0 0 auto;
+}
+
+.conductor-avatar--header .conductor-avatar__fallback {
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+}
+
 .site-header .enlaces-nav a {
     color: rgba(255, 255, 255, 0.76) !important;
     font-size: 13px;
@@ -592,7 +616,7 @@ header.encabezado-app {
     }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 480px) {
     .stats-inner {
         grid-template-columns: 1fr;
         gap: 10px;

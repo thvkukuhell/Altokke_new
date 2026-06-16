@@ -472,16 +472,34 @@ class PasajeroController extends Controller
 
     private function formatearViaje($v): array
     {
+        $precio = (float) ($v->tarifa_final ?? $v->tarifa_estimada ?? 0);
+        $estado = (string) ($v->estado_viaje ?? 'pendiente');
+        $metodoPago = match ((string) $v->metodo_pago) {
+            'yape' => 'Yape',
+            'plin' => 'Plin',
+            'efectivo' => 'Efectivo',
+            default => null,
+        };
+
         return [
             'id'           => $v->id_viaje,
             'origen'       => $v->origen_texto,
             'destino'      => $v->destino_texto,
-            'precio'       => number_format($v->tarifa_final ?? $v->tarifa_estimada, 2),
+            'precio'       => $precio,
+            'precio_label' => $v->tarifa_final !== null ? 'Tarifa final' : 'Tarifa estimada',
+            'distancia'    => $v->distancia_km !== null ? number_format((float) $v->distancia_km, 1) . ' km' : 'â€”',
+            'tiempo'       => $v->tiempo_estimado_min !== null ? (int) $v->tiempo_estimado_min . ' min' : 'â€”',
+            'conductor'    => $v->conductor->user->nombre_completo ?? 'Sin conductor asignado',
+            'metodo_pago'  => $metodoPago,
             'fecha'        => $v->fecha_solicitud?->format('d/m/Y') ?? '—',
             'distancia'    => $v->distancia_km ? $v->distancia_km . ' km' : '—',
             'tiempo'       => $v->tiempo_estimado_min ? $v->tiempo_estimado_min . ' min' : '—',
             'conductor'    => $v->conductor->user->nombre_completo ?? '—',
             'calificacion' => $v->calificacion->puntuacion ?? 0,
+            'distancia'    => $v->distancia_km !== null ? number_format((float) $v->distancia_km, 1) . ' km' : 'â€”',
+            'tiempo'       => $v->tiempo_estimado_min !== null ? (int) $v->tiempo_estimado_min . ' min' : 'â€”',
+            'conductor'    => $v->conductor->user->nombre_completo ?? 'Sin conductor asignado',
+            'metodo_pago'  => $metodoPago,
             'estado_viaje' => $v->estado_viaje,
             'borde_clase'  => match($v->estado_viaje) {
                 'completado' => 'borde-verde',
@@ -492,6 +510,17 @@ class PasajeroController extends Controller
                 'completado' => '<span class="badge badge-verde">Completado</span>',
                 'cancelado'  => '<span class="badge badge-rojo">Cancelado</span>',
                 default      => '<span class="badge badge-gris">' . ucfirst($v->estado_viaje) . '</span>',
+            },
+            'estado_viaje' => $estado,
+            'borde_clase'  => match($estado) {
+                'completado' => 'borde-verde',
+                'cancelado'  => 'borde-rojo',
+                default      => 'borde-dorado',
+            },
+            'badge_estado' => match($estado) {
+                'completado' => '<span class="badge badge-verde">Completado</span>',
+                'cancelado'  => '<span class="badge badge-rojo">Cancelado</span>',
+                default      => '<span class="badge badge-gris">' . ucfirst(str_replace('_', ' ', $estado)) . '</span>',
             },
         ];
     }

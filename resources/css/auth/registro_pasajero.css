@@ -4,7 +4,7 @@
   margin-top: 8px;
 }
 
-@media (max-width: 639px) {
+@media (max-width: 480px) {
   .main-wrapper .auth-panel .btn-auth {
     min-height: 50px;
   }

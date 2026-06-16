@@ -89,18 +89,52 @@
     z-index: calc(var(--z-map-controls) + 1) !important;
 }
 
+.leaflet-control-attribution {
+    max-width: calc(100% - 18px);
+    white-space: normal;
+}
+
 .autocomplete-lista {
     z-index: calc(var(--z-header) - 10) !important;
 }
 
-@media (min-width: 1024px) {
+.pagina-pasajero,
+.pagina-conductor,
+.pagina-pasajero-perfil,
+.perfil-contenido,
+.perfil-layout,
+.solicitar-grid,
+.viaje-grid,
+.tarjeta,
+.tarjeta-perfil-bloque,
+.panel-solicitud,
+.panel-viaje {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.perfil-upload-form,
+.perfil-foto-bloque {
+    max-width: 100%;
+    min-width: 0;
+}
+
+.perfil-upload-form input[type="file"] {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+@media (min-width: 1025px) {
     .perfil-sidebar,
     .panel-solicitud {
         top: 76px !important;
     }
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 1024px) {
     main.main-wrapper {
         padding-top: 0 !important;
     }
@@ -214,14 +248,13 @@
         outline: none;
     }
 
-    .app-drawer-nav .nav-viaje-activo,
-    .app-drawer-nav .nav-viaje-activo-app {
+    .app-drawer-nav .nav-viaje-activo {
         background: #ecfdf5 !important;
         color: #166534 !important;
     }
 
     .app-drawer-nav .perfil-contenedor-app,
-    .app-drawer-nav a:has(.imagen-perfil) {
+    .app-drawer-nav .perfil-link-header {
         min-height: 54px;
     }
 
@@ -229,7 +262,7 @@
         margin: 0;
     }
 
-    .app-drawer-nav .imagen-perfil {
+    .app-drawer-nav .conductor-avatar--header {
         width: 34px;
         height: 34px;
     }
@@ -253,21 +286,35 @@
         position: static !important;
     }
 
+    .perfil-sidebar .sidebar-menu {
+        display: none !important;
+    }
+
     .mapa-decorativo {
-        height: clamp(300px, 52vh, 430px) !important;
-        min-height: 300px !important;
+        height: clamp(325px, 58vh, 430px) !important;
+        min-height: 325px !important;
         top: 0 !important;
         border-radius: 16px;
     }
 
     .mapa-viaje {
-        height: clamp(300px, 54vh, 440px) !important;
-        min-height: 300px !important;
+        height: clamp(325px, 56vh, 430px) !important;
+        min-height: 325px !important;
         border-radius: 16px;
     }
 
     .mapa-panel-eta {
-        max-width: calc(100% - 78px);
+        max-width: calc(100% - 94px);
+        padding: 10px 12px;
+        border-radius: 12px;
+    }
+
+    .mapa-panel-eta .eta-numero {
+        font-size: 22px;
+    }
+
+    .mapa-panel-eta .eta-detalle {
+        font-size: 11px;
     }
 }
 
@@ -277,14 +324,29 @@
         padding: 0 12px !important;
     }
 
-    .logo-texto-app {
-        font-size: 18px;
-    }
-
     .panel-solicitud,
     .tarjeta,
     .tarjeta-perfil-bloque {
         padding: 18px !important;
+    }
+
+    .perfil-upload-form {
+        display: grid !important;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .perfil-foto-bloque {
+        align-items: stretch !important;
+        flex-direction: column;
+    }
+
+    .perfil-upload-form .btn,
+    .perfil-upload-form .btn-editar-perfil-accion,
+    .perfil-upload-form button {
+        width: 100%;
+        justify-content: center;
     }
 
     .tarifa-caja {
@@ -303,9 +365,17 @@
     }
 
     .mapa-controles {
-        top: auto !important;
+        top: 10px !important;
         right: 12px !important;
-        bottom: 54px;
+        bottom: auto;
+        gap: 6px;
+    }
+
+    .mapa-boton-zoom,
+    .mapa-boton-milocation {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 9px !important;
     }
 
     .mapa-etiqueta {
@@ -313,10 +383,42 @@
         left: 12px;
         bottom: 12px;
         width: auto;
+        max-width: calc(100% - 24px);
+        overflow-wrap: anywhere;
     }
 
     .mapa-panel-eta {
-        max-width: calc(100% - 24px);
+        left: 10px !important;
+        top: 10px !important;
+        max-width: calc(100% - 62px);
+        width: auto;
+        padding: 8px 10px;
+    }
+
+    .mapa-panel-eta .eta-superior {
+        gap: 6px;
+    }
+
+    .mapa-panel-eta .eta-numero {
+        font-size: 18px;
+    }
+
+    .mapa-panel-eta .eta-unidad {
+        font-size: 9px;
+    }
+
+    .mapa-panel-eta .eta-estado {
+        margin-top: 6px;
+        font-size: 10px;
+    }
+
+    .mapa-panel-eta .eta-detalle {
+        display: none;
+    }
+
+    .leaflet-control-attribution {
+        font-size: 9px;
+        line-height: 1.2;
     }
 
     .solicitud-acciones,

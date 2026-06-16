@@ -135,6 +135,8 @@
     margin-bottom: 22px;
     letter-spacing: 0;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    max-width: 100%;
+    white-space: normal;
 }
 .hero-chip-dot {
     width: 7px;
@@ -154,7 +156,7 @@
     }
 }
 
-/* TÃ­tulo */
+/* Title */
 .hero-texto h1 {
     max-width: 720px;
     font-family: var(--font-display);
@@ -291,6 +293,8 @@
     flex-direction: column;
     gap: 16px;
     isolation: isolate;
+    width: min(100%, 430px);
+    max-width: 100%;
 }
 
 .hero-card {
@@ -951,7 +955,7 @@
 
 .sobre-grid {
     display: grid;
-    grid-template-columns: minmax(0, 0.92fr) minmax(320px, 1.08fr);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
     gap: clamp(32px, 7vw, 80px);
     align-items: start;
 }
@@ -1387,7 +1391,7 @@
     min-width: 0;
 }
 
-/* Subti­tulo de seccion dentro del form */
+/* Form section subtitle */
 .auth-paso-titulo {
     font-size: 12.5px;
     font-weight: 800;
@@ -1399,7 +1403,7 @@
     border-bottom: 1px solid var(--border);
 }
 
-/* Boton primario */
+/* Primary button */
 .btn-auth {
     display: flex;
     align-items: center;
@@ -1433,7 +1437,7 @@
     box-shadow: 0 6px 18px rgba(58, 140, 58, 0.35);
 }
 
-/* Boton outline */
+/* Outline button */
 .btn-auth-outline {
     display: flex;
     align-items: center;
@@ -1460,7 +1464,7 @@
     background: var(--verde-bg);
 }
 
-/* Fila de botones atrÃ¡s + confirmar */
+/* Back and confirm buttons */
 .auth-botones-fila {
     display: grid;
     grid-template-columns: 1fr;
@@ -1603,7 +1607,7 @@
     margin-top: 6px;
 }
 
-/* Grid vehÃ­culo */
+/* Vehicle grid */
 .grid-vehiculo {
     display: grid;
     grid-template-columns: 1fr;
@@ -1644,11 +1648,12 @@
     outline-offset: 3px;
 }
 
-/* RESPONSIVE */
-@media (max-width: 1100px) {
+/* Responsive */
+@media (max-width: 1024px) {
     .hero-contenido {
-        grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
-        gap: clamp(28px, 5vw, 42px);
+        grid-template-columns: 1fr;
+        gap: clamp(28px, 5vw, 34px);
+        max-width: 720px;
     }
 
     .hero-texto h1 {
@@ -1664,30 +1669,9 @@
     .paso-card-destacado:hover {
         transform: translateY(-4px);
     }
-    .sobre-grid {
-        grid-template-columns: 1fr;
-        gap: 44px;
-    }
+
     .auth-panel {
-        padding: 52px 32px;
-    }
-}
-
-@media (max-width: 900px) {
-    .hero-contenido {
-        grid-template-columns: 1fr;
-        gap: 34px;
-        max-width: 720px;
-    }
-
-    .hero-visual {
-        width: min(100%, 430px);
-        max-width: none;
-    }
-
-    .hero-chip-conductor {
-        left: 18px;
-        bottom: -48px;
+        padding: 48px clamp(22px, 4vw, 32px);
     }
 }
 
@@ -1695,46 +1679,21 @@
     .seccion {
         padding: clamp(58px, 12vw, 76px) 0;
     }
-    .seccion-inner {
-        width: min(100% - 36px, 1180px);
-    }
 
     .hero {
         min-height: auto;
+        margin-top: 0;
     }
 
     .hero-contenido {
-        padding-top: clamp(108px, 26vw, 132px);
+        padding-top: clamp(34px, 9vw, 52px);
         padding-bottom: 62px;
     }
 
-    .hero-texto > p {
-        max-width: 100%;
-    }
-
-    .hero-visual {
-        display: block;
-    }
-
-    .pasos-grid {
-        gap: 16px;
-    }
-    .seguridad-grid {
-        gap: 16px;
-    }
-    .paso-card,
-    .seguridad-card {
-        padding: 28px 22px;
-    }
     .sobre-tarjetas {
         grid-template-columns: 1fr;
     }
-    .cta-inner {
-        width: min(100% - 36px, 680px);
-    }
-    .auth-panel {
-        padding: 40px 22px;
-    }
+
     .hero-botones {
         width: 100%;
         flex-direction: column;
@@ -1750,7 +1709,7 @@
     }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 480px) {
     .hero-contenido {
         padding-left: 16px;
         padding-right: 16px;
@@ -1777,22 +1736,6 @@
 
     .hero-card-precio {
         gap: 16px;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .hero-card,
-    .hero-chip-conductor,
-    .hero-chip-dot,
-    .reveal {
-        animation: none !important;
-        transition: none !important;
-    }
-}
-
-@media (max-width: 480px) {
-    .auth-layout {
-        min-height: calc(100vh - 64px);
     }
 
     .auth-panel {
@@ -1821,6 +1764,15 @@
 
     .tarjeta-rol {
         padding: 18px 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-card,
+    .hero-chip-dot,
+    .reveal {
+        animation: none !important;
+        transition: none !important;
     }
 }
 

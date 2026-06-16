@@ -332,25 +332,25 @@
 }
 
 /* === RESPONSIVES === */
-@media (max-width: 991px) {
+@media (max-width: 1024px) {
     .perfil-layout {
         grid-template-columns: 1fr;
         gap: 24px;
     }
 }
 
-@media (max-width: 580px) {
+@media (max-width: 480px) {
     .perfil-grid {
         grid-template-columns: 1fr;
         gap: 16px;
     }
-    
+
     .perfil-encabezado {
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
     }
-    
+
     .btn-editar-perfil-accion {
         width: 100%;
         justify-content: center;
@@ -358,6 +358,6 @@
 
     .perfil-seccion-titulo::before,
     .perfil-seccion-titulo::after {
-        display: none; /* Limpieza en pantallas muy compactas */
+        display: none;
     }
 }

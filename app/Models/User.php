@@ -4,7 +4,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes; 
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -59,7 +60,18 @@ class User extends Authenticatable
         return $this->hasMany(Notificacion::class, 'id_usuario', 'id_usuario');
     }
 
-    // Helper — reemplaza tu método iniciales()
+    // Profile photo URL
+    public function getFotoPerfilUrlAttribute(): ?string
+    {
+        if (!is_string($this->foto_perfil) || trim($this->foto_perfil) === '') {
+            return null;
+        }
+
+        return Storage::disk('public')->exists($this->foto_perfil)
+            ? Storage::url($this->foto_perfil)
+            : null;
+    }
+
     public function iniciales(): string
     {
         $partes = explode(' ', trim($this->nombre_completo));

@@ -50,8 +50,12 @@
                 Billetera
             </a>
 
-            <a href="{{ route('conductor.perfil') }}" class="{{ ($seccionActiva ?? '') === 'perfil' ? 'activo' : '' }}">
-                <img src="{{ asset('img/perfil.png') }}" class="imagen-perfil" alt="Perfil">
+            <a href="{{ route('conductor.perfil') }}" class="perfil-link-header {{ ($seccionActiva ?? '') === 'perfil' ? 'activo' : '' }}">
+                @include('conductor.partials.avatar', [
+                    'user' => $conductor->user ?? auth()->user(),
+                    'initials' => $iniciales ?? null,
+                    'size' => 'header',
+                ])
             </a>
 
             <a href="{{ route('logout') }}" class="btn-cerrar"

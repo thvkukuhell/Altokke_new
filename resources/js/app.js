@@ -106,9 +106,20 @@ function initAppDrawerNavigation() {
     });
 }
 
-initAuthNavigation();
-initAppDrawerNavigation();
-document.addEventListener('DOMContentLoaded', () => initAuthNavigation());
-document.addEventListener('DOMContentLoaded', () => initAppDrawerNavigation());
-window.addEventListener('load', () => initAuthNavigation());
-window.addEventListener('load', () => initAppDrawerNavigation());
+let navigationReady = false;
+
+function bootNavigation() {
+    if (navigationReady) {
+        return;
+    }
+
+    navigationReady = true;
+    initAuthNavigation();
+    initAppDrawerNavigation();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootNavigation, { once: true });
+} else {
+    bootNavigation();
+}
