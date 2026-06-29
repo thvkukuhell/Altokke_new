@@ -12,41 +12,53 @@
                 <div class="alert alert-success">{{ session('mensaje') }}</div>
             @endif
  
-            <h1 class="titulo-pagina">
-                ¡Bienvenido, {{ $conductor->user->nombre_completo ?? 'Conductor' }}!
-            </h1>
+            <div class="conductor-dashboard-header">
+                <div>
+                    <h1>!Bienvenido, {{ $conductor->user->nombre_completo ?? 'Conductor' }}!</h1>
+                    <p>Administra tus solicitudes, ganancias y viajes desde tu panel.</p>
+                </div>
+                <span class="conductor-estado-pill">
+                    {{ $viajeActivo ? '🛺 En viaje' : '🟢 Disponible'}}
+                </span>
+            </div>
  
-            {{-- Resumen de stats --}}
-            <div class="tarjeta resumen-grid" style="margin-bottom:20px;">
-                <div class="resumen-item">
+            <div class="conductor-stats-grid">
+                <div class="conductor-stat-card">
+                    <div class="conductor-stat-icon">💵</div>
                     <h3>Ganancias totales</h3>
-                    <p class="valor">S/ {{ number_format($ganancias->total ?? 0, 2) }}</p>
+                    <p class="conductor-stat-valor">S/ {{ number_format($ganancias->total ?? 0, 2) }}</p>
                     <span>{{ (int)($ganancias->total_viajes ?? 0) }} viajes completados</span>
                 </div>
-                <div class="resumen-item">
+
+                <div class="conductor-stat-card">
+                    <div class="conductor-stat-icon">⭐</div>
                     <h3>Calificación promedio</h3>
-                    <p class="valor">{{ number_format($conductor->calificacion_promedio ?? 0, 1) }}/5</p>
+                    <p class="conductor-stat-valor">{{ number_format($conductor->calificacion_promedio ?? 0, 1) }}/5</p>
                     <span>{{ $conductor->licencia_numero ?? 'Licencia pendiente' }}</span>
                 </div>
-                <div class="resumen-item">
-                    <h3>Estado</h3>
-                    <p class="valor">{{ $viajeActivo ? 'En viaje' : 'Disponible' }}</p>
-                    <span>{{ $viajeActivo ? 'Tienes un viaje activo' : 'Revisa solicitudes pendientes' }}</span>
+
+                <div class="conductor-stat-card">
+                    <div class="conductor-stat-icon">📍</div>
+                    <h3>Estado actual</h3>
+                    <p class="conductor-stat-valor">{{ $viajeActivo ? 'Ocupado' : 'Libre' }}</p>
+                    <span>{{ $viajeActivo ? 'Tienes un viaje activo' : 'Puedes revisar solicitudes' }}</span>
                 </div>
             </div>
  
             @if($viajeActivo)
-                <div class="alert alert-info">
-                    <p>Tienes un viaje activo en curso.</p>
+                <div class="conductor-accion-card activo">
+                    <h2>Tienes un viaje activo</h2>
+                    <p>Continúa el seguimiento del pasajero y actualiza el estado del viaje.</p>
                     <a href="{{ route('conductor.viaje_activo') }}" class="btn btn-verde">
                         Ir a viaje activo
                     </a>
                 </div>
             @else
-                <div class="alert alert-success">
-                    <p>No hay viajes activos. Puedes revisar nuevas solicitudes.</p>
+                <div class="conductor-accion-card">
+                    <h2>No hay viajes activos</h2>
+                    <p>Revisa las solicitudes pendientes y acepta un nuevo servicio cuando estés listo.</p>
                     <a href="{{ route('conductor.solicitudes') }}" class="btn btn-verde">
-                        Solicitudes pendientes
+                        Ver solicitudes pendientes
                     </a>
                 </div>
             @endif

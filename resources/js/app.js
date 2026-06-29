@@ -13,3 +13,6 @@ window.Echo = new Echo({
     forceTLS: false,
     enabledTransports: ['ws', 'wss'],
 });
+
+import './pasajero/historial_busqueda';
+import './conductor/historial_busqueda';

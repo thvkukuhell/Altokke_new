@@ -2,11 +2,25 @@
  
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\PasajeroHistorialApiController;
+use App\Http\Controllers\Api\ConductorHistorialApiController;
 use App\Models\Viaje;
 use App\Models\User;
 use App\Models\Conductor;
 use App\Models\Pasajero;
 use App\Models\Calificacion;
+
+// API AJAX - Historial de viajes del pasajero con búsqueda asíncrona
+Route::middleware(['web', 'auth', 'role:pasajero'])->group(function () {
+    Route::get('/pasajero/historial/buscar', [PasajeroHistorialApiController::class, 'buscar'])
+        ->name('api.pasajero.historial.buscar');
+});
+
+// API AJAX - Historial de viajes del conductor con búsqueda asíncrona
+Route::middleware(['web', 'auth', 'role:conductor'])->group(function () {
+    Route::get('/conductor/historial/buscar', [ConductorHistorialApiController::class, 'buscar'])
+        ->name('api.conductor.historial.buscar');
+});
 
 // CRUD - USUARIOS
 // Listar todos los usuarios

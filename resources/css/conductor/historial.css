@@ -1,0 +1,308 @@
+/* historial.css - historial del conductor + busqueda con debounce */
+
+.pagina-conductor-historial {
+    width: 100%;
+    min-width: 0;
+}
+
+.conductor-historial-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.conductor-historial-header h1 {
+    margin: 0 0 4px;
+    font-size: clamp(24px, 3vw, 32px);
+    color: var(--text);
+    line-height: 1.1;
+    letter-spacing: -0.7px;
+}
+
+.conductor-historial-header p {
+    margin: 0;
+    color: var(--gray);
+    font-size: 14px;
+}
+
+.conductor-historial-resumen {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.conductor-resumen-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+}
+
+.conductor-resumen-label {
+    margin: 0 0 8px;
+    color: var(--gray);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+}
+
+.conductor-resumen-valor {
+    margin: 0;
+    color: var(--text);
+    font-family: var(--font-display, inherit);
+    font-size: 26px;
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: -0.7px;
+}
+
+.conductor-resumen-valor.verde {
+    color: var(--primary);
+}
+
+.busqueda-conductor-contenedor {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow-sm);
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.busqueda-conductor-label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.busqueda-conductor-input {
+    width: 100%;
+    min-height: 48px;
+    border: 1.5px solid var(--border-mid);
+    border-radius: 14px;
+    background: #fff;
+    padding: 0 15px;
+    font: inherit;
+    color: var(--text);
+    outline: none;
+    transition: border-color .14s ease, box-shadow .14s ease;
+}
+
+.busqueda-conductor-input:focus {
+    border-color: var(--primary-mid);
+    box-shadow: 0 0 0 4px rgba(45, 106, 45, .12);
+}
+
+.busqueda-conductor-estado {
+    margin: 9px 0 0;
+    color: var(--gray);
+    font-size: 12.5px;
+}
+
+.conductor-filtros-contenedor {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.conductor-filtro-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 8px 18px;
+    border-radius: 999px;
+    border: 1.5px solid var(--border-mid);
+    background: var(--white);
+    color: var(--text-2);
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all .12s ease;
+}
+
+.conductor-filtro-btn:hover {
+    border-color: var(--primary-mid);
+    color: var(--primary-mid);
+    background: var(--primary-bg);
+}
+
+.conductor-filtro-btn.activo {
+    background: var(--primary-mid);
+    color: #fff;
+    border-color: var(--primary-mid);
+    box-shadow: 0 8px 20px rgba(45, 106, 45, .16);
+}
+
+.conductor-historial-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.conductor-viaje-card {
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow-sm);
+    transition: transform .12s ease, box-shadow .12s ease;
+}
+
+.conductor-viaje-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.viaje-borde {
+    width: 6px;
+    flex: 0 0 auto;
+}
+
+.borde-verde { background: #16a34a; }
+.borde-rojo { background: #dc2626; }
+.borde-dorado { background: #f59e0b; }
+.borde-gris { background: #6b7280; }
+
+.conductor-viaje-contenido {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 18px 20px;
+    min-width: 0;
+}
+
+.conductor-viaje-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.conductor-ruta {
+    display: grid;
+    gap: 8px;
+}
+
+.conductor-ruta-fila {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.conductor-ruta-fila .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    flex: 0 0 auto;
+}
+
+.conductor-ruta-fila .dot.verde { background: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, .13); }
+.conductor-ruta-fila .dot.rojo { background: #dc2626; box-shadow: 0 0 0 3px rgba(220, 38, 38, .13); }
+
+.conductor-direccion {
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 750;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.conductor-viaje-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.conductor-viaje-resumen {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    text-align: right;
+}
+
+.conductor-viaje-precio {
+    color: var(--text);
+    font-family: var(--font-display, inherit);
+    font-size: 22px;
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: -0.6px;
+}
+
+.conductor-viaje-estrellas {
+    color: #f59e0b;
+    font-size: 12px;
+    letter-spacing: .5px;
+}
+
+.badge-estado-container {
+    margin-top: 12px;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.badge-verde { background: #dcfce7; color: #166534; }
+.badge-rojo { background: #fee2e2; color: #991b1b; }
+.badge-gris { background: #f3f4f6; color: #374151; }
+
+.conductor-estado-vacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+    background: var(--white);
+    border: 1px dashed var(--border-mid);
+    border-radius: 18px;
+    padding: 34px 20px;
+    color: var(--gray);
+    text-align: center;
+}
+
+.conductor-estado-vacio-icono {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 900px) {
+    .conductor-historial-resumen {
+        grid-template-columns: 1fr;
+    }
+
+    .conductor-historial-header,
+    .conductor-viaje-contenido {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .conductor-viaje-resumen {
+        align-items: flex-start;
+        text-align: left;
+    }
+}

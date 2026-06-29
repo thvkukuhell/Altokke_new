@@ -17,5 +17,9 @@
 @import "./pasajero/historial.css";
 @import "./pasajero/viaje_en_curso.css";
 
+@import "./conductor/inicio.css";
+@import "./conductor/solicitudes.css";
+@import "./conductor/historial.css";
+@import "./conductor/billetera.css";
 @import "./conductor/perfil.css";
 @import "./conductor/viaje_activo.css";

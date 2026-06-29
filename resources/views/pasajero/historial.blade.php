@@ -1,7 +1,10 @@
 @extends('layouts.main')
 @section('content')
 
-<div class="pagina-pasajero-historial">
+<div class="pagina-pasajero-historial"
+    data-url-buscar="{{ route('api.pasajero.historial.buscar') }}"
+    data-filtro-actual="{{ $filtro }}"
+>
     
     <div class="historial-header">
         <div class="header-textos">
@@ -16,6 +19,17 @@
         </a>
     </div>
  
+    <div class="busqueda-historial-contenedor">
+        <label for="buscarHistorialViaje" class="busqueda-historial-label">Buscar en mi historial</label>
+        <input 
+            type="search"
+            id="buscarHistorialViaje"
+            class="busqueda-historial-input"
+            placeholder="Buscar por origen, destino, conductor o estado..."
+            autocomplete="off">
+        <p id="historialBusquedaEstado" class="busqueda-historial-estado">Escribe para buscar sin recargar la página</p>
+    </div>
+
     <div class="filtros-contenedor">
         @foreach($filtros as $val => $label)
             <a href="{{ route('pasajero.historial', ['filtro' => $val]) }}"
@@ -24,7 +38,7 @@
             </a>
         @endforeach
     </div>
- 
+
     @if($viajes->isEmpty())
         <div class="historial-vacio">
             <div class="estado-vacio-icono">🛺</div>
@@ -34,12 +48,12 @@
             </a>
         </div>
     @else
-        <div class="historial-lista">
+        <div id="historialLista" class="historial-lista">
             @foreach($viajes as $v)
                 <a href="{{ route('pasajero.historial') }}" class="tarjeta-viaje-item">
-                    
+                        
                     <div class="viaje-borde {{ $v['borde_clase'] }}"></div>
-     
+        
                     <div class="viaje-cuerpo">
                         <div class="viaje-detalles-izquierda">
                             <div class="puntos-ruta-contenedor">
@@ -52,7 +66,7 @@
                                     <span class="direccion-texto-item">{{ $v['destino'] }}</span>
                                 </div>
                             </div>
-                            
+                                
                             <div class="viaje-meta-info">
                                 <span>📅 {{ $v['fecha'] }}</span>
                                 <span class="separador">•</span>
@@ -60,12 +74,12 @@
                                 <span class="separador">•</span>
                                 <span>⏱️ {{ $v['tiempo'] }}</span>
                             </div>
-                            
+                                
                             <div class="badge-estado-container">
                                 {!! $v['badge_estado'] !!}
                             </div>
                         </div>
-         
+            
                         <div class="viaje-detalles-derecha">
                             <div class="viaje-precio">S/ {{ number_format($v['precio'], 2) }}</div>
                             <div class="viaje-conductor-info">
@@ -79,7 +93,7 @@
                             @endif
                         </div>
                     </div>
-     
+        
                 </a>
             @endforeach
         </div>
