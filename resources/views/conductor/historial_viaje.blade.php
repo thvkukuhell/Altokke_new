@@ -6,7 +6,8 @@
 
         @include('conductor.partials.sidebar')
 
-        <div class="perfil-contenido">
+        <div class="perfil-contenido pagina-conductor-historial"
+             data-url-buscar="{{ route('api.internal.conductor.historial') }}">
 
             <h1 class="titulo-pagina">Historial de Viajes</h1>
             <div style="margin-bottom:16px;">
@@ -34,6 +35,18 @@
                 </div>
             </div>
 
+            <div class="historial-busqueda">
+                <label for="buscarHistorialConductor">Buscar en mi historial</label>
+                <input
+                    type="search"
+                    id="buscarHistorialConductor"
+                    placeholder="Origen, destino, estado o pasajero"
+                    autocomplete="off"
+                >
+                <p id="historialConductorBusquedaEstado" class="historial-busqueda-estado" role="status"></p>
+            </div>
+
+            <div id="historial-conductor-contenido-inicial">
             @if(empty($historial) || count($historial) === 0)
             <div class="tarjeta estado-vacio">
                 <p>Aún no tienes viajes completados.</p>
@@ -78,9 +91,14 @@
                 {{ $historial->links() }}
             </div>
             @endif
+            </div>
+
+            <div id="historialConductorLista" class="historial-conductor-resultados" hidden></div>
 
         </div>
     </div>
 </div>
+
+@vite(['resources/js/conductor/historial_busqueda.js'])
 
 @endsection

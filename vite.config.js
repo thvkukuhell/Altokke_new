@@ -12,6 +12,7 @@ export default defineConfig({
                 'resources/js/inicio/inicio.js',
                 'resources/js/conductor/solicitudes.js',
                 'resources/js/conductor/viaje_activo.js',
+                'resources/js/conductor/historial_busqueda.js',
                 'resources/js/pasajero/buscando_conductor.js',
                 'resources/js/pasajero/historial.js',
                 'resources/js/pasajero/solicitar_viaje.js',
