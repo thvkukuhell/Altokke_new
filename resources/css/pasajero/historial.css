@@ -30,6 +30,41 @@
     flex-wrap: wrap;
 }
 
+.historial-busqueda {
+    display: grid;
+    gap: 7px;
+    margin-bottom: 16px;
+}
+
+.historial-busqueda label {
+    color: var(--text-2);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.historial-busqueda input {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 14px;
+    border: 1px solid var(--border-mid);
+    border-radius: 12px;
+    background: var(--white);
+    color: var(--text);
+    font: inherit;
+}
+
+.historial-busqueda input:focus {
+    border-color: var(--p-verde-mid);
+    outline: 3px solid rgba(45, 106, 45, 0.14);
+}
+
+.historial-busqueda-estado {
+    min-height: 18px;
+    margin: 0;
+    color: var(--gray);
+    font-size: 12px;
+}
+
 .historial-accion-principal,
 .historial-accion-secundaria {
     min-height: 42px;

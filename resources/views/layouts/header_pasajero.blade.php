@@ -64,8 +64,8 @@
                 </div>
             </a>
 
-            <a href="{{ route('logout') }}" class="btn-cerrar-sesion-app"
-                onclick="event.preventDefault(); document.getElementById('logout-pasajero').submit();">
+            <a href="{{ route('logout') }}" class="btn-cerrar-sesion-app js-cerrar-sesion"
+               data-form-id="logout-pasajero">
                 Cerrar sesion
             </a>
             <form id="logout-pasajero" action="{{ route('logout') }}" method="POST" style="display:none;">
@@ -74,3 +74,5 @@
         </nav>
     </div>
 </header>
+
+@vite(['resources/js/layouts/header_pasajero.js'])

@@ -3,8 +3,6 @@
 
 <div class="pagina-pasajero">
     <div class="solicitar-grid">
-
-        {{-- MAPA: Exactamente igual a solicitar_viaje --}}
         <div class="mapa-decorativo">
             <div id="mapa-solicitud-pasajero"></div>
             <div class="mapa-panel-eta">
@@ -28,9 +26,7 @@
             </div>
         </div>
 
-        {{-- Panel derecho: Tu tarjeta original de buscando --}}
         <div class="buscando-centro" style="margin-top: 0;">
-
             <div class="icono-buscando">
                 <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <path d="M5 17H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11l4 4v4" />
@@ -88,7 +84,6 @@
                     Cancelar solicitud
                 </button>
             </form>
-
         </div>
     </div>
 </div>
@@ -98,213 +93,16 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 @include('mapa.partials.leaflet_helpers')
 
-<script>
-let mapa;
-let lineaRuta;
+<div id="datos-buscando-conductor"
+     data-origen-lat="{{ $viaje['origen_lat'] ?? '' }}"
+     data-origen-lng="{{ $viaje['origen_lng'] ?? '' }}"
+     data-destino-lat="{{ $viaje['destino_lat'] ?? '' }}"
+     data-destino-lng="{{ $viaje['destino_lng'] ?? '' }}"
+     data-viaje-id="{{ $viaje['id'] ?? '' }}"
+     data-estado-url="{{ ($viaje['id'] ?? 0) ? route('api.internal.viajes.show', $viaje['id']) : '' }}"
+     data-pasajero-id="{{ auth()->id() }}"
+     hidden></div>
 
-const origenBuscandoReal = AltokkeMapa.puntoValido(
-    @json($viaje['origen_lat'] ?? null),
-    @json($viaje['origen_lng'] ?? null)
-);
-const destinoBuscandoReal = AltokkeMapa.puntoValido(
-    @json($viaje['destino_lat'] ?? null),
-    @json($viaje['destino_lng'] ?? null)
-);
-const origenBuscando = origenBuscandoReal || AltokkeMapa.puntoSeguro(
-    @json($viaje['origen_lat'] ?? null),
-    @json($viaje['origen_lng'] ?? null),
-    AltokkeMapa.BAGUA
-);
-const destinoBuscando = destinoBuscandoReal || AltokkeMapa.puntoSeguro(
-    @json($viaje['destino_lat'] ?? null),
-    @json($viaje['destino_lng'] ?? null),
-    AltokkeMapa.CAJARURO
-);
-const viajeIdActual = @json($viaje['id'] ?? '');
-const estadoViajeUrl = @json(($viaje['id'] ?? 0) ? route('api.internal.viajes.show', $viaje['id']) : null);
-let pollingEstado = null;
-let consultandoEstado = false;
+@vite(['resources/js/pasajero/buscando_conductor.js'])
 
-window.addEventListener('load', () => {
-    document.querySelectorAll('.buscando-tiempo:not(#buscando-estado-badge)')
-        .forEach((el) => { el.style.display = 'none'; });
-
-    mapa = AltokkeMapa.crearMapa('mapa-solicitud-pasajero', origenBuscando, 15);
-    if (!mapa) return;
-
-    document.getElementById('zoom-in')?.addEventListener('click', () => mapa.zoomIn());
-    document.getElementById('zoom-out')?.addEventListener('click', () => mapa.zoomOut());
-
-    if (origenBuscandoReal) {
-        AltokkeMapa.crearMarcador(mapa, origenBuscando, 'origen', 'O', 'Tu origen');
-    }
-
-    if (destinoBuscandoReal) {
-        AltokkeMapa.crearMarcador(mapa, destinoBuscando, 'destino', 'D', 'Tu destino');
-    }
-
-    pintarRutaBuscando();
-    iniciarPollingEstado();
-
-    if (window.Echo) {
-        window.Echo.private(`pasajero.{{ auth()->id() }}`)
-            .listen('.ViajeAceptado', (data) => {
-                const viajeId = data.viajeId || viajeIdActual;
-                if (!viajeId) return;
-                window.location.href = `/pasajero/enCurso/${viajeId}`;
-            });
-
-        window.Echo.private(`pasajero.{{ auth()->id() }}`)
-            .listen('.ViajeActualizado', (data) => {
-                if (!data.estado) return;
-            });
-    }
-});
-
-async function pintarRutaBuscando() {
-    const estado = document.getElementById('estado-ruta-buscando');
-    const detalle = document.getElementById('detalle-ruta-buscando');
-    if (!origenBuscandoReal || !destinoBuscandoReal) {
-        if (estado) estado.textContent = 'Coordenadas pendientes';
-        if (detalle) detalle.textContent = 'No se encontraron puntos validos para este viaje';
-        AltokkeMapa.ajustarVista(mapa, [origenBuscando, destinoBuscando]);
-        return;
-    }
-
-    if (estado) estado.textContent = 'Calculando ruta';
-
-    const ruta = await AltokkeMapa.consultarRuta(origenBuscando, destinoBuscando);
-    lineaRuta = AltokkeMapa.dibujarRuta(mapa, lineaRuta, ruta, {
-        color: '#2d6a2d',
-        weight: 6,
-        opacity: 0.9,
-    });
-
-    if (lineaRuta) {
-        AltokkeMapa.ajustarVista(mapa, [origenBuscando, destinoBuscando], [50, 50]);
-    }
-
-    document.getElementById('eta-buscando').textContent = `${ruta.duracion_min || '--'} min`;
-    document.getElementById('distancia-buscando').textContent = `${Number(ruta.distancia_km || 0).toFixed(1)} km`;
-    if (estado) estado.textContent = ruta.ok ? 'Ruta estimada' : 'Sin ruta disponible';
-    if (detalle) detalle.textContent = ruta.ok ? 'Ruta real calculada' : 'Usando linea simple entre puntos';
-}
-
-function pintarEstadoAjax(mensaje, tipo = 'normal') {
-    const estado = document.getElementById('buscando-ajax-estado');
-    const texto = document.getElementById('buscando-ajax-texto');
-    if (!estado || !texto) return;
-
-    estado.setAttribute('data-tipo', tipo);
-    texto.textContent = mensaje;
-}
-
-function detenerPollingEstado() {
-    if (!pollingEstado) return;
-    window.clearInterval(pollingEstado);
-    pollingEstado = null;
-}
-
-function actualizarPanelEstado(viaje, conductor = null) {
-    const titulo = document.getElementById('buscando-titulo');
-    const badge = document.getElementById('buscando-estado-badge');
-    const desc = document.querySelector('.buscando-desc');
-
-    if (badge && viaje?.estado_label) {
-        badge.textContent = `Estado: ${viaje.estado_label}`;
-    }
-
-    if (!titulo || !desc || !viaje?.estado) return;
-
-    const textos = {
-        buscando: {
-            titulo: 'Buscando mototaxi cercano...',
-            desc: 'Te conectamos con el conductor mas cercano disponible en Bagua',
-        },
-        aceptado: {
-            titulo: 'Conductor asignado',
-            desc: conductor?.nombre
-                ? `${conductor.nombre} acepto tu solicitud. Abriendo el viaje en curso...`
-                : 'Un conductor acepto tu solicitud. Abriendo el viaje en curso...',
-        },
-        recogiendo: {
-            titulo: 'Conductor en camino',
-            desc: 'El conductor va hacia tu punto de origen.',
-        },
-        en_curso: {
-            titulo: 'Viaje en curso',
-            desc: 'Tu viaje ya esta activo.',
-        },
-        completado: {
-            titulo: 'Viaje completado',
-            desc: 'El viaje finalizo correctamente.',
-        },
-        cancelado: {
-            titulo: 'Solicitud cancelada',
-            desc: 'La solicitud fue cancelada.',
-        },
-        expirado: {
-            titulo: 'Solicitud expirada',
-            desc: 'No se encontro conductor disponible para este viaje.',
-        },
-    };
-
-    const contenido = textos[viaje.estado] || textos.buscando;
-    titulo.textContent = contenido.titulo;
-    desc.textContent = contenido.desc;
-}
-
-async function consultarEstadoViaje() {
-    if (!estadoViajeUrl || consultandoEstado) return;
-    consultandoEstado = true;
-    pintarEstadoAjax('Consultando estado...', 'cargando');
-
-    try {
-        const respuesta = await fetch(estadoViajeUrl, {
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-
-        if (!respuesta.ok) {
-            throw new Error('No se pudo consultar el estado');
-        }
-
-        const data = await respuesta.json();
-        const viaje = data.data || null;
-        if (!data.ok || !viaje) {
-            throw new Error(data.message || 'Respuesta no valida');
-        }
-
-        actualizarPanelEstado(viaje, viaje.conductor);
-        pintarEstadoAjax('Estado actualizado correctamente', 'ok');
-
-        if (viaje.redirect_url) {
-            detenerPollingEstado();
-            window.setTimeout(() => {
-                window.location.href = viaje.redirect_url;
-            }, 900);
-            return;
-        }
-
-        if (['completado', 'cancelado', 'expirado'].includes(viaje.estado)) {
-            detenerPollingEstado();
-            pintarEstadoAjax('Consulta detenida: viaje finalizado', 'ok');
-        }
-    } catch (error) {
-        pintarEstadoAjax('No se pudo actualizar el estado. Intentaremos otra vez.', 'error');
-    } finally {
-        consultandoEstado = false;
-    }
-}
-
-function iniciarPollingEstado() {
-    if (!estadoViajeUrl || pollingEstado) return;
-    consultarEstadoViaje();
-    pollingEstado = window.setInterval(consultarEstadoViaje, 7000);
-}
-
-window.addEventListener('beforeunload', detenerPollingEstado);
-</script>
 @endsection

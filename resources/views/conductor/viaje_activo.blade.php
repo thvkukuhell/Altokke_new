@@ -6,7 +6,6 @@
     <p class="subtitulo-pagina">Estás llevando al pasajero — mantén la página abierta</p>
 
     <div class="viaje-grid">
-
         <div class="mapa-viaje">
             <div id="mapa-leaflet-conductor"></div>
 
@@ -23,25 +22,34 @@
             </div>
         </div>
 
-        {{-- Cargamos las librerías de Leaflet (CSS y JS) --}}
+        {{-- Cargamos las librerias de Leaflet --}}
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         @include('mapa.partials.leaflet_helpers')
 
-        {{-- Panel derecho --}}
-        <div class="panel-viaje">
+        <div id="datos-viaje-activo-conductor"
+             data-viaje-id="{{ $viaje->id_viaje ?? '' }}"
+             data-estado-viaje="{{ $viaje->estado_viaje ?? 'aceptado' }}"
+             data-conductor-lat="{{ $conductor->lat_actual ?? '' }}"
+             data-conductor-lng="{{ $conductor->lng_actual ?? '' }}"
+             data-origen-lat="{{ $viaje->lat_origen ?? '' }}"
+             data-origen-lng="{{ $viaje->lng_origen ?? '' }}"
+             data-destino-lat="{{ $viaje->lat_destino ?? '' }}"
+             data-destino-lng="{{ $viaje->lng_destino ?? '' }}"
+             data-ubicacion-url="{{ route('conductor.ubicacion') }}"
+             data-csrf-token="{{ csrf_token() }}"
+             hidden></div>
 
+        <div class="panel-viaje">
             @if(session('mensaje'))
             <div class="alert alert-success">{{ session('mensaje') }}</div>
             @endif
 
             @if($viaje)
-
             <div class="tarjeta">
                 <p class="campo-label" style="margin-bottom:12px;">Pasajero</p>
                 <div class="conductor-fila">
                     <div class="avatar">
-                        {{-- Iniciales del pasajero --}}
                         {{ strtoupper(substr($viaje->pasajero->user->nombre_completo ?? 'P', 0, 1)) }}
                     </div>
                     <div>
@@ -93,8 +101,7 @@
 
             @if($viaje->metodo_pago === 'efectivo')
             <div class="tarjeta" style="background:#f0fdf4; border:1px solid #bbf7d0; padding:16px; margin-top:16px;">
-                <p
-                    style="margin:0 0 4px; font-size:12px; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">
+                <p style="margin:0 0 4px; font-size:12px; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">
                     💵 Pago en efectivo
                 </p>
                 <p style="font-size:24px; font-weight:900; color:#15803d; margin:4px 0 12px; letter-spacing:-0.5px;">
@@ -114,8 +121,7 @@
 
             @elseif($viaje->metodo_pago === 'yape')
             <div class="tarjeta" style="background:#faf5ff; border:1px solid #ddd6fe; padding:16px; margin-top:16px;">
-                <p
-                    style="margin:0 0 4px; font-size:12px; font-weight:700; color:#6d28d9; text-transform:uppercase; letter-spacing:0.5px;">
+                <p style="margin:0 0 4px; font-size:12px; font-weight:700; color:#6d28d9; text-transform:uppercase; letter-spacing:0.5px;">
                     💜 Pago por Yape
                 </p>
                 <p style="font-size:24px; font-weight:900; color:#7c3aed; margin:4px 0 6px; letter-spacing:-0.5px;">
@@ -138,8 +144,7 @@
 
             @elseif($viaje->metodo_pago === 'plin')
             <div class="tarjeta" style="background:#eff6ff; border:1px solid #bfdbfe; padding:16px; margin-top:16px;">
-                <p
-                    style="margin:0 0 4px; font-size:12px; font-weight:700; color:#1d4ed8; text-transform:uppercase; letter-spacing:0.5px;">
+                <p style="margin:0 0 4px; font-size:12px; font-weight:700; color:#1d4ed8; text-transform:uppercase; letter-spacing:0.5px;">
                     💙 Pago por Plin
                 </p>
                 <p style="font-size:24px; font-weight:900; color:#2563eb; margin:4px 0 6px; letter-spacing:-0.5px;">
@@ -181,196 +186,10 @@
                 </a>
             </div>
             @endif
-
         </div>
     </div>
 </div>
 
-<script>
-const VIAJE_ID = @json($viaje->id_viaje ?? null);
-const ESTADO_VIAJE = @json($viaje->estado_viaje ?? 'aceptado');
-const CONDUCTOR_REAL = AltokkeMapa.puntoValido(
-    @json($conductor->lat_actual ?? null),
-    @json($conductor->lng_actual ?? null)
-);
+@vite(['resources/js/conductor/viaje_activo.js'])
 
-window.addEventListener('load', () => {
-    if (!VIAJE_ID) return;
-
-    const origenReal = AltokkeMapa.puntoValido(
-        @json($viaje->lat_origen ?? null),
-        @json($viaje->lng_origen ?? null)
-    );
-    const destinoReal = AltokkeMapa.puntoValido(
-        @json($viaje->lat_destino ?? null),
-        @json($viaje->lng_destino ?? null)
-    );
-    const origen = origenReal || AltokkeMapa.puntoSeguro(
-        @json($viaje->lat_origen ?? null),
-        @json($viaje->lng_origen ?? null),
-        AltokkeMapa.BAGUA
-    );
-    const destino = destinoReal || AltokkeMapa.puntoSeguro(
-        @json($viaje->lat_destino ?? null),
-        @json($viaje->lng_destino ?? null),
-        AltokkeMapa.CAJARURO
-    );
-    let conductor = CONDUCTOR_REAL || {
-        lat: origen.lat - 0.006,
-        lng: origen.lng - 0.004,
-    };
-
-    const mapaConductor = AltokkeMapa.crearMapa('mapa-leaflet-conductor', conductor, 15);
-    if (!mapaConductor) return;
-
-    const marcadorConductor = AltokkeMapa.crearMarcador(mapaConductor, conductor, 'conductor', 'M', 'Conductor');
-    if (origenReal) AltokkeMapa.crearMarcador(mapaConductor, origen, 'origen', 'O', 'Origen del pasajero');
-    if (destinoReal) AltokkeMapa.crearMarcador(mapaConductor, destino, 'destino', 'D', 'Destino');
-
-    AltokkeMapa.ajustarVista(mapaConductor, [conductor, origen, destino]);
-
-    let rutaConductor = null;
-    let rutaViaje = null;
-    let ultimaRutaMs = 0;
-    let gpsRealActivo = Boolean(CONDUCTOR_REAL);
-    let watchId = null;
-
-    const eta = document.getElementById('eta-conductor');
-    const distancia = document.getElementById('distancia-conductor');
-    const estado = document.getElementById('estado-ruta-conductor');
-    const detalle = document.getElementById('detalle-ruta-conductor');
-    const panelDistancia = document.getElementById('panel-distancia-conductor');
-    const panelTiempo = document.getElementById('panel-tiempo-conductor');
-
-    async function actualizarRutas(forzar = false) {
-        if (!origenReal || !destinoReal || !marcadorConductor) {
-            if (estado) estado.textContent = 'Coordenadas pendientes';
-            if (detalle) detalle.textContent = 'No se encontraron puntos validos para este viaje';
-            AltokkeMapa.ajustarVista(mapaConductor, [conductor, origen, destino]);
-            return;
-        }
-
-        const ahora = Date.now();
-        if (!forzar && ahora - ultimaRutaMs < 12000) return;
-        ultimaRutaMs = ahora;
-
-        if (estado) estado.textContent = 'Calculando ruta';
-        const destinoActivo = ESTADO_VIAJE === 'en_curso' ? destino : origen;
-        const [rutaAlPasajero, rutaDestino] = await Promise.all([
-            AltokkeMapa.consultarRuta(conductor, destinoActivo),
-            AltokkeMapa.consultarRuta(origen, destino),
-        ]);
-
-        rutaConductor = AltokkeMapa.dibujarRuta(mapaConductor, rutaConductor, rutaAlPasajero, {
-            color: '#111827',
-            weight: 5,
-            opacity: 0.85,
-        });
-        rutaViaje = AltokkeMapa.dibujarRuta(mapaConductor, rutaViaje, rutaDestino, {
-            color: '#2d6a2d',
-            weight: 6,
-            opacity: 0.9,
-        });
-
-        const rutaVisible = ESTADO_VIAJE === 'en_curso' ? rutaDestino : rutaAlPasajero;
-        if (eta) eta.textContent = `${rutaVisible.duracion_min || '--'} min`;
-        if (distancia) distancia.textContent = `${Number(rutaVisible.distancia_km || 0).toFixed(1)} km`;
-        if (panelDistancia) panelDistancia.textContent = `${Number(rutaDestino.distancia_km || 0).toFixed(1)} km`;
-        if (panelTiempo) panelTiempo.textContent = `${rutaDestino.duracion_min || '--'} min`;
-        if (estado) estado.textContent = rutaVisible.ok ? 'Ruta estimada' : 'Sin ruta disponible';
-        if (detalle) detalle.textContent = rutaVisible.ok
-            ? 'Ruta real calculada'
-            : 'Usando linea simple entre puntos';
-
-        AltokkeMapa.ajustarVista(mapaConductor, [conductor, origen, destino]);
-        iniciarSimulacionSiHaceFalta(rutaAlPasajero);
-    }
-
-    function emitirUbicacion(latitud, longitud) {
-        const punto = AltokkeMapa.puntoValido(latitud, longitud);
-        if (!punto || !VIAJE_ID) return;
-
-        fetch("{{ route('conductor.ubicacion') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({
-                viaje_id: VIAJE_ID,
-                lat: punto.lat,
-                lng: punto.lng
-            })
-        }).catch(() => {
-            if (detalle) detalle.textContent = 'No se pudo enviar la ubicacion';
-        });
-    }
-
-    function moverConductor(latitud, longitud, esReal = false) {
-        const punto = AltokkeMapa.puntoValido(latitud, longitud);
-        if (!punto || !marcadorConductor) return;
-
-        if (esReal) {
-            gpsRealActivo = true;
-            AltokkeMapa.detenerSimulacion(`conductor-${VIAJE_ID}`);
-            if (estado) estado.textContent = 'GPS activo';
-        }
-
-        conductor = punto;
-        AltokkeMapa.moverMarcadorSuave(marcadorConductor, conductor, 900);
-        emitirUbicacion(conductor.lat, conductor.lng);
-        actualizarRutas();
-    }
-
-    function iniciarSimulacionSiHaceFalta(rutaAlPasajero) {
-        if (gpsRealActivo || !rutaAlPasajero?.coordenadas?.length || !marcadorConductor) return;
-
-        if (estado) estado.textContent = 'Modo simulacion';
-        if (detalle) detalle.textContent = ESTADO_VIAJE === 'en_curso'
-            ? 'Avanzando hacia el destino'
-            : 'Acercandote al pasajero';
-
-        AltokkeMapa.iniciarSimulacion(`conductor-${VIAJE_ID}`, {
-            marcador: marcadorConductor,
-            coordenadas: rutaAlPasajero.coordenadas,
-            intervaloMs: 2200,
-            minimoPasos: 64,
-            debeDetener: () => gpsRealActivo,
-            alMover: (punto) => {
-                conductor = punto;
-                emitirUbicacion(punto.lat, punto.lng);
-            },
-        });
-    }
-
-    actualizarRutas(true);
-
-    if (navigator.geolocation) {
-        watchId = navigator.geolocation.watchPosition((pos) => {
-            const puntoGps = AltokkeMapa.puntoValido(pos.coords.latitude, pos.coords.longitude);
-            if (!puntoGps) return;
-            moverConductor(puntoGps.lat, puntoGps.lng, true);
-        }, () => {
-            gpsRealActivo = false;
-            actualizarRutas(true);
-        }, {
-            enableHighAccuracy: true,
-            maximumAge: 0,
-            timeout: 12000
-        });
-    } else {
-        gpsRealActivo = false;
-        actualizarRutas(true);
-    }
-
-    window.addEventListener('beforeunload', () => {
-        AltokkeMapa.detenerSimulacion(`conductor-${VIAJE_ID}`);
-        if (watchId !== null && navigator.geolocation) {
-            navigator.geolocation.clearWatch(watchId);
-        }
-    });
-});
-</script>
 @endsection

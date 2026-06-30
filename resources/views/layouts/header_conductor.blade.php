@@ -58,8 +58,8 @@
                 ])
             </a>
 
-            <a href="{{ route('logout') }}" class="btn-cerrar"
-                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+            <a href="{{ route('logout') }}" class="btn-cerrar js-cerrar-sesion"
+               data-form-id="logout-form">
                 Cerrar sesi&oacute;n
             </a>
 
@@ -70,3 +70,5 @@
         </nav>
     </div>
 </header>
+
+@vite(['resources/js/layouts/header_conductor.js'])

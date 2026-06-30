@@ -1,7 +1,8 @@
 @extends('layouts.main')
 @section('content')
 
-<div class="pagina-pasajero-historial">
+<div class="pagina-pasajero-historial"
+     data-url-busqueda="{{ route('api.internal.pasajero.historial') }}">
     <div class="historial-header">
         <div class="header-textos">
             <h1 class="titulo-pagina">Mis viajes</h1>
@@ -21,6 +22,17 @@
         </div>
     </div>
 
+    <div class="historial-busqueda">
+        <label for="buscar-viajes">Buscar en mis viajes</label>
+        <input
+            type="search"
+            id="buscar-viajes"
+            placeholder="Origen, destino, estado o conductor"
+            autocomplete="off"
+        >
+        <p id="estado-busqueda" class="historial-busqueda-estado" role="status"></p>
+    </div>
+
     <div class="filtros-contenedor">
         @foreach($filtros as $val => $label)
             <a href="{{ route('pasajero.historial', ['filtro' => $val]) }}"
@@ -30,6 +42,7 @@
         @endforeach
     </div>
 
+    <div id="historial-contenido-inicial">
     @if($viajes->count() === 0)
         <div class="historial-vacio">
             <div class="estado-vacio-icono" aria-hidden="true">
@@ -106,19 +119,11 @@
             {{ $viajes->links() }}
         </div>
     @endif
+    </div>
+
+    <div id="resultados-busqueda" class="historial-lista" hidden></div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.btn-comprobante').forEach((boton) => {
-        boton.addEventListener('click', () => {
-            const url = boton.dataset.url;
-            if (url) {
-                window.location.href = url;
-            }
-        });
-    });
-});
-</script>
+@vite(['resources/js/pasajero/historial.js'])
 
 @endsection

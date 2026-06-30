@@ -32,7 +32,11 @@
                 </div>
             @endif
  
-            <div id="solicitudes-lista" data-puede-tomar="{{ $puedeTomarViajes ? '1' : '0' }}">
+            <div id="solicitudes-lista"
+                 data-puede-tomar="{{ $puedeTomarViajes ? '1' : '0' }}"
+                 data-endpoint="{{ route('api.internal.conductor.solicitudes') }}"
+                 data-aceptar-url="{{ route('conductor.aceptarViaje') }}"
+                 data-csrf-token="{{ csrf_token() }}">
                 @if($solicitudes->isEmpty())
                     <div class="tarjeta estado-vacio">
                         <p>No hay solicitudes pendientes en este momento.</p>
@@ -78,122 +82,6 @@
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const lista = document.getElementById('solicitudes-lista');
-    const estadoTexto = document.getElementById('solicitudes-ajax-texto');
-    const endpoint = @json(route('api.internal.conductor.solicitudes'));
-    const aceptarUrl = @json(route('conductor.aceptarViaje'));
-    const csrfToken = @json(csrf_token());
-
-    if (!lista || !estadoTexto) return;
-
-    const puedeTomarInicial = lista.dataset.puedeTomar === '1';
-    let cargando = false;
-
-    function textoSeguro(valor) {
-        return String(valor ?? '').replace(/[&<>"']/g, (char) => ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        }[char]));
-    }
-
-    function pintarEstado(mensaje, tipo = 'normal') {
-        estadoTexto.textContent = mensaje;
-        estadoTexto.closest('.ajax-estado')?.setAttribute('data-tipo', tipo);
-    }
-
-    function pintarVacio(mensaje) {
-        lista.innerHTML = `
-            <div class="tarjeta estado-vacio">
-                <p>${textoSeguro(mensaje)}</p>
-            </div>
-        `;
-    }
-
-    function tarjetaSolicitud(solicitud, puedeTomar) {
-        const boton = puedeTomar
-            ? `<form method="POST" action="${aceptarUrl}">
-                    <input type="hidden" name="_token" value="${csrfToken}">
-                    <input type="hidden" name="id_viaje" value="${textoSeguro(solicitud.id)}">
-                    <button type="submit" class="btn btn-verde btn-sm">Aceptar</button>
-                </form>`
-            : `<span class="solicitud-bloqueada">Billetera o verificacion pendiente</span>`;
-
-        return `
-            <div class="tarjeta solicitud-card" data-viaje-id="${textoSeguro(solicitud.id)}">
-                <div class="viaje-cuerpo solicitud-cuerpo">
-                    <div class="solicitud-info">
-                        <div class="viaje-ruta solicitud-ruta">
-                            ${textoSeguro(solicitud.origen)}
-                            <span class="solicitud-flecha">-></span>
-                            ${textoSeguro(solicitud.destino)}
-                        </div>
-                        <div class="viaje-meta">
-                            Pasajero: ${textoSeguro(solicitud.pasajero)}
-                            | Pago: ${textoSeguro(solicitud.metodo_pago)}
-                            | ${textoSeguro(solicitud.tipo_servicio)}
-                        </div>
-                        <div class="viaje-meta solicitud-tiempo">
-                            ${textoSeguro(solicitud.distancia)} | ${textoSeguro(solicitud.tiempo)} | ${textoSeguro(solicitud.fecha)}
-                        </div>
-                    </div>
-                    <div class="solicitud-acciones">
-                        <div class="solicitud-tarifa">S/ ${textoSeguro(solicitud.tarifa)}</div>
-                        ${boton}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    async function cargarSolicitudes() {
-        if (cargando) return;
-        cargando = true;
-        pintarEstado('Consultando solicitudes...', 'cargando');
-
-        try {
-            const respuesta = await fetch(endpoint, {
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-
-            if (!respuesta.ok) {
-                throw new Error('No se pudo consultar el servidor');
-            }
-
-            const data = await respuesta.json();
-            if (!data.ok) {
-                throw new Error(data.message || 'Respuesta no valida');
-            }
-
-            const solicitudes = Array.isArray(data.data?.solicitudes) ? data.data.solicitudes : [];
-            const puedeTomar = puedeTomarInicial;
-
-            if (!solicitudes.length) {
-                pintarVacio('No hay solicitudes pendientes en este momento.');
-            } else {
-                lista.innerHTML = solicitudes
-                    .map((solicitud) => tarjetaSolicitud(solicitud, puedeTomar))
-                    .join('');
-            }
-
-            pintarEstado(`Solicitudes actualizadas: ${solicitudes.length}`, 'ok');
-        } catch (error) {
-            pintarEstado('No se pudo actualizar. Se mostrara la ultima lista disponible.', 'error');
-        } finally {
-            cargando = false;
-        }
-    }
-
-    cargarSolicitudes();
-    window.setInterval(cargarSolicitudes, 8000);
-});
-</script>
+@vite(['resources/js/conductor/solicitudes.js'])
 
 @endsection
