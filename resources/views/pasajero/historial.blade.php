@@ -2,7 +2,8 @@
 @section('content')
 
 <div class="pagina-pasajero-historial"
-     data-url-busqueda="{{ route('api.internal.pasajero.historial') }}">
+     data-url-busqueda="{{ route('api.internal.pasajero.historial') }}"
+     data-filtro-actual="{{ $filtro }}">
     <div class="historial-header">
         <div class="header-textos">
             <h1 class="titulo-pagina">Mis viajes</h1>

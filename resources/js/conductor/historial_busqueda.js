@@ -1,24 +1,35 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const inputBuscar = document.getElementById('buscarHistorialConductor');
-    const lista = document.getElementById('historialConductorLista');
-    const estado = document.getElementById('historialConductorBusquedaEstado');
     const contenedor = document.querySelector('.pagina-conductor-historial');
+    const inputBuscar = document.getElementById('buscarHistorialConductor');
+    const estado = document.getElementById('historialConductorBusquedaEstado');
+    const contenidoInicial = document.getElementById('historialConductorContenidoInicial');
+    const listaResultados = document.getElementById('historialConductorLista');
 
-    if (!inputBuscar || !lista || !contenedor) {
+    if (!contenedor || !inputBuscar || !estado || !contenidoInicial || !listaResultados) {
         return;
     }
 
-    const urlBuscar = contenedor.dataset.urlBuscar;
+    const urlBuscar = contenedor.dataset.urlBusqueda;
     const filtroActual = contenedor.dataset.filtroActual || 'todos';
+    
     let timer = null;
     let controlador = null;
 
     inputBuscar.addEventListener('input', () => {
         clearTimeout(timer);
+        
+        const texto = inputBuscar.value.trim();
+
+        if (texto === '') {
+            mostrarContenidoInicial();
+            pintarEstado('');
+            return;
+        }
+
         pintarEstado('Escribiendo...');
 
         timer = setTimeout(() => {
-            buscarViajes(inputBuscar.value.trim());
+            buscarViajes(texto);
         }, 400);
     });
 
@@ -33,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pintarEstado('Buscando viajes...');
 
             const parametros = new URLSearchParams({
-                q: texto,
+                texto: texto,
                 filtro: filtroActual,
             });
 
@@ -51,8 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const resultado = await respuesta.json();
-            pintarViajes(resultado.data || []);
-            pintarEstado(`${resultado.total || 0} resultado(s) encontrado(s).`);
+
+            const viajes = Array.isArray(resultado.data)
+                ? resultado.data
+                : [];
+
+            pintarViajes(viajes);
+            pintarEstado(`${resultado.total ?? viajes.length} resultado(s) encontrado(s).`);
         } catch (error) {
             if (error.name === 'AbortError') {
                 return;
@@ -63,8 +79,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function mostrarContenidoInicial() {
+        contenidoInicial.hidden = false;
+        listaResultados.hidden = true;
+        listaResultados.textContent = '';
+    }
+
+    function mostrarResultados() {
+        contenidoInicial.hidden = true;
+        listaResultados.hidden = false;
+    }
+
     function pintarViajes(viajes) {
-        lista.textContent = '';
+        listaResultados.textContent = '';
+        mostrarResultados();
 
         if (!viajes.length) {
             pintarMensaje('No se encontraron viajes con ese texto.');
@@ -72,140 +100,193 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         viajes.forEach((viaje) => {
-            lista.appendChild(crearTarjetaViaje(viaje));
+            listaResultados.appendChild(crearTarjetaViaje(viaje));
         });
     }
 
     function crearTarjetaViaje(viaje) {
-        const tarjeta = document.createElement('article');
-        tarjeta.classList.add('conductor-viaje-card');
+        const item = document.createElement('div');
+        item.classList.add('viaje-item');
 
         const borde = document.createElement('div');
-        borde.classList.add('viaje-borde', viaje.borde_clase || 'borde-dorado');
+        borde.classList.add('viaje-borde', viaje.borde_clase || obtenerClaseBorde(viaje.estado || viaje.estado_viaje));
 
-        const contenido = document.createElement('div');
-        contenido.classList.add('conductor-viaje-contenido');
+        const cuerpo = document.createElement('div');
+        cuerpo.classList.add('viaje-cuerpo');
 
         const izquierda = document.createElement('div');
-        izquierda.classList.add('conductor-viaje-info');
-        izquierda.appendChild(crearRuta(viaje));
-        izquierda.appendChild(crearMeta(viaje));
-        izquierda.appendChild(crearBadge(viaje));
+
+        const ruta = document.createElement('div');
+        ruta.classList.add('viaje-ruta');
+
+        const origen = obtenerTexto(viaje.origen, viaje.origen_texto, '—');
+        const destino = obtenerTexto(viaje.destino, viaje.destino_texto, '—');
+
+        const textoRutaOrigen = document.createElement('span');
+        textoRutaOrigen.textContent = origen;
+
+        const flecha = document.createElement('span');
+        flecha.style.color = 'var(--gray-lite)';
+        flecha.style.fontWeight = '400';
+        flecha.textContent = ' → ';
+
+        const textoRutaDestino = document.createElement('span');
+        textoRutaDestino.textContent = destino;
+
+        ruta.appendChild(textoRutaOrigen);
+        ruta.appendChild(flecha);
+        ruta.appendChild(textoRutaDestino);
+
+        const meta = document.createElement('div');
+        meta.classList.add('viaje-meta');
+
+        const pasajero = obtenerNombrePersona(viaje.pasajero, 'Pasajero');
+        const fecha = obtenerTexto(viaje.fecha, '—');
+        const distancia = viaje.distancia || formatearDistancia(viaje.distancia_km);
+        const tiempo = viaje.tiempo || formatearTiempo(viaje.tiempo_estimado_min);
+        const pago = obtenerTexto(viaje.metodo_pago, '—');
+        const servicio = obtenerTexto(viaje.tipo_servicio, '—');
+
+        meta.textContent = `${fecha} · ${distancia} · ${tiempo} · ${pago} · ${servicio} · Pasajero: ${pasajero}`;
+
+        const badgeContenedor = document.createElement('div');
+        badgeContenedor.style.marginTop = '5px';
+
+        const badge = document.createElement('span');
+        badge.classList.add('badge', viaje.badge_clase || obtenerClaseBadge(viaje.estado || viaje.estado_viaje));
+        badge.textContent = viaje.estado_texto || viaje.estado_label || formatearEstado(viaje.estado || viaje.estado_viaje || 'pendiente');
+
+        badgeContenedor.appendChild(badge);
+
+        izquierda.appendChild(ruta);
+        izquierda.appendChild(meta);
+        izquierda.appendChild(badgeContenedor);
 
         const derecha = document.createElement('div');
-        derecha.classList.add('conductor-viaje-resumen');
-        derecha.appendChild(crearPrecio(viaje.precio));
-        derecha.appendChild(crearDetalleCorto('👤', viaje.pasajero || 'Pasajero'));
+        derecha.classList.add('viaje-derecha');
 
-        if (Number(viaje.calificacion || 0) > 0) {
-            derecha.appendChild(crearEstrellas(viaje.calificacion));
+        const precio = document.createElement('div');
+        precio.classList.add('viaje-precio');
+        precio.textContent = `S/ ${Number(viaje.precio || viaje.tarifa_final || viaje.tarifa_estimada || 0).toFixed(2)}`;
+
+        derecha.appendChild(precio);
+
+        const calificacion = Number(viaje.calificacion || viaje.puntuacion || 0);
+
+        if (calificacion > 0) {
+            const estrellas = document.createElement('div');
+            estrellas.classList.add('viaje-estrellas');
+            estrellas.textContent = '★'.repeat(calificacion) + '☆'.repeat(5 - calificacion);
+            derecha.appendChild(estrellas);
         }
 
-        contenido.appendChild(izquierda);
-        contenido.appendChild(derecha);
-        tarjeta.appendChild(borde);
-        tarjeta.appendChild(contenido);
+        const estadoViaje = viaje.estado || viaje.estado_viaje;
 
-        return tarjeta;
-    }
+        if (estadoViaje === 'completado' && viaje.comprobante_url) {
+            const enlace = document.createElement('a');
+            enlace.href = viaje.comprobante_url;
+            enlace.classList.add('btn', 'btn-outline', 'btn-sm');
+            enlace.style.marginTop = '10px';
+            enlace.textContent = 'Descargar PDF';
+            derecha.appendChild(enlace);
+        }
 
-    function crearRuta(viaje) {
-        const ruta = document.createElement('div');
-        ruta.classList.add('conductor-ruta');
+        cuerpo.appendChild(izquierda);
+        cuerpo.appendChild(derecha);
 
-        ruta.appendChild(crearPuntoRuta('verde', viaje.origen || '—'));
-        ruta.appendChild(crearPuntoRuta('rojo', viaje.destino || '—'));
+        item.appendChild(borde);
+        item.appendChild(cuerpo);
 
-        return ruta;
-    }
-
-    function crearPuntoRuta(color, texto) {
-        const fila = document.createElement('div');
-        fila.classList.add('conductor-ruta-fila');
-
-        const punto = document.createElement('span');
-        punto.classList.add('dot', color);
-
-        const direccion = document.createElement('span');
-        direccion.classList.add('conductor-direccion');
-        direccion.textContent = texto;
-
-        fila.appendChild(punto);
-        fila.appendChild(direccion);
-
-        return fila;
-    }
-
-    function crearMeta(viaje) {
-        const meta = document.createElement('div');
-        meta.classList.add('conductor-viaje-meta');
-
-        meta.appendChild(crearDetalleCorto('📅', viaje.fecha || '—'));
-        meta.appendChild(crearDetalleCorto('📏', viaje.distancia || '—'));
-        meta.appendChild(crearDetalleCorto('⏱️', viaje.tiempo || '—'));
-        meta.appendChild(crearDetalleCorto('💳', viaje.metodo_pago || '—'));
-        meta.appendChild(crearDetalleCorto('🛺', viaje.tipo_servicio || '—'));
-
-        return meta;
-    }
-
-    function crearDetalleCorto(icono, texto) {
-        const item = document.createElement('span');
-        item.classList.add('meta-chip');
-        item.textContent = `${icono} ${texto}`;
         return item;
     }
 
-    function crearBadge(viaje) {
-        const contenedor = document.createElement('div');
-        contenedor.classList.add('badge-estado-container');
-
-        const badge = document.createElement('span');
-        badge.classList.add('badge', viaje.badge_clase || 'badge-gris');
-        badge.textContent = viaje.estado_texto || 'Pendiente';
-
-        contenedor.appendChild(badge);
-        return contenedor;
-    }
-
-    function crearPrecio(precio) {
-        const precioContenedor = document.createElement('div');
-        precioContenedor.classList.add('conductor-viaje-precio');
-        precioContenedor.textContent = `S/ ${Number(precio || 0).toFixed(2)}`;
-        return precioContenedor;
-    }
-
-    function crearEstrellas(calificacion) {
-        const estrellas = document.createElement('div');
-        estrellas.classList.add('conductor-viaje-estrellas');
-
-        const cantidad = Math.max(0, Math.min(5, Number(calificacion || 0)));
-        estrellas.textContent = '★'.repeat(cantidad) + '☆'.repeat(5 - cantidad);
-
-        return estrellas;
-    }
-
     function pintarMensaje(mensaje) {
-        lista.textContent = '';
+        listaResultados.textContent = '';
+        mostrarResultados();
 
         const vacio = document.createElement('div');
-        vacio.classList.add('conductor-estado-vacio');
-
-        const icono = document.createElement('div');
-        icono.classList.add('conductor-estado-vacio-icono');
-        icono.textContent = '🔎';
+        vacio.classList.add('tarjeta', 'estado-vacio');
 
         const texto = document.createElement('p');
         texto.textContent = mensaje;
 
-        vacio.appendChild(icono);
         vacio.appendChild(texto);
-        lista.appendChild(vacio);
+        listaResultados.appendChild(vacio);
     }
 
     function pintarEstado(mensaje) {
-        if (estado) {
-            estado.textContent = mensaje;
+        estado.textContent = mensaje;
+    }
+
+    function obtenerTexto(...valores) {
+        for (const valor of valores) {
+            if (valor !== null && valor !== undefined && String(valor).trim() !== '') {
+                return String(valor);
+            }
         }
+
+        return '—';
+    }
+
+    function obtenerNombrePersona(valor, textoPorDefecto) {
+        if (!valor) {
+            return textoPorDefecto;
+        }
+
+        if (typeof valor === 'string') {
+            return valor;
+        }
+
+        if (typeof valor === 'object' && valor.nombre) {
+            return valor.nombre;
+        }
+
+        return textoPorDefecto;
+    }
+
+    function formatearDistancia(valor) {
+        if (!valor) {
+            return '—';
+        }
+
+        return `${valor} km`;
+    }
+
+    function formatearTiempo(valor) {
+        if (!valor) {
+            return '—';
+        }
+
+        return `${valor} min`;
+    }
+
+    function formatearEstado(estado) {
+        return String(estado)
+            .replaceAll('_', ' ')
+            .replace(/^\w/, letra => letra.toUpperCase());
+    }
+
+    function obtenerClaseBadge(estado) {
+        if (estado === 'completado') {
+            return 'badge-verde';
+        }
+
+        if (estado === 'cancelado') {
+            return 'badge-rojo';
+        }
+
+        return 'badge-gris';
+    }
+
+    function obtenerClaseBorde(estado) {
+        if (estado === 'completado') {
+            return 'borde-verde';
+        }
+
+        if (estado === 'cancelado') {
+            return 'borde-rojo';
+        }
+
+        return 'borde-dorado';
     }
 });

@@ -213,20 +213,51 @@ class InternalViajeController extends BaseApiController
         return $this->exitoJson('Viaje completado', $this->formatearViaje($viaje->fresh(['pasajero.user', 'conductor.user'])));
     }
 
-    public function historialConductor(): JsonResponse
-    {
+    public function historialConductor(Request $request): JsonResponse {
         if (! $this->esConductor()) {
             return $this->errorJson('Solo conductores pueden ver este historial', 403);
         }
 
-        $viajes = Viaje::where('id_conductor', Auth::id())
-            ->whereIn('estado_viaje', ['completado', 'cancelado'])
-            ->with(['pasajero.user', 'calificacion'])
-            ->orderByDesc('fecha_solicitud')
-            ->get()
-            ->map(fn (Viaje $viaje) => $this->formatearViaje($viaje));
+        $texto = $this->limpiarTexto($request->query('texto', $request->query('q', '')));
+        $filtro = $request->query('filtro', 'todos');
 
-        return $this->exitoJson('Historial del conductor', $viajes);
+        $consulta = Viaje::where('id_conductor', Auth::id())
+            ->whereIn('estado_viaje', ['completado', 'cancelado'])
+            ->with(['pasajero.user', 'calificacion']);
+
+        $consulta = match ($filtro) {
+            'hoy' => $consulta->whereDate('fecha_solicitud', today()),
+            'semana' => $consulta->whereBetween('fecha_solicitud', [now()->startOfWeek(), now()->endOfWeek()]),
+            'mes' => $consulta->whereMonth('fecha_solicitud', now()->month)
+                ->whereYear('fecha_solicitud', now()->year),
+            default => $consulta,
+        };
+
+        if ($texto !== '') {
+            $consulta->where(function ($query) use ($texto) {
+                $query->where('origen_texto', 'like', '%' . $texto . '%')
+                    ->orWhere('destino_texto', 'like', '%' . $texto . '%')
+                    ->orWhere('estado_viaje', 'like', '%' . $texto . '%')
+                    ->orWhere('metodo_pago', 'like', '%' . $texto . '%')
+                    ->orWhere('tipo_servicio', 'like', '%' . $texto . '%')
+                    ->orWhereHas('pasajero.user', function ($usuarioQuery) use ($texto) {
+                        $usuarioQuery->where('nombre_completo', 'like', '%' . $texto . '%')
+                            ->orWhere('apellidos', 'like', '%' . $texto . '%');
+                    });
+            });
+        }
+
+        $viajes = $consulta
+            ->orderByDesc('fecha_solicitud')
+            ->limit(30)
+            ->get()
+            ->map(fn (Viaje $viaje) => $this->formatearViajeParaDebounce($viaje, 'conductor'));
+
+        return $this->respuestaJson([
+            'ok' => true,
+            'total' => $viajes->count(),
+            'data' => $viajes,
+        ]);
     }
 
     public function historialPasajero(Request $request): JsonResponse
@@ -235,29 +266,44 @@ class InternalViajeController extends BaseApiController
             return $this->errorJson('Solo pasajeros pueden ver este historial', 403);
         }
 
-        // esto es de Debounce en busqueda
-        $texto = $this->limpiarTexto($request->query('texto', ''));
-        $consulta = Viaje::where('id_pasajero', Auth::id());
+        $texto = $this->limpiarTexto($request->query('texto', $request->query('q', '')));
+        $filtro = $request->query('filtro', 'todos');
+
+        $consulta = Viaje::where('id_pasajero', Auth::id())
+            ->with(['conductor.user', 'calificacion']);
+
+        $consulta = match ($filtro) {
+            'hoy' => $consulta->whereDate('fecha_solicitud', today()),
+            'semana' => $consulta->whereBetween('fecha_solicitud', [now()->startOfWeek(), now()->endOfWeek()]),
+            'mes' => $consulta->whereMonth('fecha_solicitud', now()->month)
+                ->whereYear('fecha_solicitud', now()->year),
+            default => $consulta,
+        };
 
         if ($texto !== '') {
             $consulta->where(function ($query) use ($texto) {
-                $query->where('origen_texto', 'like', '%'.$texto.'%')
-                    ->orWhere('destino_texto', 'like', '%'.$texto.'%')
-                    ->orWhere('estado_viaje', 'like', '%'.$texto.'%')
+                $query->where('origen_texto', 'like', '%' . $texto . '%')
+                    ->orWhere('destino_texto', 'like', '%' . $texto . '%')
+                    ->orWhere('estado_viaje', 'like', '%' . $texto . '%')
+                    ->orWhere('metodo_pago', 'like', '%' . $texto . '%')
                     ->orWhereHas('conductor.user', function ($usuarioQuery) use ($texto) {
-                        $usuarioQuery->where('nombre_completo', 'like', '%'.$texto.'%');
+                        $usuarioQuery->where('nombre_completo', 'like', '%' . $texto . '%')
+                            ->orWhere('apellidos', 'like', '%' . $texto . '%');
                     });
             });
         }
 
         $viajes = $consulta
-            ->with(['conductor.user', 'calificacion'])
             ->orderByDesc('fecha_solicitud')
             ->limit(30)
             ->get()
-            ->map(fn (Viaje $viaje) => $this->formatearViaje($viaje));
+            ->map(fn (Viaje $viaje) => $this->formatearViajeParaDebounce($viaje, 'pasajero'));
 
-        return $this->exitoJson('Historial del pasajero', $viajes);
+        return $this->respuestaJson([
+            'ok' => true,
+            'total' => $viajes->count(),
+            'data' => $viajes,
+        ]);
     }
 
     private function puedeVerViaje(Viaje $viaje): bool
@@ -319,6 +365,52 @@ class InternalViajeController extends BaseApiController
                 ? route('pasajero.enCurso', $viaje->id_viaje)
                 : null,
             'comprobante_url' => $viaje->estado_viaje === 'completado'
+                ? route('reportes.viajes.comprobante', $viaje->id_viaje)
+                : null,
+        ];
+    }
+
+    private function formatearViajeParaDebounce(Viaje $viaje, string $vista): array
+    {
+        $estado = (string) $viaje->estado_viaje;
+
+        $pasajero = trim(
+            ($viaje->pasajero?->user?->nombre_completo ?? '') . ' ' .
+            ($viaje->pasajero?->user?->apellidos ?? '')
+        );
+
+        $conductor = trim(
+            ($viaje->conductor?->user?->nombre_completo ?? '') . ' ' .
+            ($viaje->conductor?->user?->apellidos ?? '')
+        );
+
+        return [
+            'id' => $viaje->id_viaje,
+            'origen' => $viaje->origen_texto ?? '—',
+            'destino' => $viaje->destino_texto ?? '—',
+            'precio' => (float) ($viaje->tarifa_final ?? $viaje->tarifa_estimada ?? 0),
+            'fecha' => $viaje->fecha_fin?->format('d/m/Y H:i')
+                ?? $viaje->fecha_solicitud?->format('d/m/Y H:i')
+                ?? '—',
+            'distancia' => $viaje->distancia_km ? $viaje->distancia_km . ' km' : '—',
+            'tiempo' => $viaje->tiempo_estimado_min ? $viaje->tiempo_estimado_min . ' min' : '—',
+            'pasajero' => $pasajero !== '' ? $pasajero : 'Pasajero',
+            'conductor' => $conductor !== '' ? $conductor : 'Conductor',
+            'metodo_pago' => ucfirst((string) ($viaje->metodo_pago ?? '—')),
+            'tipo_servicio' => ucfirst((string) ($viaje->tipo_servicio ?? '—')),
+            'calificacion' => (int) ($viaje->calificacion?->puntuacion ?? 0),
+            'estado_texto' => ucfirst(str_replace('_', ' ', $estado)),
+            'badge_clase' => match ($estado) {
+                'completado' => 'badge-verde',
+                'cancelado' => 'badge-rojo',
+                default => 'badge-gris',
+            },
+            'borde_clase' => match ($estado) {
+                'completado' => 'borde-verde',
+                'cancelado' => 'borde-rojo',
+                default => 'borde-dorado',
+            },
+            'comprobante_url' => $estado === 'completado'
                 ? route('reportes.viajes.comprobante', $viaje->id_viaje)
                 : null,
         ];
