@@ -213,16 +213,32 @@ class InternalViajeController extends BaseApiController
         return $this->exitoJson('Viaje completado', $this->formatearViaje($viaje->fresh(['pasajero.user', 'conductor.user'])));
     }
 
-    public function historialConductor(): JsonResponse
+    public function historialConductor(Request $request): JsonResponse
     {
         if (! $this->esConductor()) {
             return $this->errorJson('Solo conductores pueden ver este historial', 403);
         }
 
-        $viajes = Viaje::where('id_conductor', Auth::id())
-            ->whereIn('estado_viaje', ['completado', 'cancelado'])
+        // esto es de Debounce en busqueda
+        $texto = $this->limpiarTexto($request->query('texto', ''));
+        $consulta = Viaje::where('id_conductor', Auth::id())
+            ->whereIn('estado_viaje', ['completado', 'cancelado']);
+
+        if ($texto !== '') {
+            $consulta->where(function ($query) use ($texto) {
+                $query->where('origen_texto', 'like', '%'.$texto.'%')
+                    ->orWhere('destino_texto', 'like', '%'.$texto.'%')
+                    ->orWhere('estado_viaje', 'like', '%'.$texto.'%')
+                    ->orWhereHas('pasajero.user', function ($usuarioQuery) use ($texto) {
+                        $usuarioQuery->where('nombre_completo', 'like', '%'.$texto.'%');
+                    });
+            });
+        }
+
+        $viajes = $consulta
             ->with(['pasajero.user', 'calificacion'])
             ->orderByDesc('fecha_solicitud')
+            ->limit(30)
             ->get()
             ->map(fn (Viaje $viaje) => $this->formatearViaje($viaje));
 
