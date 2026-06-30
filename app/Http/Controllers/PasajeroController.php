@@ -28,21 +28,50 @@ class PasajeroController extends Controller
 
     public function crearViaje(Request $request)
     {
+        $request->merge([
+            'origen' => trim((string) $request->input('origen', '')),
+            'destino' => trim((string) $request->input('destino', '')),
+        ]);
+
         // Validación de entrada (saneamiento contra datos maliciosos)
         $datos = $request->validate([
-            'origen'        => 'required|string|max:300',
-            'destino'       => 'required|string|different:origen|max:300',
+            'origen'        => ['required', 'string', 'min:2', 'max:300', 'not_regex:/^(nan|null|undefined)$/i'],
+            'destino'       => ['required', 'string', 'different:origen', 'min:2', 'max:300', 'not_regex:/^(nan|null|undefined)$/i'],
             'tipo_servicio' => 'required|in:normal,express',
             'metodo_pago'   => 'required|in:efectivo,yape,plin',
-            'origen_lat'    => 'nullable|numeric|between:-90,90',
-            'origen_lng'    => 'nullable|numeric|between:-180,180',
-            'destino_lat'   => 'nullable|numeric|between:-90,90',
-            'destino_lng'   => 'nullable|numeric|between:-180,180',
+            'origen_lat'    => 'required|numeric|between:-90,90',
+            'origen_lng'    => 'required|numeric|between:-180,180',
+            'destino_lat'   => 'required|numeric|between:-90,90',
+            'destino_lng'   => 'required|numeric|between:-180,180',
             'distancia_km'  => 'nullable|numeric|min:0|max:500',
             'tiempo_min'    => 'nullable|integer|min:0',
         ], [
             'destino.different' => 'El origen y destino no pueden ser iguales.',
+            'origen_lat.required' => 'Marca tu origen en el mapa.',
+            'origen_lng.required' => 'Marca tu origen en el mapa.',
+            'destino_lat.required' => 'Marca tu destino en el mapa.',
+            'destino_lng.required' => 'Marca tu destino en el mapa.',
+            'origen.not_regex' => 'El origen no es valido.',
+            'destino.not_regex' => 'El destino no es valido.',
         ]);
+
+        $datos['origen_lat'] = (float) $datos['origen_lat'];
+        $datos['origen_lng'] = (float) $datos['origen_lng'];
+        $datos['destino_lat'] = (float) $datos['destino_lat'];
+        $datos['destino_lng'] = (float) $datos['destino_lng'];
+
+        $distanciaSeleccionada = $this->distanciaKm(
+            (float) $datos['origen_lat'],
+            (float) $datos['origen_lng'],
+            (float) $datos['destino_lat'],
+            (float) $datos['destino_lng']
+        );
+
+        if ($distanciaSeleccionada < 0.025) {
+            return back()
+                ->withInput()
+                ->withErrors(['destino' => 'El origen y destino deben estar en puntos diferentes del mapa.']);
+        }
  
         // Toda la lógica de negocio queda en el Service
         $viaje = $this->viajeService->crearViaje(Auth::id(), $datos);
@@ -52,7 +81,9 @@ class PasajeroController extends Controller
 
     public function buscando(int $viajeId)
     {
-        $viajeRaw = Viaje::find($viajeId);
+        $viajeRaw = Viaje::where('id_viaje', $viajeId)
+            ->where('id_pasajero', Auth::id())
+            ->first();
 
         // Si el viaje fue aceptado mientras llegaba aquí, redirigir directo
         if ($viajeRaw && in_array($viajeRaw->estado_viaje, ['aceptado', 'recogiendo', 'en_curso'])) {
@@ -66,10 +97,10 @@ class PasajeroController extends Controller
             'tarifa'      => $viajeRaw->tarifa_estimada,
             'distancia'   => $viajeRaw->distancia_km,
             'tiempo'      => $viajeRaw->tiempo_estimado_min,
-            'origen_lat'  => $viajeRaw->lat_origen  ?? -5.63889,
-            'origen_lng'  => $viajeRaw->lng_origen  ?? -78.5311,
-            'destino_lat' => $viajeRaw->lat_destino ?? -5.6800,
-            'destino_lng' => $viajeRaw->lng_destino ?? -78.5400,
+            'origen_lat'  => $viajeRaw->lat_origen,
+            'origen_lng'  => $viajeRaw->lng_origen,
+            'destino_lat' => $viajeRaw->lat_destino,
+            'destino_lng' => $viajeRaw->lng_destino,
         ] : [
             'id' => 0, 'origen' => '—', 'destino' => '—', 'tarifa' => '0.00',
             'origen_lat' => -5.63889, 'origen_lng' => -78.5311,
@@ -104,9 +135,70 @@ class PasajeroController extends Controller
         return response()->json(['ok' => $ok]);
     }
 
+    public function estadoViajeJson($viajeId)
+    {
+        if (! ctype_digit((string) $viajeId) || (int) $viajeId <= 0) {
+            return response()->json([
+                'ok' => false,
+                'mensaje' => 'Datos invalidos.',
+            ], 400);
+        }
+
+        $viajeId = (int) $viajeId;
+
+        $viaje = Viaje::with('conductor.user', 'conductor.vehiculo')
+            ->where('id_viaje', $viajeId)
+            ->first();
+
+        if (! $viaje) {
+            return response()->json([
+                'ok' => false,
+                'mensaje' => 'El viaje no existe.',
+            ], 404);
+        }
+
+        if ((int) $viaje->id_pasajero !== (int) Auth::id()) {
+            return response()->json([
+                'ok' => false,
+                'mensaje' => 'No tienes permiso para ver este viaje.',
+            ], 403);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'mensaje' => 'Estado actualizado',
+            'viaje' => [
+                'id' => $viaje->id_viaje,
+                'estado' => $viaje->estado_viaje,
+                'estado_label' => ucfirst(str_replace('_', ' ', $viaje->estado_viaje)),
+                'origen' => $viaje->origen_texto,
+                'destino' => $viaje->destino_texto,
+                'origen_lat' => $viaje->lat_origen !== null ? (float) $viaje->lat_origen : null,
+                'origen_lng' => $viaje->lng_origen !== null ? (float) $viaje->lng_origen : null,
+                'destino_lat' => $viaje->lat_destino !== null ? (float) $viaje->lat_destino : null,
+                'destino_lng' => $viaje->lng_destino !== null ? (float) $viaje->lng_destino : null,
+                'tarifa' => number_format((float) ($viaje->tarifa_final ?? $viaje->tarifa_estimada ?? 0), 2),
+                'distancia' => $viaje->distancia_km ? number_format((float) $viaje->distancia_km, 1) . ' km' : 'Sin distancia',
+                'tiempo' => $viaje->tiempo_estimado_min ? (int) $viaje->tiempo_estimado_min . ' min' : 'Sin ETA',
+                'redirect_url' => in_array($viaje->estado_viaje, ['aceptado', 'recogiendo', 'en_curso'], true)
+                    ? route('pasajero.enCurso', $viaje->id_viaje)
+                    : null,
+            ],
+            'conductor' => $viaje->conductor ? [
+                'nombre' => $viaje->conductor->user->nombre_completo ?? 'Conductor',
+                'placa' => $viaje->conductor->vehiculo->placa ?? null,
+                'modelo' => trim(($viaje->conductor->vehiculo->marca ?? '') . ' ' . ($viaje->conductor->vehiculo->modelo ?? '')),
+                'lat' => $viaje->conductor->lat_actual !== null ? (float) $viaje->conductor->lat_actual : null,
+                'lng' => $viaje->conductor->lng_actual !== null ? (float) $viaje->conductor->lng_actual : null,
+            ] : null,
+        ], 200);
+    }
+
     public function enCurso(int $viajeId)
     {
-        $viajeRaw = Viaje::with('conductor.user', 'conductor.vehiculo')->find($viajeId);
+        $viajeRaw = Viaje::with('conductor.user', 'conductor.vehiculo')
+            ->where('id_pasajero', Auth::id())
+            ->find($viajeId);
 
         if (!$viajeRaw || !$viajeRaw->conductor) {
             $viaje = [
@@ -139,10 +231,10 @@ class PasajeroController extends Controller
                 'destino'     => $viajeRaw->destino_texto,
                 'tarifa'      => $viajeRaw->tarifa_estimada,
                 'metodo_pago' => $viajeRaw->metodo_pago,
-                'origen_lat'  => $viajeRaw->lat_origen  ?? -5.63889,
-                'origen_lng'  => $viajeRaw->lng_origen  ?? -78.5311,
-                'destino_lat' => $viajeRaw->lat_destino ?? -5.6800,
-                'destino_lng' => $viajeRaw->lng_destino ?? -78.5400,
+                'origen_lat'  => $viajeRaw->lat_origen,
+                'origen_lng'  => $viajeRaw->lng_origen,
+                'destino_lat' => $viajeRaw->lat_destino,
+                'destino_lng' => $viajeRaw->lng_destino,
                 'estado'      => $viajeRaw->estado_viaje,
             ];
             $conductor = [
@@ -150,8 +242,8 @@ class PasajeroController extends Controller
                 'calificacion' => $viajeRaw->conductor->calificacion_promedio ?? 0,
                 'modelo'       => trim(($viajeRaw->conductor->vehiculo->marca ?? '') . ' ' . ($viajeRaw->conductor->vehiculo->modelo ?? '')),
                 'placa'        => $viajeRaw->conductor->vehiculo->placa ?? '—',
-                'lat'          => -5.63889,
-                'lng'          => -78.5311,
+                'lat'          => $viajeRaw->conductor->lat_actual,
+                'lng'          => $viajeRaw->conductor->lng_actual,
             ];
             $iniciales = $this->calcularIniciales($viajeRaw->conductor->user->nombre_completo ?? '');
             $eta       = $viajeRaw->tiempo_estimado_min ?? '—';
@@ -172,7 +264,9 @@ class PasajeroController extends Controller
 
     public function calificar(int $viajeId)
     {
-        $viajeRaw = Viaje::with('conductor.user', 'conductor.vehiculo')->find($viajeId);
+        $viajeRaw = Viaje::with('conductor.user', 'conductor.vehiculo')
+            ->where('id_pasajero', Auth::id())
+            ->find($viajeId);
 
         if (!$viajeRaw || !$viajeRaw->conductor) {
             $viaje     = ['id' => 0, 'origen' => '—', 'destino' => '—', 'tarifa' => '0.00'];
@@ -212,6 +306,18 @@ class PasajeroController extends Controller
             'estrellas'    => 'required|integer|min:1|max:5',
             'comentario'   => 'nullable|string|max:500',
         ]);
+
+        $viaje = Viaje::where('id_viaje', $request->viaje_id)
+            ->where('id_pasajero', Auth::id())
+            ->where('id_conductor', $request->conductor_id)
+            ->where('estado_viaje', 'completado')
+            ->first();
+
+        if (!$viaje) {
+            return redirect()
+                ->route('pasajero.historial')
+                ->withErrors(['viaje_id' => 'No puedes calificar este viaje.']);
+        }
  
         $this->viajeService->calificarViaje(
             (int) $request->viaje_id,
@@ -229,8 +335,8 @@ class PasajeroController extends Controller
         $filtros = ['todos' => 'Todos', 'hoy' => 'Hoy', 'semana' => 'Esta semana', 'mes' => 'Este mes'];
  
         $viajes = $this->viajeService
-            ->historialPasajero(Auth::id(), $filtro)
-            ->map(fn($v) => $this->formatearViaje($v));
+            ->historialPasajero(Auth::id(), $filtro, 10)
+            ->through(fn($v) => $this->formatearViaje($v));
  
         return view('pasajero.historial', [
             'header'  => 'header_pasajero',
@@ -366,16 +472,34 @@ class PasajeroController extends Controller
 
     private function formatearViaje($v): array
     {
+        $precio = (float) ($v->tarifa_final ?? $v->tarifa_estimada ?? 0);
+        $estado = (string) ($v->estado_viaje ?? 'pendiente');
+        $metodoPago = match ((string) $v->metodo_pago) {
+            'yape' => 'Yape',
+            'plin' => 'Plin',
+            'efectivo' => 'Efectivo',
+            default => null,
+        };
+
         return [
             'id'           => $v->id_viaje,
             'origen'       => $v->origen_texto,
             'destino'      => $v->destino_texto,
-            'precio'       => number_format($v->tarifa_final ?? $v->tarifa_estimada, 2),
+            'precio'       => $precio,
+            'precio_label' => $v->tarifa_final !== null ? 'Tarifa final' : 'Tarifa estimada',
+            'distancia'    => $v->distancia_km !== null ? number_format((float) $v->distancia_km, 1) . ' km' : 'â€”',
+            'tiempo'       => $v->tiempo_estimado_min !== null ? (int) $v->tiempo_estimado_min . ' min' : 'â€”',
+            'conductor'    => $v->conductor->user->nombre_completo ?? 'Sin conductor asignado',
+            'metodo_pago'  => $metodoPago,
             'fecha'        => $v->fecha_solicitud?->format('d/m/Y') ?? '—',
             'distancia'    => $v->distancia_km ? $v->distancia_km . ' km' : '—',
             'tiempo'       => $v->tiempo_estimado_min ? $v->tiempo_estimado_min . ' min' : '—',
             'conductor'    => $v->conductor->user->nombre_completo ?? '—',
             'calificacion' => $v->calificacion->puntuacion ?? 0,
+            'distancia'    => $v->distancia_km !== null ? number_format((float) $v->distancia_km, 1) . ' km' : 'â€”',
+            'tiempo'       => $v->tiempo_estimado_min !== null ? (int) $v->tiempo_estimado_min . ' min' : 'â€”',
+            'conductor'    => $v->conductor->user->nombre_completo ?? 'Sin conductor asignado',
+            'metodo_pago'  => $metodoPago,
             'estado_viaje' => $v->estado_viaje,
             'borde_clase'  => match($v->estado_viaje) {
                 'completado' => 'borde-verde',
@@ -387,7 +511,29 @@ class PasajeroController extends Controller
                 'cancelado'  => '<span class="badge badge-rojo">Cancelado</span>',
                 default      => '<span class="badge badge-gris">' . ucfirst($v->estado_viaje) . '</span>',
             },
+            'estado_viaje' => $estado,
+            'borde_clase'  => match($estado) {
+                'completado' => 'borde-verde',
+                'cancelado'  => 'borde-rojo',
+                default      => 'borde-dorado',
+            },
+            'badge_estado' => match($estado) {
+                'completado' => '<span class="badge badge-verde">Completado</span>',
+                'cancelado'  => '<span class="badge badge-rojo">Cancelado</span>',
+                default      => '<span class="badge badge-gris">' . ucfirst(str_replace('_', ' ', $estado)) . '</span>',
+            },
         ];
     }
-}
 
+    private function distanciaKm(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $radioTierraKm = 6371;
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+
+        $a = sin($dLat / 2) ** 2
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+
+        return $radioTierraKm * (2 * atan2(sqrt($a), sqrt(1 - $a)));
+    }
+}

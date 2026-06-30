@@ -1,5 +1,6 @@
 
 @import "./global/styles.css";
+@import "./global/mapa_viaje.css";
 
 @import "./auth/login.css";
 @import "./auth/eleccion_registro.css";
@@ -22,4 +23,8 @@
 @import "./conductor/historial.css";
 @import "./conductor/billetera.css";
 @import "./conductor/perfil.css";
+@import "./conductor/solicitudes.css";
+@import "./conductor/historial.css";
 @import "./conductor/viaje_activo.css";
+
+@import "./global/app_shell.css";

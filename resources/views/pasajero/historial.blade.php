@@ -2,32 +2,35 @@
 @section('content')
 
 <div class="pagina-pasajero-historial"
-    data-url-buscar="{{ route('api.pasajero.historial.buscar') }}"
-    data-filtro-actual="{{ $filtro }}"
->
-    
+     data-url-busqueda="{{ route('api.internal.pasajero.historial') }}">
     <div class="historial-header">
         <div class="header-textos">
             <h1 class="titulo-pagina">Mis viajes</h1>
-            <p class="subtitulo-pagina">Historial completo de tus viajes en mototaxi</p>
+            <p class="subtitulo-pagina">Revisa tus rutas, estados y pagos en un solo lugar.</p>
         </div>
-        <a href="{{ route('pasajero.solicitarViaje') }}" class="btn-nuevo-viaje">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M12 5v14m-7-7h14"/>
-            </svg>
-            Nuevo viaje
-        </a>
+
+        <div class="historial-acciones">
+            <a href="{{ route('pasajero.solicitarViaje') }}" class="btn btn-verde historial-accion-principal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <path d="M12 5v14m-7-7h14"/>
+                </svg>
+                Nuevo viaje
+            </a>
+            <a href="{{ route('pasajero.historial.csv') }}" class="btn btn-outline historial-accion-secundaria">
+                Exportar CSV
+            </a>
+        </div>
     </div>
- 
-    <div class="busqueda-historial-contenedor">
-        <label for="buscarHistorialViaje" class="busqueda-historial-label">Buscar en mi historial</label>
-        <input 
+
+    <div class="historial-busqueda">
+        <label for="buscar-viajes">Buscar en mis viajes</label>
+        <input
             type="search"
-            id="buscarHistorialViaje"
-            class="busqueda-historial-input"
-            placeholder="Buscar por origen, destino, conductor o estado..."
-            autocomplete="off">
-        <p id="historialBusquedaEstado" class="busqueda-historial-estado">Escribe para buscar sin recargar la página</p>
+            id="buscar-viajes"
+            placeholder="Origen, destino, estado o conductor"
+            autocomplete="off"
+        >
+        <p id="estado-busqueda" class="historial-busqueda-estado" role="status"></p>
     </div>
 
     <div class="filtros-contenedor">
@@ -39,66 +42,88 @@
         @endforeach
     </div>
 
-    @if($viajes->isEmpty())
+    <div id="historial-contenido-inicial">
+    @if($viajes->count() === 0)
         <div class="historial-vacio">
-            <div class="estado-vacio-icono">🛺</div>
-            <p>Aún no tienes viajes en este periodo.<br>¡Solicita tu primer mototaxi ahora!</p>
-            <a href="{{ route('pasajero.solicitarViaje') }}" class="btn-nuevo-viaje">
+            <div class="estado-vacio-icono" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M7 16h10" stroke-linecap="round"/>
+                    <path d="M9 16l1.6-4.5A2 2 0 0 1 12.49 10H16a2 2 0 0 1 1.89 1.37L19 16" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="8" cy="18" r="1.6"/>
+                    <circle cx="18" cy="18" r="1.6"/>
+                    <path d="M4 13.5h2.5l1-2.5h2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <p>Aun no tienes viajes en este periodo. Cuando solicites uno, aparecera aqui con su estado y detalles.</p>
+            <a href="{{ route('pasajero.solicitarViaje') }}" class="btn btn-verde btn-ancho-mobile">
                 Solicitar un viaje
             </a>
         </div>
     @else
-        <div id="historialLista" class="historial-lista">
+        <div class="historial-lista">
             @foreach($viajes as $v)
-                <a href="{{ route('pasajero.historial') }}" class="tarjeta-viaje-item">
-                        
-                    <div class="viaje-borde {{ $v['borde_clase'] }}"></div>
-        
+                <article class="tarjeta-viaje-item tarjeta-viaje-item--{{ $v['estado_viaje'] }}">
                     <div class="viaje-cuerpo">
-                        <div class="viaje-detalles-izquierda">
-                            <div class="puntos-ruta-contenedor">
-                                <div class="ruta-linea-punto">
-                                    <span class="dot verde"></span>
-                                    <span class="direccion-texto-item">{{ $v['origen'] }}</span>
+                        <div class="viaje-main">
+                            <div class="viaje-main-top">
+                                <div class="viaje-rutas">
+                                    <div class="viaje-ruta">
+                                        <span class="viaje-ruta-label">Origen</span>
+                                        <p class="viaje-ruta-texto">{{ $v['origen'] }}</p>
+                                    </div>
+                                    <div class="viaje-ruta">
+                                        <span class="viaje-ruta-label">Destino</span>
+                                        <p class="viaje-ruta-texto">{{ $v['destino'] }}</p>
+                                    </div>
                                 </div>
-                                <div class="ruta-linea-punto">
-                                    <span class="dot rojo"></span>
-                                    <span class="direccion-texto-item">{{ $v['destino'] }}</span>
+
+                                <div class="viaje-state-pill">
+                                    {!! $v['badge_estado'] !!}
                                 </div>
                             </div>
-                                
-                            <div class="viaje-meta-info">
-                                <span>📅 {{ $v['fecha'] }}</span>
-                                <span class="separador">•</span>
-                                <span>📏 {{ $v['distancia'] }}</span>
-                                <span class="separador">•</span>
-                                <span>⏱️ {{ $v['tiempo'] }}</span>
-                            </div>
-                                
-                            <div class="badge-estado-container">
-                                {!! $v['badge_estado'] !!}
+
+                            <div class="viaje-meta">
+                                <span class="viaje-meta-item">Fecha {{ $v['fecha'] }}</span>
+                                <span class="viaje-meta-item">Distancia {{ $v['distancia'] }}</span>
+                                <span class="viaje-meta-item">ETA {{ $v['tiempo'] }}</span>
+                                <span class="viaje-meta-item">Conductor: {{ $v['conductor'] }}</span>
+                                @if($v['metodo_pago'])
+                                    <span class="viaje-meta-item">Pago: {{ $v['metodo_pago'] }}</span>
+                                @endif
+                                @if($v['calificacion'] > 0)
+                                    <span class="viaje-meta-item viaje-meta-item-rating">
+                                        Calificacion {{ (int) $v['calificacion'] }}/5
+                                    </span>
+                                @endif
                             </div>
                         </div>
-            
-                        <div class="viaje-detalles-derecha">
-                            <div class="viaje-precio">S/ {{ number_format($v['precio'], 2) }}</div>
-                            <div class="viaje-conductor-info">
-                                <span class="conductor-avatar-icon">👤</span>
-                                <span class="conductor-nombre">{{ $v['conductor'] }}</span>
+
+                        <div class="viaje-summary">
+                            <div class="viaje-price-block">
+                                <span class="viaje-precio-label">{{ $v['precio_label'] }}</span>
+                                <div class="viaje-precio">S/ {{ number_format((float) $v['precio'], 2) }}</div>
                             </div>
-                            @if($v['calificacion'] > 0)
-                                <div class="viaje-estrellas-puntuacion">
-                                    {{ str_repeat('★', (int)$v['calificacion']) }}{{ str_repeat('☆', 5 - (int)$v['calificacion']) }}
-                                </div>
+
+                            @if(($v['estado_viaje'] ?? '') === 'completado')
+                                <button type="button" class="btn btn-outline btn-comprobante" data-url="{{ route('reportes.viajes.comprobante', $v['id']) }}">
+                                    Descargar PDF
+                                </button>
                             @endif
                         </div>
                     </div>
-        
-                </a>
+                </article>
             @endforeach
         </div>
+
+        <div class="paginacion-historial">
+            {{ $viajes->links() }}
+        </div>
     @endif
- 
+    </div>
+
+    <div id="resultados-busqueda" class="historial-lista" hidden></div>
 </div>
- 
+
+@vite(['resources/js/pasajero/historial.js'])
+
 @endsection

@@ -1,6 +1,10 @@
 <aside class="perfil-sidebar">
     <div class="sidebar-cabecera">
-        <div class="sidebar-avatar">{{ $iniciales ?? '??' }}</div>
+        @include('conductor.partials.avatar', [
+            'user' => $conductor->user ?? null,
+            'initials' => $iniciales ?? null,
+            'size' => 'sidebar',
+        ])
 
         <div class="sidebar-nombre">
             {{ $conductor->user->nombre_completo ?? '' }}
@@ -55,7 +59,7 @@
                 @csrf
 
                 <button type="submit" class="btn-cerrar-sesion">
-                    Cerrar sesión
+                    Cerrar sesion
                 </button>
             </form>
         </li>

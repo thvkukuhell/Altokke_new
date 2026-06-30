@@ -54,15 +54,15 @@ class ViajeService
             // 4. Crear el viaje
             $viaje = Viaje::create([
                 'id_pasajero'         => $pasajeroId,
-                'origen_texto'        => $datos['origen'],
-                'destino_texto'       => $datos['destino'],
-                'lat_origen'          => $datos['origen_lat']  ?? null,
-                'lng_origen'          => $datos['origen_lng']  ?? null,
-                'lat_destino'         => $datos['destino_lat'] ?? null,
-                'lng_destino'         => $datos['destino_lng'] ?? null,
+                'origen_texto'        => trim((string) $datos['origen']),
+                'destino_texto'       => trim((string) $datos['destino']),
+                'lat_origen'          => (float) $datos['origen_lat'],
+                'lng_origen'          => (float) $datos['origen_lng'],
+                'lat_destino'         => (float) $datos['destino_lat'],
+                'lng_destino'         => (float) $datos['destino_lng'],
                 'tarifa_estimada'     => $tarifa,
-                'distancia_km'        => $datos['distancia_km']  ?? null,
-                'tiempo_estimado_min' => $datos['tiempo_min']    ?? null,
+                'distancia_km'        => isset($datos['distancia_km']) ? (float) $datos['distancia_km'] : null,
+                'tiempo_estimado_min' => isset($datos['tiempo_min']) ? (int) $datos['tiempo_min'] : null,
                 'tipo_servicio'       => $datos['tipo_servicio'],
                 'metodo_pago'         => $datos['metodo_pago'],
                 'estado_viaje'        => 'buscando',
@@ -181,7 +181,7 @@ class ViajeService
     }
 
     // Historial 
-    public function historialPasajero(int $pasajeroId, string $filtro = 'todos')
+    public function historialPasajero(int $pasajeroId, string $filtro = 'todos', int $porPagina = 10)
     {
         $query = Viaje::where('id_pasajero', $pasajeroId)
             ->with('conductor.user', 'calificacion');
@@ -193,6 +193,9 @@ class ViajeService
             default  => $query,
         };
 
-        return $query->orderByDesc('fecha_solicitud')->get();
+        return $query
+            ->orderByDesc('fecha_solicitud')
+            ->simplePaginate($porPagina)
+            ->withQueryString();
     }
 }

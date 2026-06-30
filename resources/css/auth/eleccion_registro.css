@@ -1,70 +1,111 @@
-/* eleccion_registro.css - rol responsive sobre layout auth compartido */
+/* Eleccion de rol */
 
-.crear-cuenta {
+.main-wrapper .eleccion-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.main-wrapper .tarjeta-rol {
+  position: relative;
   display: flex;
-  justify-content: center;
-  align-items: center;
   flex-direction: column;
-  margin-bottom: 20px;
-}
-
-.registro {
-  width: 100%;
-  text-align: center;
-  padding: 24px 14px;
-}
-
-.registro h1 {
-  margin-bottom: 10px;
-  color: var(--text);
-  font-size: 1.45rem;
-  line-height: 1.2;
-}
-
-.registro p {
-  color: var(--gray);
-  margin-bottom: 24px;
-}
-
-.tarjetas-rol {
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.tarjeta-rol {
-  width: 100%;
+  align-items: flex-start;
+  gap: 8px;
   min-width: 0;
+  min-height: 184px;
+  border: 1px solid var(--auth-border, rgba(6, 17, 14, 0.14));
+  border-radius: var(--auth-radius, 8px);
+  background: linear-gradient(180deg, #ffffff 0%, var(--primary-bg, #eef8f1) 100%);
+  color: var(--primary, #06110e);
+  padding: 20px;
   text-decoration: none;
+  overflow: hidden;
+  transition:
+    border-color var(--auth-ease, 0.3s ease),
+    box-shadow var(--auth-ease, 0.3s ease),
+    transform var(--auth-ease, 0.3s ease),
+    background-color var(--auth-ease, 0.3s ease);
 }
 
-@media (min-width: 481px) {
-  .registro {
-    padding: 36px 18px;
-  }
+.main-wrapper .tarjeta-rol::after {
+  content: "";
+  position: absolute;
+  inset: auto 18px 0;
+  height: 3px;
+  border-radius: 999px 999px 0 0;
+  background: var(--primary-mid, #16a34a);
+  opacity: 0;
+  transform: scaleX(0.6);
+  transition: opacity var(--auth-ease, 0.3s ease), transform var(--auth-ease, 0.3s ease);
+}
 
-  .registro h1 {
-    font-size: 1.6rem;
-  }
+.main-wrapper .tarjeta-rol:hover,
+.main-wrapper .tarjeta-rol:focus-visible {
+  border-color: rgba(22, 163, 74, 0.34);
+  background: #ffffff;
+  box-shadow: 0 18px 38px rgba(6, 17, 14, 0.1);
+  transform: translateY(-3px) scale(1.01);
+}
+
+.main-wrapper .tarjeta-rol:hover::after,
+.main-wrapper .tarjeta-rol:focus-visible::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.main-wrapper .tarjeta-rol-icono {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid rgba(22, 163, 74, 0.16);
+  border-radius: var(--auth-radius, 8px);
+  background: rgba(22, 163, 74, 0.1);
+  font-size: 1.42rem;
+  transition: background-color var(--auth-ease, 0.3s ease), transform var(--auth-ease, 0.3s ease);
+}
+
+.main-wrapper .tarjeta-rol:hover .tarjeta-rol-icono,
+.main-wrapper .tarjeta-rol:focus-visible .tarjeta-rol-icono {
+  background: rgba(34, 197, 94, 0.16);
+  transform: rotate(-2deg) scale(1.04);
+}
+
+.main-wrapper .tarjeta-rol h2 {
+  margin: 8px 0 0;
+  color: var(--primary, #06110e);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.main-wrapper .tarjeta-rol p {
+  margin: 0;
+  color: var(--auth-muted, #5f6b67);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.main-wrapper .tarjeta-rol span {
+  margin-top: auto;
+  color: var(--primary-mid, #16a34a);
+  font-size: 0.84rem;
+  font-weight: 700;
+  transition: color var(--auth-ease, 0.3s ease), transform var(--auth-ease, 0.3s ease);
+}
+
+.main-wrapper .tarjeta-rol:hover span,
+.main-wrapper .tarjeta-rol:focus-visible span {
+  color: var(--primary-lite, #22c55e);
+  transform: translateX(3px);
 }
 
 @media (min-width: 768px) {
-  .tarjeta-rol {
-    width: calc(50% - 14px);
-  }
-}
-
-@media (min-width: 1025px) {
-  .registro {
-    padding: 50px 20px;
-  }
-
-  .tarjetas-rol {
-    gap: 25px;
-  }
-
-  .tarjeta-rol {
-    width: 280px;
+  .main-wrapper .eleccion-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

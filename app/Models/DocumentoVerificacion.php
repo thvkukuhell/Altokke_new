@@ -21,8 +21,13 @@ class DocumentoVerificacion extends Model
     protected function casts(): array
     {
         return [
-            'fecha_subida' => 'datetime',
-            'fecha_revision' => 'datetime',
+            'fecha_subida'    => 'datetime',
+            'fecha_revision'  => 'datetime',
         ];
+    }
+
+    public function conductor()
+    {
+        return $this->belongsTo(Conductor::class, 'id_conductor', 'id_conductor');
     }
 }

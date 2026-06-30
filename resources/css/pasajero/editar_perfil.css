@@ -133,7 +133,7 @@
 /* Formulario en Rejilla de Inputs */
 .perfil-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
     gap: 16px;
 }
 
@@ -206,7 +206,7 @@
     gap: 12px;
     border-top: 1px solid var(--border);
     padding-top: 24px;
-    flex-direction: column;
+    flex-wrap: wrap;
 }
 
 .btn-guardar-cambios-perfil {
@@ -220,7 +220,8 @@
     cursor: pointer;
     box-shadow: 0 2px 6px rgba(45, 106, 45, 0.15);
     transition: background 0.15s, transform 0.1s;
-    width: 100%;
+    flex: 1 1 180px;
+    width: auto;
     text-align: center;
 }
 
@@ -243,7 +244,8 @@
     text-decoration: none;
     display: inline-block;
     transition: background 0.15s;
-    width: 100%;
+    flex: 1 1 180px;
+    width: auto;
     text-align: center;
 }
 
@@ -252,24 +254,7 @@
     color: var(--text);
 }
 
-/* === ADAPTABILIDAD (RESPONSIVE) === */
-@media (max-width: 580px) {
-    .perfil-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-    }
-    
-    .perfil-botones-acciones-footer {
-        flex-direction: row;
-        justify-content: flex-end;
-    }
-    
-    .btn-guardar-cambios-perfil, .btn-cancelar-perfil {
-        width: auto;
-    }
-}
-
-@media (max-width: 991px) {
+@media (max-width: 1024px) {
     .perfil-layout {
         display: grid;
         grid-template-columns: 280px 1fr;

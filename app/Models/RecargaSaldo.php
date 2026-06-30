@@ -23,8 +23,14 @@ class RecargaSaldo extends Model
     protected function casts(): array 
     {
         return [
-            'fecha_solicitud' => 'datetime',
-            'fecha_aprobacion' => 'datetime',
+            'monto'              => 'decimal:2',
+            'fecha_solicitud'    => 'datetime',
+            'fecha_aprobacion'   => 'datetime',
         ];
+    }
+
+    public function conductor()
+    {
+        return $this->belongsTo(Conductor::class, 'id_conductor', 'id_conductor');
     }
 }

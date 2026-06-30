@@ -8,21 +8,22 @@
  
         <div class="perfil-contenido">
  
-            <div class="conductor-page-header">
-                <div>
-                    <h1>Solicitudes Pendientes</h1>
-                    <p>Viajes disponibles cerca de tu ubicación</p>
-                </div>
-            </div>
-            
+            <h1 class="titulo-pagina">Solicitudes Pendientes</h1>
+            <p class="subtitulo-pagina">Viajes disponibles cerca de tu ubicación</p>
+ 
             @if(session('mensaje'))
                 <div class="alert alert-success">{{ session('mensaje') }}</div>
             @endif
 
+            <div class="ajax-estado" id="solicitudes-ajax-estado" role="status">
+                <span class="ajax-punto"></span>
+                <span id="solicitudes-ajax-texto">Actualizando solicitudes cada 8 segundos</span>
+            </div>
+
             @if(!$puedeTomarViajes)
-                <div class="tarjeta conductor-aviso">
+                <div class="tarjeta" style="border-left:4px solid #f59e0b; margin-bottom:16px;">
                     <strong>Antes de aceptar viajes</strong>
-                    <p>
+                    <p style="margin:6px 0 0; color:var(--gray);">
                         Tu cuenta debe estar verificada y tu billetera debe tener saldo para cubrir la comisión de Altokke.
                     </p>
                     <a href="{{ route('conductor.billetera') }}" class="btn btn-verde btn-sm" style="margin-top:10px;">
@@ -31,57 +32,56 @@
                 </div>
             @endif
  
-            <div class="solicitudes-lista">
-                @forelse($solicitudes as $s)
-                    <article class="solicitud-card">
-                        <div class="solicitud-borde"></div>
-
-                        <div class="solicitud-cuerpo">
-                            <div class="solicitud-info">
-                                <div class="solicitud-ruta">
-                                    <div class="solicitud-ruta-fila">
-                                        <span class="dot verde"></span>
-                                        <span class="solicitud-direccion">{{ $s->origen_texto }}</span>
-                                    </div>
-                                    <div class="solicitud-ruta-fila">
-                                        <span class="dot rojo"></span>
-                                        <span class="solicitud-direccion">{{ $s->destino_texto }}</span>
-                                    </div>
+            <div id="solicitudes-lista"
+                 data-puede-tomar="{{ $puedeTomarViajes ? '1' : '0' }}"
+                 data-endpoint="{{ route('api.internal.conductor.solicitudes') }}"
+                 data-aceptar-url="{{ route('conductor.aceptarViaje') }}"
+                 data-csrf-token="{{ csrf_token() }}">
+                @if($solicitudes->isEmpty())
+                    <div class="tarjeta estado-vacio">
+                        <p>No hay solicitudes pendientes en este momento.</p>
+                    </div>
+                @else
+                    @foreach($solicitudes as $s)
+                    <div class="tarjeta solicitud-card">
+                        <div class="viaje-cuerpo" style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+ 
+                            <div>
+                                <div class="viaje-ruta" style="font-size:15px; font-weight:700; margin-bottom:6px;">
+                                    {{ $s->origen_texto }}
+                                    <span style="color:var(--gray-lite); font-weight:400;">→</span>
+                                    {{ $s->destino_texto }}
                                 </div>
-
-                                <div class="solicitud-meta">
-                                    <span class="meta-chip">👤 {{ $s->pasajero->user->nombre_completo ?? 'Pasajero' }}</span>
-                                    <span class="meta-chip">💳 {{ ucfirst($s->metodo_pago) }}</span>
-                                    <span class="meta-chip">🛺 {{ ucfirst($s->tipo_servicio) }}</span>
-                                    <span class="meta-chip">📅 {{ optional($s->fecha_solicitud)->format('d/m/Y H:i') ?? '—' }}</span>
+                                <div class="viaje-meta">
+                                    👤 {{ $s->pasajero->user->nombre_completo ?? 'Pasajero' }}
+                                    · 💳 {{ ucfirst($s->metodo_pago) }}
+                                    · {{ $s->tipo_servicio }}
                                 </div>
                             </div>
-
-                            <div class="solicitud-acciones">
-                                <div class="solicitud-precio">
+ 
+                            <div style="display:flex; align-items:center; gap:16px; flex-shrink:0;">
+                                <div style="font-family:var(--font-display); font-size:22px; font-weight:800; color:var(--p-verde-dark);">
                                     S/ {{ number_format($s->tarifa_estimada, 2) }}
                                 </div>
-
                                 <form method="POST" action="{{ route('conductor.aceptarViaje') }}">
                                     @csrf
                                     <input type="hidden" name="id_viaje" value="{{ $s->id_viaje }}">
-                                    <button type="submit" class="btn btn-verde btn-sm" {{ !$puedeTomarViajes ? 'disabled' : '' }}>
+                                    <button type="submit" class="btn btn-verde btn-sm">
                                         Aceptar
                                     </button>
                                 </form>
                             </div>
+ 
                         </div>
-                    </article>
-                @empty 
-                    <div class="conductor-estado-vacio">
-                        <div class="conductor-estado-vacio-icono">📭</div>
-                        <p>No hay solicitudes pendientes en este momento.</p>
                     </div>
-                @endforelse
+                    @endforeach
+                @endif
             </div>
  
         </div>
     </div>
 </div>
+
+@vite(['resources/js/conductor/solicitudes.js'])
 
 @endsection

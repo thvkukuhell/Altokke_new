@@ -11,6 +11,20 @@
             @if(session('mensaje'))
                 <div class="alert alert-success">{{ session('mensaje') }}</div>
             @endif
+
+            <div class="tarjeta">
+                <div class="perfil-encabezado">
+                    <h2>Foto de perfil</h2>
+                </div>
+                <div class="perfil-foto-bloque">
+                    <form method="POST" action="{{ route('perfil.foto') }}" enctype="multipart/form-data" class="perfil-upload-form">
+                        @csrf
+                        <input type="file" name="foto_perfil" accept="image/png,image/jpeg" required>
+                        <button type="submit" class="btn btn-verde">Subir foto</button>
+                        <p class="perfil-ayuda">JPG o PNG. Maximo 2 MB.</p>
+                    </form>
+                </div>
+            </div>
  
             {{-- Datos personales --}}
             <div class="tarjeta">

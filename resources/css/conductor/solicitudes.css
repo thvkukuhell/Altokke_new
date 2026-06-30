@@ -1,153 +1,117 @@
-/* solicitudes.css - viajes disponibles para el conductor */
+/* Solicitudes conductor */
 
-.conductor-page-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 18px;
-}
-
-.conductor-page-header h1 {
-    margin: 0 0 4px;
-    color: var(--text);
-    font-size: clamp(24px, 3vw, 32px);
-    line-height: 1.1;
-    letter-spacing: -0.7px;
-}
-
-.conductor-page-header p {
-    margin: 0;
-    color: var(--gray);
-    font-size: 14px;
-}
-
-.solicitudes-lista {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-}
-
-.solicitud-card {
-    display: flex;
-    align-items: stretch;
-    overflow: hidden;
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    box-shadow: var(--shadow-sm);
-    transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-
-.solicitud-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.solicitud-borde {
-    width: 6px;
-    background: var(--primary-mid);
-    flex: 0 0 auto;
-}
-
-.solicitud-cuerpo {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 18px;
-    padding: 18px 20px;
-}
-
-.solicitud-ruta {
-    display: grid;
-    gap: 8px;
-    min-width: 0;
-}
-
-.solicitud-ruta-fila {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
-}
-
-.solicitud-ruta-fila .dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 999px;
-    flex: 0 0 auto;
-}
-
-.solicitud-ruta-fila .dot.verde { background: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, .13); }
-.solicitud-ruta-fila .dot.rojo { background: #dc2626; box-shadow: 0 0 0 3px rgba(220, 38, 38, .13); }
-
-.solicitud-direccion {
-    color: var(--text);
-    font-weight: 750;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.solicitud-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.meta-chip {
+.ajax-estado {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    border-radius: 999px;
-    padding: 5px 10px;
-    background: #f3f4f6;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #f8fafc;
     color: var(--gray);
     font-size: 12px;
     font-weight: 700;
 }
 
+.ajax-estado .ajax-punto {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--p-verde-mid);
+    box-shadow: 0 0 0 4px rgba(45, 106, 45, 0.12);
+}
+
+.ajax-estado[data-tipo="cargando"] .ajax-punto {
+    animation: ajax-pulso 1s ease-in-out infinite;
+}
+
+.ajax-estado[data-tipo="error"] {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.ajax-estado[data-tipo="error"] .ajax-punto {
+    background: #dc2626;
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+}
+
+.solicitud-card {
+    margin-bottom: 12px;
+}
+
+.solicitud-cuerpo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.solicitud-info {
+    min-width: 0;
+}
+
+.solicitud-ruta {
+    margin-bottom: 6px;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+
+.solicitud-flecha {
+    color: var(--gray-lite);
+    font-weight: 500;
+}
+
+.solicitud-tiempo {
+    margin-top: 4px;
+}
+
 .solicitud-acciones {
     display: flex;
     align-items: center;
-    gap: 14px;
-    flex: 0 0 auto;
+    gap: 16px;
+    flex-shrink: 0;
 }
 
-.solicitud-precio {
-    color: var(--primary);
-    font-family: var(--font-display, inherit);
-    font-size: 24px;
+.solicitud-tarifa {
+    font-family: var(--font-display);
+    font-size: 22px;
     font-weight: 900;
-    letter-spacing: -0.6px;
+    color: var(--p-verde-dark);
     white-space: nowrap;
 }
 
-.conductor-aviso {
-    border-left: 5px solid #f59e0b;
-    background: #fffbeb;
+.solicitud-bloqueada {
+    max-width: 150px;
+    color: var(--gray);
+    font-size: 12px;
+    font-weight: 700;
+    text-align: right;
 }
 
-.conductor-aviso p {
-    margin: 6px 0 0;
-    color: #92400e;
+@keyframes ajax-pulso {
+    0%, 100% {
+        opacity: 0.55;
+        transform: scale(0.9);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.08);
+    }
 }
 
-@media (max-width: 780px) {
-    .conductor-page-header,
-    .solicitud-cuerpo,
-    .solicitud-acciones {
+@media (max-width: 768px) {
+    .solicitud-cuerpo {
+        align-items: flex-start;
         flex-direction: column;
-        align-items: stretch;
     }
 
     .solicitud-acciones {
-        gap: 10px;
-    }
-
-    .solicitud-precio {
-        text-align: left;
+        width: 100%;
+        justify-content: space-between;
     }
 }

@@ -20,7 +20,13 @@ class Notificacion extends Model
     protected function casts(): array 
     {
         return [
-            'fecha_notificacion' => 'datetime',
+            'leida'                => 'boolean',
+            'fecha_notificacion'   => 'datetime',
         ];
+    }
+
+    public function usuario()
+    {
+        return $this->belongsTo(User::class, 'id_usuario', 'id_usuario');
     }
 }

@@ -110,7 +110,7 @@
     align-items: center;
     justify-content: center;
     font-size: 18px;
-    z-index: 1000;
+    z-index: 21;
 }
 
 .marcador-conductor::after {

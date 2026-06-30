@@ -1,6 +1,10 @@
 @extends('layouts.main')
 @section('content')
 
+@php
+    $fotoPerfilUrl = $user->foto_perfil ? \Illuminate\Support\Facades\Storage::url($user->foto_perfil) : null;
+@endphp
+
 <div class="pagina-pasajero-perfil">
     <div class="perfil-layout">
  
@@ -8,7 +12,11 @@
         <aside class="perfil-sidebar">
             <div class="sidebar-cabecera">
                 <div class="avatar-wrapper">
-                    <div class="sidebar-avatar">{{ $user->iniciales() }}</div>
+                    @if($fotoPerfilUrl)
+                        <img src="{{ $fotoPerfilUrl }}" alt="Foto de perfil" class="sidebar-avatar-img">
+                    @else
+                        <div class="sidebar-avatar">{{ $user->iniciales() }}</div>
+                    @endif
                 </div>
                 <div class="sidebar-nombre">
                     {{ $user->nombre_completo ?? 'Usuario' }}
@@ -58,6 +66,23 @@
  
         {{-- CONTENIDO DE DATOS --}}
         <div class="perfil-contenido">
+
+            @if(session('mensaje'))
+                <div class="alert alert-success">{{ session('mensaje') }}</div>
+            @endif
+
+            <div class="tarjeta-perfil-bloque">
+                <div class="perfil-encabezado">
+                    <h2>Foto de perfil</h2>
+                </div>
+
+                <form method="POST" action="{{ route('perfil.foto') }}" enctype="multipart/form-data" class="perfil-upload-form">
+                    @csrf
+                    <input type="file" name="foto_perfil" accept="image/png,image/jpeg" required>
+                    <button type="submit" class="btn-editar-perfil-accion">Subir foto</button>
+                </form>
+                <p class="perfil-ayuda">Formatos permitidos: JPG o PNG. Maximo 2 MB.</p>
+            </div>
  
             <div class="tarjeta-perfil-bloque">
                 <div class="perfil-encabezado">
