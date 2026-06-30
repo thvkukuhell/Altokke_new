@@ -57,14 +57,13 @@ class ConductorController extends BaseApiController
         $request->merge($this->leerJsonInput());
         $request->validate([
             'estado_conductor' => 'sometimes|in:activo,inactivo,en_verificacion',
-            'saldo_disponible' => 'sometimes|numeric|min:0',
-            'calificacion_promedio' => 'sometimes|numeric|min:0|max:5',
         ]);
 
+        // esto es de Validacion BOLA IDOR: saldo_disponible y calificacion_promedio
+        // son campos que solo debe modificar el sistema (ViajeService / InternalViajeController),
+        // nunca el propio conductor desde este endpoint.
         $conductor->update($request->only([
             'estado_conductor',
-            'saldo_disponible',
-            'calificacion_promedio',
         ]));
 
         return $this->respuestaJson($conductor);

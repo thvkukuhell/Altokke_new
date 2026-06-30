@@ -66,6 +66,56 @@
   font-size: 12px;
 }
 
+.viaje-badge {
+  margin-top: 5px;
+}
+
+.historial-busqueda {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 16px;
+}
+
+.historial-busqueda label {
+  color: var(--texto);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.historial-busqueda input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-mid);
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--texto);
+  font: inherit;
+}
+
+.historial-busqueda input:focus {
+  border-color: var(--verde-mid);
+  outline: 3px solid rgba(22, 163, 74, 0.14);
+}
+
+.historial-busqueda-estado {
+  min-height: 18px;
+  margin: 0;
+  color: var(--gray);
+  font-size: 12px;
+}
+
+.historial-conductor-resultados {
+  display: grid;
+  gap: 12px;
+}
+
+.historial-vacio {
+  color: var(--gray);
+  text-align: center;
+  padding: 24px 0;
+}
+
 .paginacion-historial {
   margin-top: 22px;
 }
