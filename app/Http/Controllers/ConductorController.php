@@ -31,6 +31,26 @@ class ConductorController extends Controller
             ->findOrFail(Auth::id());
     }
 
+    // esto es de Validar viaje del conductor autenticado
+    private function validarViajeConductor(int $viajeId, array $estadosPermitidos): Viaje
+    {
+        $viaje = Viaje::find($viajeId);
+
+        if (! $viaje) {
+            abort(404, 'Viaje no encontrado.');
+        }
+
+        if ((int) $viaje->id_conductor !== (int) Auth::id()) {
+            abort(403, 'No tienes permiso para modificar este viaje.');
+        }
+
+        if (! in_array($viaje->estado_viaje, $estadosPermitidos, true)) {
+            abort(409, 'El estado actual del viaje no permite esta accion.');
+        }
+
+        return $viaje;
+    }
+
     private function construirPasos(string $estadoActual): array
     {
         $orden = ['aceptado', 'recogiendo', 'en_curso', 'completado'];
@@ -215,10 +235,15 @@ class ConductorController extends Controller
     public function aceptarViaje(Request $request) 
     {
         $request->validate([
-            'id_viaje' => 'required|integer|exists:viajes,id_viaje',
+            'id_viaje' => 'required|integer',
         ]);
 
-        $viaje = Viaje::findOrFail($request->id_viaje);
+        $viaje = Viaje::find((int) $request->id_viaje);
+
+        if (! $viaje) {
+            abort(404, 'Viaje no encontrado.');
+        }
+
         $conductor = $this->getConductorActual();
         
         if ($conductor->estado_conductor !== 'activo') {
@@ -234,18 +259,27 @@ class ConductorController extends Controller
         }
 
         // Evitar que dos conductores acepten el mismo viaje
-        if ($viaje->estado_viaje !== 'buscando' || $viaje->id_conductor !== null) {
-            return redirect()
-                ->route('conductor.solicitudes')
-                ->with('mensaje', 'Este viaje ya fue tomado por otro conductor.');
+        if (Viaje::where('id_conductor', Auth::id())
+            ->whereIn('estado_viaje', ['aceptado', 'recogiendo', 'en_curso'])
+            ->exists()) {
+            abort(409, 'Ya tienes un viaje activo.');
         }
 
-        // 1. Cambiar el estado ÚNICAMENTE a 'aceptado'
-        $viaje->update([
-            'id_conductor' => Auth::id(), 
-            'estado_viaje' => 'aceptado', 
-            'fecha_inicio' => now()
-        ]);
+        // esto es de Seguridad de Endpoints al aceptar viaje
+        $actualizados = Viaje::where('id_viaje', $viaje->id_viaje)
+            ->where('estado_viaje', 'buscando')
+            ->whereNull('id_conductor')
+            ->update([
+                'id_conductor' => Auth::id(),
+                'estado_viaje' => 'aceptado',
+                'fecha_inicio' => now(),
+            ]);
+
+        if ($actualizados === 0) {
+            abort(409, 'Este viaje ya fue tomado por otro conductor.');
+        }
+
+        $viaje->refresh();
 
         // 2. Disparar eventos
         event(new \App\Events\ViajeAceptado($viaje->load('conductor.user', 'conductor.vehiculo')));
@@ -272,13 +306,13 @@ class ConductorController extends Controller
     public function recogerPasajero(Request $request)
     {
         $request->validate([
-            'id_viaje' => 'required|integer|exists:viajes,id_viaje',
+            'id_viaje' => 'required|integer',
         ]);
 
-        $viaje = Viaje::where('id_viaje', $request->id_viaje)
-            ->where('id_conductor', Auth::id())
-            ->where('estado_viaje', 'aceptado')
-            ->firstOrFail();
+        $viaje = $this->validarViajeConductor(
+            (int) $request->id_viaje,
+            ['aceptado']
+        );
         $viaje->update(['estado_viaje' => 'recogiendo']);
 
         event(new \App\Events\ViajeActualizado(
@@ -293,13 +327,13 @@ class ConductorController extends Controller
     public function iniciarTrayecto(Request $request)
     {
         $request->validate([
-            'id_viaje' => 'required|integer|exists:viajes,id_viaje',
+            'id_viaje' => 'required|integer',
         ]);
 
-        $viaje = Viaje::where('id_viaje', $request->id_viaje)
-            ->where('id_conductor', Auth::id())
-            ->where('estado_viaje', 'recogiendo')
-            ->firstOrFail();
+        $viaje = $this->validarViajeConductor(
+            (int) $request->id_viaje,
+            ['recogiendo']
+        );
         $viaje->update(['estado_viaje' => 'en_curso']);
 
         event(new \App\Events\ViajeActualizado(
@@ -345,15 +379,15 @@ class ConductorController extends Controller
 
     public function completarViaje(Request $request)
     {
-        // 1. Validar que llegue el ID del viaje
         $request->validate([
-            'id_viaje' => 'required|integer|exists:viajes,id_viaje',
+            'id_viaje' => 'required|integer',
         ]);
 
-        $viaje = Viaje::where('id_viaje', $request->id_viaje)
-            ->where('id_conductor', Auth::id())
-            ->whereIn('estado_viaje', ['aceptado', 'recogiendo', 'en_curso'])
-            ->firstOrFail();
+        // esto es de Validacion BOLA IDOR para finalizar viaje
+        $viaje = $this->validarViajeConductor(
+            (int) $request->id_viaje,
+            ['aceptado', 'recogiendo', 'en_curso']
+        );
         $conductor = $this->getConductorActual();
         $tarifaFinal = (float) ($viaje->tarifa_final ?? $viaje->tarifa_estimada ?? 0);
         $montoComision = round($tarifaFinal * self::COMISION_ALTOKKE, 2);
@@ -409,13 +443,14 @@ class ConductorController extends Controller
     public function cancelarViaje(Request $request)
     {
         $request->validate([
-            'id_viaje' => 'required|integer|exists:viajes,id_viaje',
+            'id_viaje' => 'required|integer',
         ]);
 
-        $viaje = Viaje::where('id_viaje', $request->id_viaje)
-            ->where('id_conductor', Auth::id())
-            ->whereIn('estado_viaje', ['aceptado', 'recogiendo', 'en_curso'])
-            ->firstOrFail();
+        // esto es de Validacion BOLA IDOR para cancelar viaje
+        $viaje = $this->validarViajeConductor(
+            (int) $request->id_viaje,
+            ['aceptado', 'recogiendo', 'en_curso']
+        );
 
         $viaje->update([
             'estado_viaje' => 'cancelado',
@@ -578,13 +613,28 @@ class ConductorController extends Controller
             'lng' => 'required|numeric|between:-180,180',
         ]);
 
-        $viaje = Viaje::where('id_viaje', $request->viaje_id)
-            ->where('id_conductor', Auth::id())
-            ->whereIn('estado_viaje', ['aceptado', 'recogiendo', 'en_curso'])
-            ->first();
-        
-        if (!$viaje) {
-            return response()->json(['ok' => false, 'mensaje' => 'Viaje no autorizado'], 403);
+        $viaje = Viaje::find((int) $request->viaje_id);
+
+        if (! $viaje) {
+            return response()->json([
+                'ok' => false,
+                'mensaje' => 'Viaje no encontrado',
+            ], 404);
+        }
+
+        // esto es de Validacion BOLA IDOR para ubicacion
+        if ((int) $viaje->id_conductor !== (int) Auth::id()) {
+            return response()->json([
+                'ok' => false,
+                'mensaje' => 'No tienes permiso para actualizar este viaje',
+            ], 403);
+        }
+
+        if (! in_array($viaje->estado_viaje, ['aceptado', 'recogiendo', 'en_curso'], true)) {
+            return response()->json([
+                'ok' => false,
+                'mensaje' => 'El estado del viaje no permite actualizar ubicacion',
+            ], 409);
         }
 
         Conductor::where('id_conductor', Auth::id())->update([

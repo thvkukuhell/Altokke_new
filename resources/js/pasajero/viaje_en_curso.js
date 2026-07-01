@@ -68,6 +68,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const panelTiempo = document.getElementById('panel-tiempo-pasajero');
     const tarifaDetalle = document.getElementById('tarifa-detalle-curso');
 
+    // esto es de Respuesta HTTP segura
+    function detenerConsultaEstado(mensaje) {
+        if (pollingEstado) {
+            window.clearInterval(pollingEstado);
+            pollingEstado = null;
+        }
+
+        AltokkeMapa.detenerSimulacion(`pasajero-${viajeId}`);
+        if (estadoRuta) estadoRuta.textContent = 'Viaje no disponible';
+        if (detalleRuta) detalleRuta.textContent = mensaje;
+    }
+
     async function pintarRutas() {
         if (!origenReal || !destinoReal || !marcadorConductor) {
             if (estadoRuta) estadoRuta.textContent = 'Coordenadas pendientes';
@@ -193,28 +205,33 @@ document.addEventListener('DOMContentLoaded', function () {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             });
-            if (!respuesta.ok) throw new Error('No se pudo consultar el viaje');
+            if (!respuesta.ok) {
+                detenerConsultaEstado('El viaje no existe o no tienes permiso para consultarlo.');
+                return;
+            }
 
             const data = await respuesta.json();
-            const viaje = data.data || null;
-            if (!data.ok || !viaje) throw new Error(data.message || 'Respuesta no valida');
+            const viaje = data.viaje || data.data || null;
+            if (!data.ok || !viaje) {
+                detenerConsultaEstado(data.mensaje || data.message || 'La respuesta del viaje no es valida.');
+                return;
+            }
 
             if (viaje.estado && viaje.estado !== estadoActual) {
                 actualizarPasos(viaje.estado);
             }
 
+            const conductor = data.conductor || viaje.conductor || null;
             const puntoConductor = AltokkeMapa.puntoValido(
-                viaje.conductor?.lat,
-                viaje.conductor?.lng
+                conductor?.lat,
+                conductor?.lng
             );
             if (puntoConductor) {
                 moverConductorEnMapa(puntoConductor, true);
                 pintarRutas();
             }
         } catch (error) {
-            if (detalleRuta) {
-                detalleRuta.textContent = 'Seguimos mostrando la ultima ubicacion disponible';
-            }
+            detenerConsultaEstado('No se pudo consultar el viaje. Actualiza la pagina para intentar nuevamente.');
         } finally {
             consultandoEstado = false;
         }

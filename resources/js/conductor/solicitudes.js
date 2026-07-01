@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const csrfToken = lista.dataset.csrfToken;
     const puedeTomarInicial = lista.dataset.puedeTomar === '1';
     let cargando = false;
+    let pollingSolicitudes = null;
 
     function crearElemento(etiqueta, clase, texto = '') {
         const elemento = document.createElement(etiqueta);
@@ -100,6 +101,10 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             if (!respuesta.ok) {
+                if ([401, 403].includes(respuesta.status) && pollingSolicitudes) {
+                    window.clearInterval(pollingSolicitudes);
+                    pollingSolicitudes = null;
+                }
                 throw new Error('No se pudo consultar el servidor');
             }
 
@@ -109,13 +114,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             const solicitudes = Array.isArray(data.data?.solicitudes) ? data.data.solicitudes : [];
+            const puedeTomar = data.data?.puede_tomar_viajes ?? puedeTomarInicial;
 
             if (!solicitudes.length) {
                 pintarVacio('No hay solicitudes pendientes en este momento.');
             } else {
                 lista.replaceChildren();
                 solicitudes.forEach((solicitud) => {
-                    lista.appendChild(tarjetaSolicitud(solicitud, puedeTomarInicial));
+                    lista.appendChild(tarjetaSolicitud(solicitud, puedeTomar));
                 });
             }
 
@@ -128,5 +134,5 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     cargarSolicitudes();
-    window.setInterval(cargarSolicitudes, 8000);
+    pollingSolicitudes = window.setInterval(cargarSolicitudes, 8000);
 });

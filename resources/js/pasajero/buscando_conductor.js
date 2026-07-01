@@ -40,6 +40,20 @@ document.addEventListener('DOMContentLoaded', function () {
         pollingEstado = null;
     }
 
+    // esto es de Respuesta HTTP segura
+    function mostrarErrorViaje(mensaje) {
+        detenerPollingEstado();
+
+        const titulo = document.getElementById('buscando-titulo');
+        const descripcion = document.querySelector('.buscando-desc');
+        const botonCancelar = document.querySelector('#form-cancelar button');
+
+        if (titulo) titulo.textContent = 'Viaje no disponible';
+        if (descripcion) descripcion.textContent = mensaje;
+        if (botonCancelar) botonCancelar.disabled = true;
+        pintarEstadoAjax(mensaje, 'error');
+    }
+
     function actualizarPanelEstado(viaje, conductor = null) {
         const titulo = document.getElementById('buscando-titulo');
         const badge = document.getElementById('buscando-estado-badge');
@@ -103,16 +117,18 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             if (!respuesta.ok) {
-                throw new Error('No se pudo consultar el estado');
+                mostrarErrorViaje('El viaje no existe o no tienes permiso para consultarlo.');
+                return;
             }
 
             const data = await respuesta.json();
-            const viaje = data.data || null;
+            const viaje = data.viaje || data.data || null;
             if (!data.ok || !viaje) {
-                throw new Error(data.message || 'Respuesta no valida');
+                mostrarErrorViaje(data.mensaje || data.message || 'La respuesta del viaje no es valida.');
+                return;
             }
 
-            actualizarPanelEstado(viaje, viaje.conductor);
+            actualizarPanelEstado(viaje, data.conductor || viaje.conductor);
             pintarEstadoAjax('Estado actualizado correctamente', 'ok');
 
             if (viaje.redirect_url) {
@@ -128,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 pintarEstadoAjax('Consulta detenida: viaje finalizado', 'ok');
             }
         } catch (error) {
-            pintarEstadoAjax('No se pudo actualizar el estado. Intentaremos otra vez.', 'error');
+            mostrarErrorViaje('No se pudo consultar el viaje. Actualiza la pagina para intentar nuevamente.');
         } finally {
             consultandoEstado = false;
         }

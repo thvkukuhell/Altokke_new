@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let ultimaRutaMs = 0;
     let gpsRealActivo = Boolean(conductorReal);
     let watchId = null;
+    let ubicacionBloqueada = false;
 
     const eta = document.getElementById('eta-conductor');
     const distancia = document.getElementById('distancia-conductor');
@@ -110,26 +111,43 @@ document.addEventListener('DOMContentLoaded', function () {
         iniciarSimulacionSiHaceFalta(rutaAlPasajero);
     }
 
-    function emitirUbicacion(latitud, longitud) {
+    // esto es de Proteccion CSRF y Respuesta HTTP segura
+    async function emitirUbicacion(latitud, longitud) {
         const punto = AltokkeMapa.puntoValido(latitud, longitud);
-        if (!punto || !viajeId) return;
+        if (!punto || !viajeId || ubicacionBloqueada) return;
 
-        fetch(datos.dataset.ubicacionUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': datos.dataset.csrfToken,
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({
-                viaje_id: viajeId,
-                lat: punto.lat,
-                lng: punto.lng
-            })
-        }).catch(() => {
+        try {
+            const respuesta = await fetch(datos.dataset.ubicacionUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': datos.dataset.csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    viaje_id: viajeId,
+                    lat: punto.lat,
+                    lng: punto.lng
+                })
+            });
+
+            if (!respuesta.ok) {
+                if ([401, 403, 404, 409].includes(respuesta.status)) {
+                    ubicacionBloqueada = true;
+                    AltokkeMapa.detenerSimulacion(`conductor-${viajeId}`);
+
+                    if (watchId !== null && navigator.geolocation) {
+                        navigator.geolocation.clearWatch(watchId);
+                        watchId = null;
+                    }
+                }
+
+                throw new Error('No se pudo enviar la ubicacion');
+            }
+        } catch (error) {
             if (detalle) detalle.textContent = 'No se pudo enviar la ubicacion';
-        });
+        }
     }
 
     function moverConductor(latitud, longitud, esReal = false) {

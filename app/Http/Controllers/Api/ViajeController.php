@@ -51,6 +51,15 @@ class ViajeController extends BaseApiController
             return $this->errorJson('Solo pasajeros pueden crear viajes', 403);
         }
 
+        // esto es de Evitar solicitudes duplicadas
+        $viajeActivo = Viaje::where('id_pasajero', Auth::id())
+            ->whereIn('estado_viaje', ['buscando', 'aceptado', 'recogiendo', 'en_curso'])
+            ->first();
+
+        if ($viajeActivo) {
+            return $this->errorJson('Ya tienes un viaje activo', 409);
+        }
+
         $request->validate([
             'id_pasajero' => 'required|integer|exists:pasajeros,id_pasajero',
             'origen_texto' => 'required|string',
@@ -97,10 +106,27 @@ class ViajeController extends BaseApiController
                 return $this->errorJson('El pasajero solo puede cancelar su viaje', 403);
             }
 
+            if (! in_array($viaje->estado_viaje, ['buscando', 'aceptado', 'recogiendo'], true)) {
+                return $this->errorJson('El estado actual no permite cancelar el viaje', 409);
+            }
+
             $viaje->update(['estado_viaje' => 'cancelado']);
         } else {
-            $datos = $request->only(['estado_viaje', 'tarifa_final']);
-            $datos['id_conductor'] = Auth::id();
+            $nuevoEstado = $request->input('estado_viaje');
+
+            // esto es de Seguridad de Endpoints para conductor
+            if (! $nuevoEstado) {
+                return $this->errorJson('Debes indicar el nuevo estado del viaje', 422);
+            }
+
+            if (! $this->transicionPermitidaConductor($viaje->estado_viaje, $nuevoEstado)) {
+                return $this->errorJson('El cambio de estado solicitado no esta permitido', 409);
+            }
+
+            $datos = ['estado_viaje' => $nuevoEstado];
+            if ($nuevoEstado === 'completado' && $request->has('tarifa_final')) {
+                $datos['tarifa_final'] = $request->input('tarifa_final');
+            }
             $viaje->update($datos);
         }
 
@@ -120,6 +146,14 @@ class ViajeController extends BaseApiController
             return $this->errorJson('No tienes permiso para cancelar este viaje', 403);
         }
 
+        $estadosPermitidos = Auth::user()->tipo_usuario === 'pasajero'
+            ? ['buscando', 'aceptado', 'recogiendo']
+            : ['aceptado', 'recogiendo', 'en_curso'];
+
+        if (! in_array($viaje->estado_viaje, $estadosPermitidos, true)) {
+            return $this->errorJson('El estado actual no permite cancelar el viaje', 409);
+        }
+
         $viaje->update(['estado_viaje' => 'cancelado']);
 
         return $this->respuestaJson(['mensaje' => 'Viaje cancelado correctamente']);
@@ -136,5 +170,16 @@ class ViajeController extends BaseApiController
         }
 
         return false;
+    }
+
+    private function transicionPermitidaConductor(string $estadoActual, string $nuevoEstado): bool
+    {
+        $transiciones = [
+            'aceptado' => ['recogiendo', 'completado', 'cancelado'],
+            'recogiendo' => ['en_curso', 'completado', 'cancelado'],
+            'en_curso' => ['completado', 'cancelado'],
+        ];
+
+        return in_array($nuevoEstado, $transiciones[$estadoActual] ?? [], true);
     }
 }

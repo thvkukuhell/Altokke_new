@@ -31,19 +31,19 @@ Route::middleware('redirect.auth.role')->group(function () {
 Route::post('/auth/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 Route::post('/mapa/ruta-estimada', [MapaRutaController::class, 'rutaEstimada'])->middleware('auth')->name('mapa.rutaEstimada');
 Route::post('/perfil/foto', [PerfilArchivoController::class, 'actualizarFoto'])->middleware('auth')->name('perfil.foto');
-Route::get('/reportes/viajes/{viajeId}/comprobante', [ReporteController::class, 'comprobanteViajePdf'])->middleware('auth')->name('reportes.viajes.comprobante');
+Route::get('/reportes/viajes/{viajeId}/comprobante', [ReporteController::class, 'comprobanteViajePdf'])->whereNumber('viajeId')->middleware('auth')->name('reportes.viajes.comprobante');
 
 // Pasajero
-Route::prefix('pasajero')->name('pasajero.')->middleware(['auth', 'role:pasajero'])->group(function () {
+Route::prefix('pasajero')->name('pasajero.')->middleware(['auth', 'role:pasajero', 'share.pasajero.viaje'])->group(function () {
     Route::get('/', [PasajeroController::class, 'index']);
     Route::get('/solicitarViaje', [PasajeroController::class, 'solicitarViaje'])->name('solicitarViaje');
     Route::post('/crearViaje', [PasajeroController::class, 'crearViaje'])->name('crearViaje');
-    Route::get('/buscando/{viajeId}', [PasajeroController::class, 'buscando'])->name('buscando');
+    Route::get('/buscando/{viajeId}', [PasajeroController::class, 'buscando'])->whereNumber('viajeId')->name('buscando');
     Route::post('/cancelarViaje', [PasajeroController::class, 'cancelarViaje'])->name('cancelarViaje');
     Route::post('/expirarViaje', [PasajeroController::class, 'expirarViaje'])->name('expirarViaje');
-    Route::get('/estadoViaje/{viajeId}', [PasajeroController::class, 'estadoViajeJson'])->name('estadoViaje.json');
-    Route::get('/enCurso/{viajeId}', [PasajeroController::class, 'enCurso'])->name('enCurso');
-    Route::get('/calificar/{viajeId}', [PasajeroController::class, 'calificar'])->name('calificar');
+    Route::get('/estadoViaje/{viajeId}', [PasajeroController::class, 'estadoViajeJson'])->whereNumber('viajeId')->name('estadoViaje.json');
+    Route::get('/enCurso/{viajeId}', [PasajeroController::class, 'enCurso'])->whereNumber('viajeId')->name('enCurso');
+    Route::get('/calificar/{viajeId}', [PasajeroController::class, 'calificar'])->whereNumber('viajeId')->name('calificar');
     Route::post('/enviarCalificacion', [PasajeroController::class, 'enviarCalificacion'])->name('enviarCalificacion');
     Route::get('/historial', [PasajeroController::class, 'historial'])->name('historial');
     Route::get('/historial/csv', [ReporteController::class, 'pasajeroHistorialCsv'])->name('historial.csv');

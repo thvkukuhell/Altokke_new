@@ -40,14 +40,14 @@
                 Mis viajes
             </a>
 
-            @if($viajeActivo ?? null)
-                @if($viajeActivo->estado_viaje === 'buscando')
-                    <a href="{{ route('pasajero.buscando', $viajeActivo->id_viaje) }}" class="enlace-menu-app nav-viaje-activo">
+            @if($viajeActivoPasajero ?? null)
+                @if($viajeActivoPasajero->estado_viaje === 'buscando')
+                    <a href="{{ route('pasajero.buscando', $viajeActivoPasajero->id_viaje) }}" class="enlace-menu-app nav-viaje-activo">
                         <span class="nav-dot-pulse"></span>
                         Buscando conductor
                     </a>
                 @else
-                    <a href="{{ route('pasajero.enCurso', $viajeActivo->id_viaje) }}" class="enlace-menu-app nav-viaje-activo">
+                    <a href="{{ route('pasajero.enCurso', $viajeActivoPasajero->id_viaje) }}" class="enlace-menu-app nav-viaje-activo">
                         <span class="nav-dot-pulse"></span>
                         Viaje en curso
                     </a>

@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
             'role' => \App\Http\Middleware\CheckRole::class,
             'redirect.auth.role' => \App\Http\Middleware\RedirectIfAuthenticatedRole::class,
+            'share.pasajero.viaje' => \App\Http\Middleware\SharePasajeroViajeActivo::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

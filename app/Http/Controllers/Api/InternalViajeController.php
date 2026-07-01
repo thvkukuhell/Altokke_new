@@ -92,16 +92,27 @@ class InternalViajeController extends BaseApiController
             return $this->errorJson('Saldo insuficiente para aceptar viajes', 403);
         }
 
-        if ($viaje->estado_viaje !== 'buscando' || $viaje->id_conductor !== null) {
-            return $this->errorJson('Este viaje ya no esta disponible', 400);
+        if (Viaje::where('id_conductor', Auth::id())
+            ->whereIn('estado_viaje', ['aceptado', 'recogiendo', 'en_curso'])
+            ->exists()) {
+            return $this->errorJson('Ya tienes un viaje activo', 409);
         }
 
-        $viaje->update([
-            'id_conductor' => Auth::id(),
-            'estado_viaje' => 'aceptado',
-            'fecha_inicio' => now(),
-        ]);
+        // esto es de Seguridad de Endpoints al aceptar viaje
+        $actualizados = Viaje::where('id_viaje', $viaje->id_viaje)
+            ->where('estado_viaje', 'buscando')
+            ->whereNull('id_conductor')
+            ->update([
+                'id_conductor' => Auth::id(),
+                'estado_viaje' => 'aceptado',
+                'fecha_inicio' => now(),
+            ]);
 
+        if ($actualizados === 0) {
+            return $this->errorJson('Este viaje ya no esta disponible', 409);
+        }
+
+        $viaje->refresh();
         $viaje->load('conductor.user', 'conductor.vehiculo', 'pasajero.user');
         event(new ViajeAceptado($viaje));
         event(new ViajeActualizado((int) $viaje->id_pasajero, 'aceptado', (int) $viaje->id_viaje));
@@ -140,7 +151,7 @@ class InternalViajeController extends BaseApiController
         }
 
         if (! in_array($viaje->estado_viaje, ['aceptado', 'recogiendo', 'en_curso'], true)) {
-            return $this->errorJson('El viaje no permite actualizar ubicacion', 400);
+            return $this->errorJson('El viaje no permite actualizar ubicacion', 409);
         }
 
         Conductor::where('id_conductor', Auth::id())->update([
@@ -176,7 +187,7 @@ class InternalViajeController extends BaseApiController
         }
 
         if (! in_array($viaje->estado_viaje, ['aceptado', 'recogiendo', 'en_curso'], true)) {
-            return $this->errorJson('El viaje no se puede completar en su estado actual', 400);
+            return $this->errorJson('El viaje no se puede completar en su estado actual', 409);
         }
 
         $conductor = Conductor::find(Auth::id());

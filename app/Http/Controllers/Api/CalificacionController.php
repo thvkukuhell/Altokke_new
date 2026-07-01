@@ -60,6 +60,11 @@ class CalificacionController extends BaseApiController
             return $this->errorJson('No tienes permiso para calificar este viaje', 403);
         }
 
+        // esto es de Seguridad de Endpoints
+        if ($viaje->estado_viaje !== 'completado' || ! $viaje->id_conductor) {
+            return $this->errorJson('Solo puedes calificar un viaje completado', 422);
+        }
+
         $calificacion = Calificacion::updateOrCreate(
             ['id_viaje' => $request->id_viaje],
             [

@@ -37,21 +37,17 @@ class ViajeService
     public function crearViaje(int $pasajeroId, array $datos): Viaje
     {
         return DB::transaction(function () use ($pasajeroId, $datos) {
-
-            // 1. Cancelar viajes previos en estado "buscando"
-            $this->cancelarViajesBuscando($pasajeroId);
-
-            // 2. Asegurar registro en tabla pasajeros
+            // 1. Asegurar registro en tabla pasajeros
             Pasajero::firstOrCreate(
                 ['id_pasajero' => $pasajeroId],
                 ['metodo_pago_preferido' => 'efectivo']
             );
 
-            // 3. Calcular tarifa
+            // 2. Calcular tarifa
             $distanciaKm = (float) ($datos['distancia_km'] ?? 0);
             $tarifa      = $this->calcularTarifa($datos['tipo_servicio'], $distanciaKm);
 
-            // 4. Crear el viaje
+            // 3. Crear el viaje
             $viaje = Viaje::create([
                 'id_pasajero'         => $pasajeroId,
                 'origen_texto'        => trim((string) $datos['origen']),
@@ -69,7 +65,7 @@ class ViajeService
                 'fecha_solicitud'     => now(),
             ]);
 
-            // 5. Disparar evento (notifica a conductores disponibles via broadcast)
+            // 4. Disparar evento (notifica a conductores disponibles via broadcast)
             event(new ViajeCreado($viaje));
 
             return $viaje;
@@ -77,13 +73,6 @@ class ViajeService
     }
 
     //  Cancelación 
-    public function cancelarViajesBuscando(int $pasajeroId): void
-    {
-        Viaje::where('id_pasajero', $pasajeroId)
-            ->where('estado_viaje', 'buscando')
-            ->update(['estado_viaje' => 'cancelado']);
-    }
-
     public function cancelarViaje(int $viajeId, int $pasajeroId): bool
     {
         $viaje = Viaje::where('id_viaje', $viajeId)

@@ -13,48 +13,47 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['web', 'auth'])->group(function () {
     Route::controller(UsuarioController::class)->prefix('usuarios')->group(function () {
         Route::get('/', 'index');
-        Route::post('/', 'store');
-        Route::get('/{id}', 'show');
-        Route::put('/{id}', 'update');
-        Route::delete('/{id}', 'destroy');
+        Route::get('/{id}', 'show')->whereNumber('id');
+        Route::put('/{id}', 'update')->whereNumber('id');
+        Route::delete('/{id}', 'destroy')->whereNumber('id');
     });
 
     Route::controller(ViajeController::class)->prefix('viajes')->group(function () {
         Route::get('/', 'index');
         Route::post('/', 'store');
-        Route::get('/{id}', 'show');
-        Route::put('/{id}', 'update');
-        Route::delete('/{id}', 'destroy');
+        Route::get('/{id}', 'show')->whereNumber('id');
+        Route::put('/{id}', 'update')->whereNumber('id');
+        Route::delete('/{id}', 'destroy')->whereNumber('id');
     });
 
     Route::controller(ApiConductorController::class)->prefix('conductores')->group(function () {
         Route::get('/', 'index');
-        Route::get('/{id}', 'show');
-        Route::put('/{id}', 'update');
-        Route::delete('/{id}', 'destroy');
+        Route::get('/{id}', 'show')->whereNumber('id');
+        Route::put('/{id}', 'update')->whereNumber('id');
+        Route::delete('/{id}', 'destroy')->whereNumber('id');
     });
 
     Route::controller(CalificacionController::class)->prefix('calificaciones')->group(function () {
         Route::get('/', 'index');
         Route::post('/', 'store');
-        Route::get('/{id}', 'show');
-        Route::delete('/{id}', 'destroy');
+        Route::get('/{id}', 'show')->whereNumber('id');
+        Route::delete('/{id}', 'destroy')->whereNumber('id');
     });
 
     Route::controller(ApiPasajeroController::class)->prefix('pasajeros')->group(function () {
         Route::get('/', 'index');
         Route::post('/', 'store');
-        Route::get('/{id}', 'show');
-        Route::put('/{id}', 'update');
-        Route::delete('/{id}', 'destroy');
-        Route::get('/{id}/viajes', 'viajes');
+        Route::get('/{id}', 'show')->whereNumber('id');
+        Route::put('/{id}', 'update')->whereNumber('id');
+        Route::delete('/{id}', 'destroy')->whereNumber('id');
+        Route::get('/{id}/viajes', 'viajes')->whereNumber('id');
     });
 
     Route::prefix('internal')->name('api.internal.')->group(function () {
-        Route::get('/viajes/{id}', [InternalViajeController::class, 'show'])->name('viajes.show');
-        Route::post('/viajes/{id}/aceptar', [InternalViajeController::class, 'aceptar'])->name('viajes.aceptar');
-        Route::post('/viajes/{id}/ubicacion', [InternalViajeController::class, 'actualizarUbicacion'])->name('viajes.ubicacion');
-        Route::post('/viajes/{id}/completar', [InternalViajeController::class, 'completar'])->name('viajes.completar');
+        Route::get('/viajes/{id}', [InternalViajeController::class, 'show'])->whereNumber('id')->name('viajes.show');
+        Route::post('/viajes/{id}/aceptar', [InternalViajeController::class, 'aceptar'])->whereNumber('id')->name('viajes.aceptar');
+        Route::post('/viajes/{id}/ubicacion', [InternalViajeController::class, 'actualizarUbicacion'])->whereNumber('id')->name('viajes.ubicacion');
+        Route::post('/viajes/{id}/completar', [InternalViajeController::class, 'completar'])->whereNumber('id')->name('viajes.completar');
 
         Route::get('/conductor/solicitudes', [InternalViajeController::class, 'solicitudesConductor'])->name('conductor.solicitudes');
         Route::get('/conductor/historial', [InternalViajeController::class, 'historialConductor'])->name('conductor.historial');

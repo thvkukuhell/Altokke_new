@@ -17,8 +17,13 @@ class PasajeroController extends Controller
         return redirect()->route('pasajero.solicitarViaje');
     }
 
-    public function solicitarViaje()
+    public function solicitarViaje(Request $request)
     {
+        $redireccion = $this->redirigirSiTieneViajeActivo($request);
+        if ($redireccion) {
+            return $redireccion;
+        }
+
         return view('pasajero.solicitar_viaje', [
             'header' => 'header_pasajero',
             'footer' => 'footer',
@@ -28,6 +33,12 @@ class PasajeroController extends Controller
 
     public function crearViaje(Request $request)
     {
+        // esto es de Evitar solicitudes duplicadas
+        $redireccion = $this->redirigirSiTieneViajeActivo($request);
+        if ($redireccion) {
+            return $redireccion;
+        }
+
         $request->merge([
             'origen' => trim((string) $request->input('origen', '')),
             'destino' => trim((string) $request->input('destino', '')),
@@ -81,16 +92,20 @@ class PasajeroController extends Controller
 
     public function buscando(int $viajeId)
     {
-        $viajeRaw = Viaje::where('id_viaje', $viajeId)
-            ->where('id_pasajero', Auth::id())
-            ->first();
+        // esto es de Validacion BOLA IDOR en vista web
+        $viajeRaw = $this->validarViajePasajero($viajeId);
 
-        // Si el viaje fue aceptado mientras llegaba aquí, redirigir directo
-        if ($viajeRaw && in_array($viajeRaw->estado_viaje, ['aceptado', 'recogiendo', 'en_curso'])) {
+        if (in_array($viajeRaw->estado_viaje, ['aceptado', 'recogiendo', 'en_curso'], true)) {
             return redirect()->route('pasajero.enCurso', $viajeId);
         }
 
-        $viaje = $viajeRaw ? [
+        if ($viajeRaw->estado_viaje !== 'buscando') {
+            return redirect()
+                ->route('pasajero.historial')
+                ->with('error', 'Este viaje ya no se encuentra buscando conductor.');
+        }
+
+        $viaje = [
             'id'          => $viajeRaw->id_viaje,
             'origen'      => $viajeRaw->origen_texto,
             'destino'     => $viajeRaw->destino_texto,
@@ -101,10 +116,6 @@ class PasajeroController extends Controller
             'origen_lng'  => $viajeRaw->lng_origen,
             'destino_lat' => $viajeRaw->lat_destino,
             'destino_lng' => $viajeRaw->lng_destino,
-        ] : [
-            'id' => 0, 'origen' => '—', 'destino' => '—', 'tarifa' => '0.00',
-            'origen_lat' => -5.63889, 'origen_lng' => -78.5311,
-            'destino_lat' => -5.6800, 'destino_lng' => -78.5400,
         ];
 
         return view('pasajero.buscando_conductor', [
@@ -196,59 +207,51 @@ class PasajeroController extends Controller
 
     public function enCurso(int $viajeId)
     {
-        $viajeRaw = Viaje::with('conductor.user', 'conductor.vehiculo')
-            ->where('id_pasajero', Auth::id())
-            ->find($viajeId);
+        // esto es de Validar viaje del pasajero autenticado
+        $viajeRaw = $this->validarViajePasajero($viajeId);
+        $viajeRaw->load('conductor.user', 'conductor.vehiculo');
 
-        if (!$viajeRaw || !$viajeRaw->conductor) {
-            $viaje = [
-                'id'          => $viajeId,
-                'origen'      => '—',
-                'destino'     => '—',
-                'tarifa'      => '0.00',
-                'metodo_pago' => 'efectivo',
-                'origen_lat'  => -5.63889,
-                'origen_lng'  => -78.5311,
-                'destino_lat' => -5.6800,
-                'destino_lng' => -78.5400,
-                'estado'      => 'buscando',
-            ];
-            $conductor = [
-                'nombre'      => '—',
-                'calificacion' => 0,
-                'modelo'      => '—',
-                'placa'       => '—',
-                'lat'         => -5.63889,
-                'lng'         => -78.5311,
-            ];
-            $iniciales = '--';
-            $eta       = '—';
-            $pasos     = $this->construirPasos('aceptado');
-        } else {
-            $viaje = [
-                'id'          => $viajeRaw->id_viaje,
-                'origen'      => $viajeRaw->origen_texto,
-                'destino'     => $viajeRaw->destino_texto,
-                'tarifa'      => $viajeRaw->tarifa_estimada,
-                'metodo_pago' => $viajeRaw->metodo_pago,
-                'origen_lat'  => $viajeRaw->lat_origen,
-                'origen_lng'  => $viajeRaw->lng_origen,
-                'destino_lat' => $viajeRaw->lat_destino,
-                'destino_lng' => $viajeRaw->lng_destino,
-                'estado'      => $viajeRaw->estado_viaje,
-            ];
-            $conductor = [
-                'nombre'       => $viajeRaw->conductor->user->nombre_completo ?? '—',
-                'calificacion' => $viajeRaw->conductor->calificacion_promedio ?? 0,
-                'modelo'       => trim(($viajeRaw->conductor->vehiculo->marca ?? '') . ' ' . ($viajeRaw->conductor->vehiculo->modelo ?? '')),
-                'placa'        => $viajeRaw->conductor->vehiculo->placa ?? '—',
-                'lat'          => $viajeRaw->conductor->lat_actual,
-                'lng'          => $viajeRaw->conductor->lng_actual,
-            ];
-            $iniciales = $this->calcularIniciales($viajeRaw->conductor->user->nombre_completo ?? '');
-            $eta       = $viajeRaw->tiempo_estimado_min ?? '—';
-            $pasos     = $this->construirPasos($viajeRaw->estado_viaje);
+        if ($viajeRaw->estado_viaje === 'buscando') {
+            return redirect()->route('pasajero.buscando', $viajeId);
         }
+
+        if ($viajeRaw->estado_viaje === 'completado') {
+            return redirect()->route('pasajero.calificar', $viajeId);
+        }
+
+        if (! in_array($viajeRaw->estado_viaje, ['aceptado', 'recogiendo', 'en_curso'], true)) {
+            return redirect()
+                ->route('pasajero.historial')
+                ->with('error', 'Este viaje ya no se encuentra en curso.');
+        }
+
+        if (! $viajeRaw->conductor) {
+            abort(404, 'El viaje no tiene conductor asignado.');
+        }
+
+        $viaje = [
+            'id'          => $viajeRaw->id_viaje,
+            'origen'      => $viajeRaw->origen_texto,
+            'destino'     => $viajeRaw->destino_texto,
+            'tarifa'      => $viajeRaw->tarifa_estimada,
+            'metodo_pago' => $viajeRaw->metodo_pago,
+            'origen_lat'  => $viajeRaw->lat_origen,
+            'origen_lng'  => $viajeRaw->lng_origen,
+            'destino_lat' => $viajeRaw->lat_destino,
+            'destino_lng' => $viajeRaw->lng_destino,
+            'estado'      => $viajeRaw->estado_viaje,
+        ];
+        $conductor = [
+            'nombre'       => $viajeRaw->conductor->user->nombre_completo ?? 'Sin nombre',
+            'calificacion' => $viajeRaw->conductor->calificacion_promedio ?? 0,
+            'modelo'       => trim(($viajeRaw->conductor->vehiculo->marca ?? '') . ' ' . ($viajeRaw->conductor->vehiculo->modelo ?? '')),
+            'placa'        => $viajeRaw->conductor->vehiculo->placa ?? 'Sin placa',
+            'lat'          => $viajeRaw->conductor->lat_actual,
+            'lng'          => $viajeRaw->conductor->lng_actual,
+        ];
+        $iniciales = $this->calcularIniciales($viajeRaw->conductor->user->nombre_completo ?? '');
+        $eta       = $viajeRaw->tiempo_estimado_min ?? 'Sin tiempo estimado';
+        $pasos     = $this->construirPasos($viajeRaw->estado_viaje);
 
         return view('pasajero.viaje_en_curso', [
             'header'    => 'header_pasajero',
@@ -264,29 +267,33 @@ class PasajeroController extends Controller
 
     public function calificar(int $viajeId)
     {
-        $viajeRaw = Viaje::with('conductor.user', 'conductor.vehiculo')
-            ->where('id_pasajero', Auth::id())
-            ->find($viajeId);
+        // esto es de Validacion BOLA IDOR en vista web
+        $viajeRaw = $this->validarViajePasajero($viajeId);
+        $viajeRaw->load('conductor.user', 'conductor.vehiculo');
 
-        if (!$viajeRaw || !$viajeRaw->conductor) {
-            $viaje     = ['id' => 0, 'origen' => '—', 'destino' => '—', 'tarifa' => '0.00'];
-            $conductor = ['id' => 0, 'nombre' => '—', 'placa' => '—', 'calificacion' => 0];
-            $iniciales = '--';
-        } else {
-            $viaje = [
-                'id'      => $viajeRaw->id_viaje,
-                'origen'  => $viajeRaw->origen_texto,
-                'destino' => $viajeRaw->destino_texto,
-                'tarifa'  => $viajeRaw->tarifa_final ?? $viajeRaw->tarifa_estimada,
-            ];
-            $conductor = [
-                'id'           => $viajeRaw->conductor->id_conductor,
-                'nombre'       => $viajeRaw->conductor->user->nombre_completo ?? '—',
-                'placa'        => $viajeRaw->conductor->vehiculo->placa ?? '—',
-                'calificacion' => $viajeRaw->conductor->calificacion_promedio ?? 0,
-            ];
-            $iniciales = $this->calcularIniciales($viajeRaw->conductor->user->nombre_completo ?? '');
+        if ($viajeRaw->estado_viaje !== 'completado') {
+            return redirect()
+                ->route('pasajero.historial')
+                ->with('error', 'Solo puedes calificar un viaje completado.');
         }
+
+        if (! $viajeRaw->conductor) {
+            abort(404, 'El viaje no tiene conductor asignado.');
+        }
+
+        $viaje = [
+            'id'      => $viajeRaw->id_viaje,
+            'origen'  => $viajeRaw->origen_texto,
+            'destino' => $viajeRaw->destino_texto,
+            'tarifa'  => $viajeRaw->tarifa_final ?? $viajeRaw->tarifa_estimada,
+        ];
+        $conductor = [
+            'id'           => $viajeRaw->conductor->id_conductor,
+            'nombre'       => $viajeRaw->conductor->user->nombre_completo ?? 'Sin nombre',
+            'placa'        => $viajeRaw->conductor->vehiculo->placa ?? 'Sin placa',
+            'calificacion' => $viajeRaw->conductor->calificacion_promedio ?? 0,
+        ];
+        $iniciales = $this->calcularIniciales($viajeRaw->conductor->user->nombre_completo ?? '');
 
         return view('pasajero.calificar_viaje', [
             'header'    => 'header_pasajero',
@@ -433,6 +440,39 @@ class PasajeroController extends Controller
     {
         // Para uso futuro si el pasajero también comparte ubicación
         return response()->json(['ok' => true]);
+    }
+
+    // esto es de Seguridad de Endpoints
+    private function validarViajePasajero(int $viajeId): Viaje
+    {
+        $viaje = Viaje::find($viajeId);
+
+        if (! $viaje) {
+            abort(404, 'Viaje no encontrado.');
+        }
+
+        if ((int) $viaje->id_pasajero !== (int) Auth::id()) {
+            abort(403, 'No tienes permiso para ver este viaje.');
+        }
+
+        return $viaje;
+    }
+
+    private function redirigirSiTieneViajeActivo(Request $request)
+    {
+        $viajeActivo = $request->attributes->get('viajeActivoPasajero');
+
+        if (! $viajeActivo) {
+            return null;
+        }
+
+        $ruta = $viajeActivo->estado_viaje === 'buscando'
+            ? 'pasajero.buscando'
+            : 'pasajero.enCurso';
+
+        return redirect()
+            ->route($ruta, $viajeActivo->id_viaje)
+            ->with('mensaje', 'Ya tienes un viaje activo.');
     }
 
     private function calcularIniciales(string $nombre): string
