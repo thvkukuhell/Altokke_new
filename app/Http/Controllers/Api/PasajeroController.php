@@ -11,7 +11,6 @@ class PasajeroController extends BaseApiController
 {
     public function index()
     {
-        // esto es de Validacion BOLA IDOR
         if (Auth::user()->tipo_usuario !== 'pasajero') {
             return $this->errorJson('Solo pasajeros pueden ver estos datos', 403);
         }
@@ -31,7 +30,6 @@ class PasajeroController extends BaseApiController
             return $this->errorJson('Pasajero no encontrado', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if (Auth::user()->tipo_usuario !== 'pasajero'
             || (int) $pasajero->id_pasajero !== (int) Auth::id()) {
             return $this->errorJson('No tienes permiso para ver este pasajero', 403);
@@ -50,7 +48,6 @@ class PasajeroController extends BaseApiController
             'metodo_pago_preferido' => 'required|in:efectivo,yape,plin',
         ]);
 
-        // esto es de Validacion BOLA IDOR
         if (Auth::user()->tipo_usuario !== 'pasajero'
             || (int) $request->id_pasajero !== (int) Auth::id()) {
             return $this->errorJson('Solo puedes crear tus propios datos de pasajero', 403);
@@ -72,7 +69,6 @@ class PasajeroController extends BaseApiController
             return $this->errorJson('Pasajero no encontrado', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if (Auth::user()->tipo_usuario !== 'pasajero'
             || (int) $pasajero->id_pasajero !== (int) Auth::id()) {
             return $this->errorJson('No tienes permiso para modificar este pasajero', 403);
@@ -99,7 +95,6 @@ class PasajeroController extends BaseApiController
             return $this->errorJson('Pasajero no encontrado', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if (Auth::user()->tipo_usuario !== 'pasajero'
             || (int) $pasajero->id_pasajero !== (int) Auth::id()) {
             return $this->errorJson('No tienes permiso para desactivar este pasajero', 403);
@@ -121,7 +116,6 @@ class PasajeroController extends BaseApiController
             return $this->errorJson('Pasajero no encontrado', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if (Auth::user()->tipo_usuario !== 'pasajero'
             || (int) $pasajero->id_pasajero !== (int) Auth::id()) {
             return $this->errorJson('No tienes permiso para ver estos viajes', 403);

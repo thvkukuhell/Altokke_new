@@ -11,7 +11,6 @@ class UsuarioController extends BaseApiController
 {
     public function index()
     {
-        // esto es de Validacion BOLA IDOR
         return $this->respuestaJson(User::where('id_usuario', Auth::id())->get());
     }
 
@@ -23,7 +22,6 @@ class UsuarioController extends BaseApiController
             return $this->errorJson('Usuario no encontrado', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if ((int) $user->id_usuario !== (int) Auth::id()) {
             return $this->errorJson('No tienes permiso para ver este usuario', 403);
         }
@@ -66,7 +64,6 @@ class UsuarioController extends BaseApiController
             return $this->errorJson('Usuario no encontrado', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if ((int) $user->id_usuario !== (int) Auth::id()) {
             return $this->errorJson('No tienes permiso para modificar este usuario', 403);
         }
@@ -98,7 +95,6 @@ class UsuarioController extends BaseApiController
             return $this->errorJson('Usuario no encontrado', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if ((int) $user->id_usuario !== (int) Auth::id()) {
             return $this->errorJson('No tienes permiso para desactivar este usuario', 403);
         }

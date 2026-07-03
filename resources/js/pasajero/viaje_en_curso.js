@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const viajeId = datos.dataset.viajeId;
     const estadoUrl = datos.dataset.estadoUrl;
+    const calificarUrl = datos.dataset.calificarUrl;
+    const historialUrl = datos.dataset.historialUrl;
     const pasajeroId = datos.dataset.pasajeroId;
     const origenReal = AltokkeMapa.puntoValido(datos.dataset.origenLat, datos.dataset.origenLng);
     const destinoReal = AltokkeMapa.puntoValido(datos.dataset.destinoLat, datos.dataset.destinoLng);
@@ -68,7 +70,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const panelTiempo = document.getElementById('panel-tiempo-pasajero');
     const tarifaDetalle = document.getElementById('tarifa-detalle-curso');
 
-    // esto es de Respuesta HTTP segura
     function detenerConsultaEstado(mensaje) {
         if (pollingEstado) {
             window.clearInterval(pollingEstado);
@@ -149,6 +150,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (['completado', 'cancelado', 'expirado'].includes(nuevoEstado)) {
             AltokkeMapa.detenerSimulacion(`pasajero-${viajeId}`);
             if (pollingEstado) window.clearInterval(pollingEstado);
+            window.location.href = nuevoEstado === 'completado' ? calificarUrl : historialUrl;
+            return;
         }
 
         pintarRutas();

@@ -8,8 +8,6 @@ use App\Http\Controllers\Api\UsuarioController;
 use App\Http\Controllers\Api\ViajeController;
 use Illuminate\Support\Facades\Route;
 
-// esto es de Refactorizar Api a ApiController y Validacion BOLA IDOR
-// Se usa la sesion web que el proyecto ya tiene, sin instalar Sanctum.
 Route::middleware(['web', 'auth'])->group(function () {
     Route::controller(UsuarioController::class)->prefix('usuarios')->group(function () {
         Route::get('/', 'index');

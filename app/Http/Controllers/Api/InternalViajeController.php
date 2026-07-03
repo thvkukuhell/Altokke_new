@@ -98,7 +98,6 @@ class InternalViajeController extends BaseApiController
             return $this->errorJson('Ya tienes un viaje activo', 409);
         }
 
-        // esto es de Seguridad de Endpoints al aceptar viaje
         $actualizados = Viaje::where('id_viaje', $viaje->id_viaje)
             ->where('estado_viaje', 'buscando')
             ->whereNull('id_conductor')
@@ -145,7 +144,6 @@ class InternalViajeController extends BaseApiController
             return $this->errorJson('Viaje no encontrado', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if ((int) $viaje->id_conductor !== (int) Auth::id()) {
             return $this->errorJson('No tienes permiso para actualizar este viaje', 403);
         }
@@ -181,7 +179,6 @@ class InternalViajeController extends BaseApiController
             return $this->errorJson('Viaje no encontrado', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if ((int) $viaje->id_conductor !== (int) Auth::id()) {
             return $this->errorJson('No tienes permiso para completar este viaje', 403);
         }

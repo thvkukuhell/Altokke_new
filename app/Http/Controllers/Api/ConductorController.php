@@ -10,7 +10,6 @@ class ConductorController extends BaseApiController
 {
     public function index()
     {
-        // esto es de Validacion BOLA IDOR
         if (Auth::user()->tipo_usuario !== 'conductor') {
             return $this->errorJson('Solo conductores pueden ver estos datos', 403);
         }
@@ -30,7 +29,6 @@ class ConductorController extends BaseApiController
             return $this->errorJson('Conductor no encontrado', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if (Auth::user()->tipo_usuario !== 'conductor'
             || (int) $conductor->id_conductor !== (int) Auth::id()) {
             return $this->errorJson('No tienes permiso para ver este conductor', 403);
@@ -47,7 +45,6 @@ class ConductorController extends BaseApiController
             return $this->errorJson('Conductor no encontrado', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if (Auth::user()->tipo_usuario !== 'conductor'
             || (int) $conductor->id_conductor !== (int) Auth::id()) {
             return $this->errorJson('No tienes permiso para modificar este conductor', 403);
@@ -59,9 +56,6 @@ class ConductorController extends BaseApiController
             'estado_conductor' => 'sometimes|in:activo,inactivo,en_verificacion',
         ]);
 
-        // esto es de Validacion BOLA IDOR: saldo_disponible y calificacion_promedio
-        // son campos que solo debe modificar el sistema (ViajeService / InternalViajeController),
-        // nunca el propio conductor desde este endpoint.
         $conductor->update($request->only([
             'estado_conductor',
         ]));
@@ -77,7 +71,6 @@ class ConductorController extends BaseApiController
             return $this->errorJson('Conductor no encontrado', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if (Auth::user()->tipo_usuario !== 'conductor'
             || (int) $conductor->id_conductor !== (int) Auth::id()) {
             return $this->errorJson('No tienes permiso para desactivar este conductor', 403);

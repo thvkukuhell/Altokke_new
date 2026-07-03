@@ -10,7 +10,6 @@ class ViajeController extends BaseApiController
 {
     public function index()
     {
-        // esto es de Validacion BOLA IDOR
         $consulta = Viaje::with(['pasajero.user', 'conductor.user']);
 
         if (Auth::user()->tipo_usuario === 'pasajero') {
@@ -32,7 +31,6 @@ class ViajeController extends BaseApiController
             return $this->errorJson('Viaje no encontrado', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if (! $this->usuarioPuedeAcceder($viaje)) {
             return $this->errorJson('No tienes permiso para ver este viaje', 403);
         }
@@ -46,7 +44,6 @@ class ViajeController extends BaseApiController
         $request->merge($this->leerJsonInput());
         $request->merge(['id_pasajero' => Auth::id()]);
 
-        // esto es de Validacion BOLA IDOR
         if (Auth::user()->tipo_usuario !== 'pasajero') {
             return $this->errorJson('Solo pasajeros pueden crear viajes', 403);
         }
@@ -89,7 +86,6 @@ class ViajeController extends BaseApiController
             return $this->errorJson('Viaje no encontrado', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if (! $this->usuarioPuedeAcceder($viaje)) {
             return $this->errorJson('No tienes permiso para modificar este viaje', 403);
         }
@@ -114,7 +110,6 @@ class ViajeController extends BaseApiController
         } else {
             $nuevoEstado = $request->input('estado_viaje');
 
-            // esto es de Seguridad de Endpoints para conductor
             if (! $nuevoEstado) {
                 return $this->errorJson('Debes indicar el nuevo estado del viaje', 422);
             }
@@ -141,7 +136,6 @@ class ViajeController extends BaseApiController
             return $this->errorJson('Viaje no encontrado', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if (! $this->usuarioPuedeAcceder($viaje)) {
             return $this->errorJson('No tienes permiso para cancelar este viaje', 403);
         }

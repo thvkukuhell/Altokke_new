@@ -31,7 +31,6 @@ class ConductorController extends Controller
             ->findOrFail(Auth::id());
     }
 
-    // esto es de Validar viaje del conductor autenticado
     private function validarViajeConductor(int $viajeId, array $estadosPermitidos): Viaje
     {
         $viaje = Viaje::find($viajeId);
@@ -265,7 +264,6 @@ class ConductorController extends Controller
             abort(409, 'Ya tienes un viaje activo.');
         }
 
-        // esto es de Seguridad de Endpoints al aceptar viaje
         $actualizados = Viaje::where('id_viaje', $viaje->id_viaje)
             ->where('estado_viaje', 'buscando')
             ->whereNull('id_conductor')
@@ -383,7 +381,6 @@ class ConductorController extends Controller
             'id_viaje' => 'required|integer',
         ]);
 
-        // esto es de Validacion BOLA IDOR para finalizar viaje
         $viaje = $this->validarViajeConductor(
             (int) $request->id_viaje,
             ['aceptado', 'recogiendo', 'en_curso']
@@ -398,7 +395,6 @@ class ConductorController extends Controller
                 ->with('mensaje', 'Tu saldo no alcanza para cubrir la comisión de este viaje.');
         }
 
-        // 2. Actualizar el estado del viaje en la base de datos
         $viaje->update([
             'estado_viaje' => 'completado',
             'tarifa_final' => $tarifaFinal,
@@ -446,7 +442,6 @@ class ConductorController extends Controller
             'id_viaje' => 'required|integer',
         ]);
 
-        // esto es de Validacion BOLA IDOR para cancelar viaje
         $viaje = $this->validarViajeConductor(
             (int) $request->id_viaje,
             ['aceptado', 'recogiendo', 'en_curso']
@@ -622,7 +617,6 @@ class ConductorController extends Controller
             ], 404);
         }
 
-        // esto es de Validacion BOLA IDOR para ubicacion
         if ((int) $viaje->id_conductor !== (int) Auth::id()) {
             return response()->json([
                 'ok' => false,

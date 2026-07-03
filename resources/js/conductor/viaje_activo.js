@@ -111,7 +111,6 @@ document.addEventListener('DOMContentLoaded', function () {
         iniciarSimulacionSiHaceFalta(rutaAlPasajero);
     }
 
-    // esto es de Proteccion CSRF y Respuesta HTTP segura
     async function emitirUbicacion(latitud, longitud) {
         const punto = AltokkeMapa.puntoValido(latitud, longitud);
         if (!punto || !viajeId || ubicacionBloqueada) return;

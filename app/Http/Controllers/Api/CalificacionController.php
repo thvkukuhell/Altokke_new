@@ -11,7 +11,6 @@ class CalificacionController extends BaseApiController
 {
     public function index()
     {
-        // esto es de Validacion BOLA IDOR
         $calificaciones = Calificacion::with('viaje')
             ->whereHas('viaje', function ($query) {
                 if (Auth::user()->tipo_usuario === 'pasajero') {
@@ -33,7 +32,6 @@ class CalificacionController extends BaseApiController
             return $this->errorJson('Calificacion no encontrada', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if (! $this->usuarioPuedeAcceder($calificacion->viaje)) {
             return $this->errorJson('No tienes permiso para ver esta calificacion', 403);
         }
@@ -53,14 +51,12 @@ class CalificacionController extends BaseApiController
 
         $viaje = Viaje::find($request->id_viaje);
 
-        // esto es de Validacion BOLA IDOR
         if (Auth::user()->tipo_usuario !== 'pasajero'
             || ! $viaje
             || (int) $viaje->id_pasajero !== (int) Auth::id()) {
             return $this->errorJson('No tienes permiso para calificar este viaje', 403);
         }
 
-        // esto es de Seguridad de Endpoints
         if ($viaje->estado_viaje !== 'completado' || ! $viaje->id_conductor) {
             return $this->errorJson('Solo puedes calificar un viaje completado', 422);
         }
@@ -84,7 +80,6 @@ class CalificacionController extends BaseApiController
             return $this->errorJson('Calificacion no encontrada', 404);
         }
 
-        // esto es de Validacion BOLA IDOR
         if (Auth::user()->tipo_usuario !== 'pasajero'
             || ! $this->usuarioPuedeAcceder($calificacion->viaje)) {
             return $this->errorJson('No tienes permiso para eliminar esta calificacion', 403);

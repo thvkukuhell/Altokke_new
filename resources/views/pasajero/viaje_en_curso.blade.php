@@ -122,6 +122,8 @@
      data-viaje-id="{{ $viaje['id'] ?? '' }}"
      data-estado-inicial="{{ $viaje['estado'] ?? 'aceptado' }}"
      data-estado-url="{{ ($viaje['id'] ?? 0) ? route('api.internal.viajes.show', $viaje['id']) : '' }}"
+     data-calificar-url="{{ ($viaje['id'] ?? 0) ? route('pasajero.calificar', $viaje['id']) : '' }}"
+     data-historial-url="{{ route('pasajero.historial') }}"
      data-origen-lat="{{ $viaje['origen_lat'] ?? '' }}"
      data-origen-lng="{{ $viaje['origen_lng'] ?? '' }}"
      data-destino-lat="{{ $viaje['destino_lat'] ?? '' }}"

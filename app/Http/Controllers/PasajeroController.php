@@ -92,7 +92,6 @@ class PasajeroController extends Controller
 
     public function buscando(int $viajeId)
     {
-        // esto es de Validacion BOLA IDOR en vista web
         $viajeRaw = $this->validarViajePasajero($viajeId);
 
         if (in_array($viajeRaw->estado_viaje, ['aceptado', 'recogiendo', 'en_curso'], true)) {
@@ -207,7 +206,6 @@ class PasajeroController extends Controller
 
     public function enCurso(int $viajeId)
     {
-        // esto es de Validar viaje del pasajero autenticado
         $viajeRaw = $this->validarViajePasajero($viajeId);
         $viajeRaw->load('conductor.user', 'conductor.vehiculo');
 
@@ -267,7 +265,6 @@ class PasajeroController extends Controller
 
     public function calificar(int $viajeId)
     {
-        // esto es de Validacion BOLA IDOR en vista web
         $viajeRaw = $this->validarViajePasajero($viajeId);
         $viajeRaw->load('conductor.user', 'conductor.vehiculo');
 
@@ -442,7 +439,6 @@ class PasajeroController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    // esto es de Seguridad de Endpoints
     private function validarViajePasajero(int $viajeId): Viaje
     {
         $viaje = Viaje::find($viajeId);

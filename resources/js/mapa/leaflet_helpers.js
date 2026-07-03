@@ -13,6 +13,10 @@ window.AltokkeMapa = window.AltokkeMapa || (() => {
     }
 
     function esLatLngValido(lat, lng) {
+        if ([lat, lng].some((valor) => valor === null || valor === undefined || String(valor).trim() === '')) {
+            return false;
+        }
+
         const latNum = Number(lat);
         const lngNum = Number(lng);
         return Number.isFinite(latNum)

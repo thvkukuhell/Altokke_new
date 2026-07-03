@@ -40,7 +40,6 @@ document.addEventListener('DOMContentLoaded', function () {
         pollingEstado = null;
     }
 
-    // esto es de Respuesta HTTP segura
     function mostrarErrorViaje(mensaje) {
         detenerPollingEstado();
 
