@@ -55,11 +55,15 @@ document.addEventListener('DOMContentLoaded', function () {
         crearRuta(rutas, 'Destino', viaje.destino);
 
         const estadoContenedor = agregarTexto(parteSuperior, 'div', 'viaje-state-pill', '');
-        agregarTexto(estadoContenedor, 'span', 'badge', viaje.estado_label || viaje.estado || '');
+        agregarTexto(estadoContenedor, 'span', 'badge', viaje.estado_label || viaje.estado_texto || viaje.estado || '');
 
         const datos = agregarTexto(principal, 'div', 'viaje-meta', '');
         agregarDato(datos, `Fecha ${viaje.fecha || 'Sin fecha'}`);
-        agregarDato(datos, `Conductor: ${viaje.conductor?.nombre || 'Sin asignar'}`);
+        
+        const nombreConductor = typeof viaje.conductor === 'object'
+            ? viaje.conductor?.nombre
+            : viaje.conductor;
+        agregarDato(datos, `Conductor: ${nombreConductor || 'Sin asignar'}`);
         agregarDato(datos, `Pago: ${viaje.metodo_pago || 'Sin especificar'}`);
 
         if (Number(viaje.calificacion) > 0) {
