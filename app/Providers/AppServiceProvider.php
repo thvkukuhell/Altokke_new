@@ -6,6 +6,7 @@ use App\Models\Viaje;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,5 +25,9 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('tieneViajeActivo', $tieneViajeActivo);
         });
+
+        if (config('app.env') !== 'local' || str_contains(config('app.url'), 'ngrok')) {
+            URL::forceScheme('https');
+        }
     }
 }

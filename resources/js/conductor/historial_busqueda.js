@@ -6,11 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const listaResultados = document.getElementById('historialConductorLista');
 
     if (!contenedor || !inputBuscar || !estado || !contenidoInicial || !listaResultados) {
+        console.error('[historial] Faltan elementos del DOM.')
         return;
     }
 
     const urlBuscar = contenedor.dataset.urlBusqueda;
-    const filtroActual = contenedor.dataset.filtroActual || 'todos';
+    let filtroActual = 'todos';
     
     let timer = null;
     let controlador = null;
@@ -20,7 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const texto = inputBuscar.value.trim();
 
-        if (texto === '') {
+        if (texto === '' && filtroActual === 'todos') {
+            if (controlador) { controlador.abort(); controlador=null;}
             mostrarContenidoInicial();
             pintarEstado('');
             return;
@@ -33,9 +35,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 400);
     });
 
+    const botonesFiltro = document.querySelectorAll('.filtro-conductor-btn');
+
+    botonesFiltro.forEach((boton) => {
+        boton.addEventListener('click', () => {
+            clearTimeout(timer);
+            if (controlador) {controlador.abort(); controlador=null;}
+
+            botonesFiltro.forEach((b) => b.classList.remove('activo'));
+            boton.classList.add('activo');
+
+            filtroActual = boton.dataset.filtro || 'todos';
+
+            const texto = inputBuscar.value.trim();
+
+            if (filtroActual === 'todos' && texto === '') {
+                mostrarContenidoInicial();
+                pintarEstado('');
+                return;
+            }
+
+            pintarEstado(`Filtrando por ${filtroActual}...`);
+            buscarViajes(texto);
+        });
+    });
+
     async function buscarViajes(texto) {
         if (controlador) {
             controlador.abort();
+            controlador = null;
         }
 
         controlador = new AbortController();
@@ -47,8 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 texto: texto,
                 filtro: filtroActual,
             });
+            const url        = `${urlBuscar}?${parametros.toString()}`;
 
-            const respuesta = await fetch(`${urlBuscar}?${parametros.toString()}`, {
+            const respuesta = await fetch(url, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -58,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!respuesta.ok) {
-                throw new Error('No se pudo obtener el historial del conductor.');
+                throw new Error(`Error HTTP ${respuesta.status}`);
             }
 
             const resultado = await respuesta.json();
@@ -74,8 +103,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            console.error('[historial] Error en fetch:', error);
             pintarMensaje('Ocurrió un error al buscar viajes. Inténtalo nuevamente.');
             pintarEstado('Error en la búsqueda.');
+        } finally {
+            controlador = null;
         }
     }
 

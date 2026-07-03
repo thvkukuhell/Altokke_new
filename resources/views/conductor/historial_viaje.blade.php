@@ -49,6 +49,24 @@
                     <p id="historialConductorBusquedaEstado" class="historial-busqueda-estado" role="status"></p>
                 </div>
 
+                <div class="filtros-contenedor" style="margin-bottom:20px;">
+                    <button type="button" class="filtro-item-btn filtro-conductor-btn activo" data-filtro="todos">
+                        Todos
+                    </button>
+
+                    <button type="button" class="filtro-item-btn filtro-conductor-btn" data-filtro="hoy">
+                        Hoy
+                    </button>
+
+                    <button type="button" class="filtro-item-btn filtro-conductor-btn" data-filtro="semana">
+                        Semana
+                    </button>
+
+                    <button type="button" class="filtro-item-btn filtro-conductor-btn" data-filtro="mes">
+                        Mes
+                    </button>
+                </div>
+
                 <div id="historialConductorContenidoInicial">
                     @forelse($historial as $v)
                         <div class="viaje-item">
