@@ -40,6 +40,32 @@ window.AltokkeMapa = window.AltokkeMapa || (() => {
         return { lat: Number(lat), lng: Number(lng) };
     }
 
+    async function fetchJson(url, options = {}) {
+        if (!url) {
+            console.warn('AltokkeMapa: fetchJson missing url');
+            return null;
+        }
+
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                console.warn('AltokkeMapa: fetchJson HTTP error', response.status, response.statusText, url);
+                return null;
+            }
+
+            const contentType = (response.headers.get('content-type') || '').toLowerCase();
+            if (!contentType.includes('application/json')) {
+                console.warn('AltokkeMapa: fetchJson expected JSON, got', contentType, url);
+                return null;
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('AltokkeMapa: fetchJson failed', error, url);
+            return null;
+        }
+    }
+
     function puntosDistintos(origen, destino, metrosMinimos = 25) {
         if (!origen || !destino) return false;
         return distanciaSimple(origen, destino) * 1000 >= metrosMinimos;
@@ -146,30 +172,33 @@ window.AltokkeMapa = window.AltokkeMapa || (() => {
             duracion_min: Math.max(1, Math.ceil(distanciaSimple(origenSeguro, destinoSeguro) * 3)),
         };
 
-        try {
-            const response = await fetch(rutaUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({ origen: origenSeguro, destino: destinoSeguro }),
-            });
-
-            if (!response.ok) return fallback;
-            const data = await response.json();
-            return {
-                ...fallback,
-                ...data,
-                coordenadas: Array.isArray(data.coordenadas) && data.coordenadas.length
-                    ? data.coordenadas
-                    : fallback.coordenadas,
-            };
-        } catch (error) {
+        if (!rutaUrl) {
+            console.warn('AltokkeMapa: consultarRuta missing rutaUrl');
             return fallback;
         }
+
+        const data = await fetchJson(rutaUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ origen: origenSeguro, destino: destinoSeguro }),
+        });
+
+        if (!data || typeof data !== 'object') {
+            return fallback;
+        }
+
+        return {
+            ...fallback,
+            ...data,
+            coordenadas: Array.isArray(data.coordenadas) && data.coordenadas.length
+                ? data.coordenadas
+                : fallback.coordenadas,
+        };
     }
 
     function dibujarRuta(mapa, capaActual, data, opciones = {}) {
