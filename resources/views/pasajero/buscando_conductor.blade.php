@@ -73,7 +73,8 @@
 
             <p class="nota-cancelar">Si cancelas ahora no se te cobrará nada.</p>
 
-            <form method="POST" action="{{ route('pasajero.cancelarViaje') }}">
+            {{-- 8J_BOTON_CANCELAR_PASAJERO -> luego ir a controlador cancelar --}}
+            <form id="form-cancelar" method="POST" action="{{ route('pasajero.cancelarViaje') }}">
                 @csrf
                 <input type="hidden" name="viaje_id" value="{{ $viaje['id'] ?? 0 }}">
                 <button type="submit" class="btn btn-outline">
@@ -81,7 +82,7 @@
                         stroke-width="2.5">
                         <path d="M18 6 6 18M6 6l12 12" />
                     </svg>
-                    Cancelar solicitud
+                    Cancelar viaje
                 </button>
             </form>
         </div>

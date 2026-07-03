@@ -37,6 +37,11 @@
              data-destino-lat="{{ $viaje->lat_destino ?? '' }}"
              data-destino-lng="{{ $viaje->lng_destino ?? '' }}"
              data-ubicacion-url="{{ route('conductor.ubicacion') }}"
+             data-recoger-url="{{ route('conductor.recogerPasajero') }}"
+             data-iniciar-url="{{ route('conductor.iniciarTrayecto') }}"
+             data-completar-url="{{ route('conductor.completarViaje') }}"
+             data-estado-url="{{ route('api.internal.viajes.show', $viaje->id_viaje ?? 0) }}"
+             data-solicitudes-url="{{ route('conductor.solicitudes') }}"
              data-csrf-token="{{ csrf_token() }}"
              hidden></div>
 
@@ -110,6 +115,7 @@
                 <p style="font-size:12.5px; color:#166534; margin:0 0 14px;">
                     Cobra el monto al pasajero antes de confirmar.
                 </p>
+                {{-- 6J_BOTON_CONFIRMAR_PAGO_EFECTIVO -> luego ir a controlador completar --}}
                 <form method="POST" action="{{ route('conductor.completarViaje') }}">
                     @csrf
                     <input type="hidden" name="id_viaje" value="{{ $viaje->id_viaje }}">

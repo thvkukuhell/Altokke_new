@@ -27,29 +27,15 @@ class MapaRutaController extends Controller
         ];
 
         $fallback = $this->crearFallback($origen, $destino);
-        $apiKey = config('services.openrouteservice.key');
-
-        if (! $apiKey) {
-            return response()->json([
-                ...$fallback,
-                'ok' => false,
-                'estado' => 'fallback',
-                'mensaje' => 'OpenRouteService no configurado',
-            ]);
-        }
+        $coordenadas = "{$origen['lng']},{$origen['lat']};{$destino['lng']},{$destino['lat']}";
 
         try {
             $response = Http::timeout(8)
-                ->withHeaders([
-                    'Authorization' => $apiKey,
-                    'Accept' => 'application/json, application/geo+json',
-                    'Content-Type' => 'application/json',
-                ])
-                ->post('https://api.openrouteservice.org/v2/directions/driving-car/geojson', [
-                    'coordinates' => [
-                        [$origen['lng'], $origen['lat']],
-                        [$destino['lng'], $destino['lat']],
-                    ],
+                ->acceptJson()
+                ->get("https://router.project-osrm.org/route/v1/driving/{$coordenadas}", [
+                    'overview' => 'full',
+                    'geometries' => 'geojson',
+                    'steps' => 'false',
                 ]);
 
             if (! $response->successful()) {
@@ -57,15 +43,18 @@ class MapaRutaController extends Controller
                     ...$fallback,
                     'ok' => false,
                     'estado' => 'fallback',
-                    'mensaje' => 'No se pudo consultar OpenRouteService',
+                    'mensaje' => 'No se pudo consultar OSRM',
                 ]);
             }
 
-            $feature = $response->json('features.0');
-            $coordinates = $feature['geometry']['coordinates'] ?? [];
-            $summary = $feature['properties']['summary'] ?? [];
+            $ruta = $response->json('routes.0');
+            $coordinates = $ruta['geometry']['coordinates'] ?? [];
 
-            if (! $coordinates || ! isset($summary['distance'], $summary['duration'])) {
+            if (
+                $response->json('code') !== 'Ok'
+                || ! $coordinates
+                || ! isset($ruta['distance'], $ruta['duration'])
+            ) {
                 return response()->json([
                     ...$fallback,
                     'ok' => false,
@@ -82,8 +71,8 @@ class MapaRutaController extends Controller
                     fn (array $coord) => [(float) $coord[1], (float) $coord[0]],
                     $coordinates
                 ),
-                'distancia_km' => round(((float) $summary['distance']) / 1000, 2),
-                'duracion_min' => (int) ceil(((float) $summary['duration']) / 60),
+                'distancia_km' => round(((float) $ruta['distance']) / 1000, 2),
+                'duracion_min' => (int) ceil(((float) $ruta['duration']) / 60),
             ]);
         } catch (\Throwable) {
             return response()->json([

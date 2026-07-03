@@ -21,6 +21,7 @@ window.AltokkeMapa = window.AltokkeMapa || (() => {
         const lngNum = Number(lng);
         return Number.isFinite(latNum)
             && Number.isFinite(lngNum)
+            && !(latNum === 0 && lngNum === 0)
             && latNum >= -90
             && latNum <= 90
             && lngNum >= -180
@@ -42,6 +43,18 @@ window.AltokkeMapa = window.AltokkeMapa || (() => {
     function puntoValido(lat, lng) {
         if (!esLatLngValido(lat, lng)) return null;
         return { lat: Number(lat), lng: Number(lng) };
+    }
+
+    function puntoCercano(origen, semilla, distanciaKm = 0.3) {
+        const origenSeguro = puntoValido(origen?.lat, origen?.lng) || BAGUA;
+        const angulo = (((Number(semilla) || 1) * 137.508) % 360) * Math.PI / 180;
+        const latRadianes = origenSeguro.lat * Math.PI / 180;
+
+        return puntoSeguro(
+            origenSeguro.lat + ((distanciaKm / 111.32) * Math.cos(angulo)),
+            origenSeguro.lng + ((distanciaKm / (111.32 * Math.cos(latRadianes))) * Math.sin(angulo)),
+            BAGUA
+        );
     }
 
     async function fetchJson(url, options = {}) {
@@ -122,9 +135,13 @@ window.AltokkeMapa = window.AltokkeMapa || (() => {
 
         const marcador = L.marker([punto.lat, punto.lng], {
             icon: icono(tipo, texto),
+            zIndexOffset: tipo === 'conductor' ? 1000 : 0,
         }).addTo(mapa);
 
         if (popup) marcador.bindPopup(popup);
+        if (tipo === 'conductor' && typeof marcador.setZIndexOffset === 'function') {
+            marcador.setZIndexOffset(1000);
+        }
         return marcador;
     }
 
@@ -256,34 +273,40 @@ window.AltokkeMapa = window.AltokkeMapa || (() => {
         if (el) el.textContent = texto;
     }
 
-    function interpolarPuntos(inicio, fin, pasos = 36) {
-        const puntos = [];
-        for (let i = 0; i <= pasos; i += 1) {
-            const t = i / pasos;
-            puntos.push({
-                lat: inicio.lat + ((fin.lat - inicio.lat) * t),
-                lng: inicio.lng + ((fin.lng - inicio.lng) * t),
-            });
-        }
-        return puntos;
-    }
-
     function normalizarRutaParaMovimiento(coordenadas, minimoPasos = 48) {
         const validas = (coordenadas || [])
             .map((p) => puntoValido(p[0], p[1]))
             .filter(Boolean);
 
         if (validas.length < 2) return validas;
+        if (validas.length >= minimoPasos) return validas;
+
+        let distanciaTotal = 0;
+        for (let i = 0; i < validas.length - 1; i += 1) {
+            distanciaTotal += Math.max(0.001, distanciaSimple(validas[i], validas[i + 1]));
+        }
 
         const puntos = [];
+        // 1J_RUTA_REAL_NO_LINEA_RECTA -> luego ir a mover moto por puntos OSRM
         for (let i = 0; i < validas.length - 1; i += 1) {
             const actual = validas[i];
             const siguiente = validas[i + 1];
-            const segmentos = Math.max(6, Math.ceil(minimoPasos / (validas.length - 1)));
-            const interpolados = interpolarPuntos(actual, siguiente, segmentos);
-            if (i > 0) interpolados.shift();
-            puntos.push(...interpolados);
+            const distanciaSegmento = Math.max(0.001, distanciaSimple(actual, siguiente));
+            const pasosSegmento = Math.max(
+                1,
+                Math.ceil((distanciaSegmento / distanciaTotal) * Math.max(minimoPasos, validas.length))
+            );
+
+            for (let paso = 0; paso < pasosSegmento; paso += 1) {
+                const avance = paso / pasosSegmento;
+                puntos.push({
+                    lat: actual.lat + ((siguiente.lat - actual.lat) * avance),
+                    lng: actual.lng + ((siguiente.lng - actual.lng) * avance),
+                });
+            }
         }
+
+        puntos.push(validas[validas.length - 1]);
 
         return puntos;
     }
@@ -300,6 +323,9 @@ window.AltokkeMapa = window.AltokkeMapa || (() => {
             const lat = desde.lat + ((destino.lat - desde.lat) * avance);
             const lng = desde.lng + ((destino.lng - desde.lng) * avance);
             marcador.setLatLng([lat, lng]);
+            if (typeof marcador.setZIndexOffset === 'function') {
+                marcador.setZIndexOffset(1000);
+            }
 
             if (avance < 1) {
                 window.requestAnimationFrame(animar);
@@ -325,6 +351,7 @@ window.AltokkeMapa = window.AltokkeMapa || (() => {
 
         let indice = Math.max(0, opciones.indiceInicial || 0);
         const intervaloMs = opciones.intervaloMs || 1700;
+        const avancePorTick = Math.max(1, Math.floor(opciones.avancePorTick || 1));
 
         const timer = window.setInterval(() => {
             if (typeof opciones.debeDetener === 'function' && opciones.debeDetener()) {
@@ -332,7 +359,7 @@ window.AltokkeMapa = window.AltokkeMapa || (() => {
                 return;
             }
 
-            indice += 1;
+            indice += avancePorTick;
             const punto = ruta[indice];
 
             if (!punto) {
@@ -357,6 +384,7 @@ window.AltokkeMapa = window.AltokkeMapa || (() => {
         esLatLngValido,
         puntoSeguro,
         puntoValido,
+        puntoCercano,
         puntosDistintos,
         puedeUsarMapa,
         marcarMapaListo,

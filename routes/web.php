@@ -34,6 +34,7 @@ Route::post('/perfil/foto', [PerfilArchivoController::class, 'actualizarFoto'])-
 Route::get('/reportes/viajes/{viajeId}/comprobante', [ReporteController::class, 'comprobanteViajePdf'])->whereNumber('viajeId')->middleware('auth')->name('reportes.viajes.comprobante');
 
 // Pasajero
+// Seguridad de Endpoints
 Route::prefix('pasajero')->name('pasajero.')->middleware(['auth', 'role:pasajero', 'share.pasajero.viaje'])->group(function () {
     Route::get('/', [PasajeroController::class, 'index']);
     Route::get('/solicitarViaje', [PasajeroController::class, 'solicitarViaje'])->name('solicitarViaje');
@@ -59,6 +60,7 @@ Route::redirect('/pasajero/enCurso', '/pasajero/solicitarViaje');
 Route::redirect('/pasajero/calificar', '/pasajero/solicitarViaje');
 
 // Conductor
+// Seguridad de Endpoints
 Route::prefix('conductor')->name('conductor.')->middleware(['auth', 'role:conductor'])->group(function () {
     Route::get('/', [ConductorController::class, 'index'])->name('dashboard');
     Route::get('/perfil', [ConductorController::class, 'perfil'])->name('perfil');
@@ -66,6 +68,8 @@ Route::prefix('conductor')->name('conductor.')->middleware(['auth', 'role:conduc
     Route::get('/solicitudes', [ConductorController::class, 'solicitudes'])->name('solicitudes');
     Route::get('/solicitudes/json', [ConductorController::class, 'solicitudesJson'])->name('solicitudes.json');
     Route::post('/aceptarViaje', [ConductorController::class, 'aceptarViaje'])->name('aceptarViaje');
+    Route::post('/recogerPasajero', [ConductorController::class, 'recogerPasajero'])->name('recogerPasajero');
+    Route::post('/iniciarTrayecto', [ConductorController::class, 'iniciarTrayecto'])->name('iniciarTrayecto');
     Route::post('/completarViaje', [ConductorController::class, 'completarViaje'])->name('completarViaje');
     Route::post('/cancelarViaje', [ConductorController::class, 'cancelarViaje'])->name('cancelarViaje');
     Route::get('/viajeActivo', [ConductorController::class, 'viajeActivo'])->name('viaje_activo');

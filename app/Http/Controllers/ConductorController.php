@@ -8,8 +8,8 @@ use App\Models\Notificacion;
 use App\Models\RecargaSaldo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Jobs\SimularLlegadaConductor;
 use App\Services\ViajeNotificacionService;
+use App\Services\ViajeService;
 
 class ConductorController extends Controller
 {
@@ -278,6 +278,7 @@ class ConductorController extends Controller
         }
 
         $viaje->refresh();
+        app(ViajeService::class)->inicializarUbicacionConductor($viaje, $conductor);
 
         // 2. Disparar eventos
         event(new \App\Events\ViajeAceptado($viaje->load('conductor.user', 'conductor.vehiculo')));
@@ -292,9 +293,6 @@ class ConductorController extends Controller
             'aceptado',
             (int) $viaje->id_viaje
         ));
-
-        // Inicia simulación de llegada del conductor
-        dispatch(new SimularLlegadaConductor($viaje));
 
         return redirect()
             ->route('conductor.viaje_activo')
@@ -319,6 +317,10 @@ class ConductorController extends Controller
             (int) $viaje->id_viaje
         ));
 
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'estado' => 'recogiendo']);
+        }
+
         return redirect()->route('conductor.viaje_activo');
     }
 
@@ -339,6 +341,10 @@ class ConductorController extends Controller
             'en_curso',
             (int) $viaje->id_viaje
         ));
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'estado' => 'en_curso']);
+        }
 
         return redirect()->route('conductor.viaje_activo');
     }
@@ -383,7 +389,7 @@ class ConductorController extends Controller
 
         $viaje = $this->validarViajeConductor(
             (int) $request->id_viaje,
-            ['aceptado', 'recogiendo', 'en_curso']
+            ['en_curso']
         );
         $conductor = $this->getConductorActual();
         $tarifaFinal = (float) ($viaje->tarifa_final ?? $viaje->tarifa_estimada ?? 0);
@@ -395,6 +401,7 @@ class ConductorController extends Controller
                 ->with('mensaje', 'Tu saldo no alcanza para cubrir la comisión de este viaje.');
         }
 
+        // 7J_CONFIRMAR_PAGO_COMPLETA_VIAJE -> luego ir a mensaje solo pasajero
         $viaje->update([
             'estado_viaje' => 'completado',
             'tarifa_final' => $tarifaFinal,
@@ -429,6 +436,14 @@ class ConductorController extends Controller
         app(ViajeNotificacionService::class)->enviarResumenCompletado(
             $viaje->fresh(['pasajero.user', 'conductor.user'])
         );
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'estado' => 'completado',
+                'redirect_url' => route('conductor.solicitudes'),
+            ]);
+        }
 
         // 4. Redirigir al conductor a su historial, dashboard o solicitudes con un mensaje de éxito
         return redirect()

@@ -24,10 +24,8 @@ document.addEventListener('DOMContentLoaded', function () {
         datos.dataset.destinoLng,
         AltokkeMapa.CAJARURO
     );
-    const conductorInicial = conductorReal || {
-        lat: origenInicial.lat - 0.006,
-        lng: origenInicial.lng - 0.004,
-    };
+    const conductorInicial = conductorReal
+        || AltokkeMapa.puntoCercano(origenInicial, viajeId, 0.3);
 
     if (!viajeId) return;
 
@@ -58,9 +56,10 @@ document.addEventListener('DOMContentLoaded', function () {
     let rutaConductor = null;
     let rutaViaje = null;
     let estadoActual = datos.dataset.estadoInicial || 'aceptado';
-    let ubicacionRealActiva = Boolean(conductorReal);
     let pollingEstado = null;
     let consultandoEstado = false;
+    let ultimaRutaActivaMs = 0;
+    let repintandoRuta = false;
 
     const eta = document.getElementById('eta-pasajero');
     const distancia = document.getElementById('distancia-pasajero');
@@ -69,6 +68,29 @@ document.addEventListener('DOMContentLoaded', function () {
     const panelDistancia = document.getElementById('panel-distancia-pasajero');
     const panelTiempo = document.getElementById('panel-tiempo-pasajero');
     const tarifaDetalle = document.getElementById('tarifa-detalle-curso');
+    const textoEstado = document.getElementById('estado-texto');
+
+    function pasajeroPuedeConfirmarInicio() {
+        return estadoActual === 'recogiendo'
+            && AltokkeMapa.distanciaSimple(conductorActual, origenInicial) <= 0.05;
+    }
+
+    function pasajeroLlegoADestino() {
+        return estadoActual === 'en_curso'
+            && AltokkeMapa.distanciaSimple(conductorActual, destinoInicial) <= 0.05;
+    }
+
+    function actualizarVistaLlegada() {
+        if (eta) eta.textContent = '0 min';
+        if (distancia) distancia.textContent = '0.0 km';
+        if (panelDistancia) panelDistancia.textContent = '0.0 km';
+        if (panelTiempo) panelTiempo.textContent = '0 min';
+        if (estadoRuta) estadoRuta.textContent = 'Llegaste';
+        if (detalleRuta) detalleRuta.textContent = 'Esperando confirmacion de pago del conductor.';
+        if (textoEstado) {
+            textoEstado.textContent = 'Llegaste a tu destino. Esperando confirmacion de pago...';
+        }
+    }
 
     function detenerConsultaEstado(mensaje) {
         if (pollingEstado) {
@@ -96,23 +118,42 @@ document.addEventListener('DOMContentLoaded', function () {
             AltokkeMapa.consultarRuta(origenInicial, destinoInicial),
         ]);
 
-        rutaConductor = AltokkeMapa.dibujarRuta(mapa, rutaConductor, rutaLlegada, {
+        if (pasajeroLlegoADestino()) {
+            rutaConductor = AltokkeMapa.dibujarRuta(mapa, rutaConductor, null, {
+                color: '#111827',
+                weight: 4,
+                opacity: 0.55,
+                dashArray: '10 6',
+            });
+            rutaViaje = AltokkeMapa.dibujarRuta(mapa, rutaViaje, rutaDestino, {
+                color: '#2d6a2d',
+                weight: 6,
+                opacity: 0.9,
+            });
+            actualizarVistaLlegada();
+            AltokkeMapa.ajustarVista(mapa, [conductorActual, origenInicial, destinoInicial]);
+            return;
+        }
+
+        rutaConductor = AltokkeMapa.dibujarRuta(mapa, rutaConductor, estadoActual === 'en_curso' ? null : rutaDestino, {
             color: '#111827',
-            weight: 5,
-            opacity: 0.85,
+            weight: 4,
+            opacity: 0.55,
+            dashArray: '10 6',
         });
-        rutaViaje = AltokkeMapa.dibujarRuta(mapa, rutaViaje, rutaDestino, {
+        const rutaActiva = rutaLlegada;
+        rutaViaje = AltokkeMapa.dibujarRuta(mapa, rutaViaje, rutaActiva, {
             color: '#2d6a2d',
             weight: 6,
             opacity: 0.9,
         });
 
-        const rutaVisible = estadoActual === 'en_curso' ? rutaDestino : rutaLlegada;
+        const rutaVisible = rutaActiva;
         if (eta) eta.textContent = `${rutaVisible.duracion_min || '--'} min`;
         if (distancia) distancia.textContent = `${Number(rutaVisible.distancia_km || 0).toFixed(1)} km`;
-        if (panelDistancia) panelDistancia.textContent = `${Number(rutaDestino.distancia_km || 0).toFixed(1)} km`;
-        if (panelTiempo) panelTiempo.textContent = `${rutaDestino.duracion_min || '--'} min`;
-        if (tarifaDetalle) tarifaDetalle.textContent = AltokkeMapa.textoRuta(rutaDestino);
+        if (panelDistancia) panelDistancia.textContent = `${Number(rutaVisible.distancia_km || 0).toFixed(1)} km`;
+        if (panelTiempo) panelTiempo.textContent = `${rutaVisible.duracion_min || '--'} min`;
+        if (tarifaDetalle) tarifaDetalle.textContent = AltokkeMapa.textoRuta(rutaVisible);
         if (estadoRuta) estadoRuta.textContent = rutaVisible.ok ? 'Ruta estimada' : 'Sin ruta disponible';
         if (detalleRuta) {
             detalleRuta.textContent = rutaVisible.ok
@@ -120,8 +161,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 : 'Usando linea simple entre puntos';
         }
 
+        if (pasajeroPuedeConfirmarInicio()) {
+            if (estadoRuta) estadoRuta.textContent = 'Antes de iniciar el viaje';
+            if (detalleRuta) {
+                // 8.1J_MENSAJE_SOLO_PASAJERO -> luego ir a cancelar pasajero
+                detalleRuta.textContent = 'Estas seguro de continuar con el conductor asignado? Si no cancelas ahora, el viaje iniciara en pocos segundos.';
+            }
+            if (eta) eta.textContent = 'Listo';
+            if (distancia) distancia.textContent = '0.0 km';
+        } else if (estadoActual === 'recogiendo') {
+            if (estadoRuta) estadoRuta.textContent = 'Conductor en camino';
+            if (detalleRuta) detalleRuta.textContent = 'El conductor esta llegando a tu punto de origen.';
+        }
+
         AltokkeMapa.ajustarVista(mapa, [conductorActual, origenInicial, destinoInicial]);
-        iniciarSimulacionSiHaceFalta(rutaLlegada);
     }
 
     function actualizarPasos(nuevoEstado) {
@@ -140,12 +193,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const textos = {
             aceptado: 'Conductor asignado y en camino...',
-            recogiendo: 'El conductor esta llegando a tu punto de origen...',
-            en_curso: 'Viaje en curso hacia tu destino...',
+            // 8.1J_MENSAJE_SOLO_PASAJERO -> luego ir a cancelar pasajero
+            recogiendo: pasajeroPuedeConfirmarInicio()
+                ? 'Estas seguro de continuar con el conductor asignado? Si no cancelas ahora, el viaje iniciara en pocos segundos.'
+                : 'El conductor esta llegando a tu punto de origen...',
+            en_curso: pasajeroLlegoADestino()
+                ? 'Llegaste a tu destino. Esperando confirmacion de pago...'
+                : 'Viaje en curso hacia tu destino...',
             completado: 'Has llegado a tu destino'
         };
-        const textoEstado = document.getElementById('estado-texto');
         if (textoEstado && textos[nuevoEstado]) textoEstado.textContent = textos[nuevoEstado];
+        if (nuevoEstado === 'en_curso') {
+            const cancelar = document.getElementById('form-cancelar');
+            if (cancelar) cancelar.style.display = 'none';
+        }
 
         if (['completado', 'cancelado', 'expirado'].includes(nuevoEstado)) {
             AltokkeMapa.detenerSimulacion(`pasajero-${viajeId}`);
@@ -157,44 +218,21 @@ document.addEventListener('DOMContentLoaded', function () {
         pintarRutas();
     }
 
-    function moverConductorEnMapa(punto, esReal = false) {
+    function moverConductorEnMapa(punto) {
         const nuevoPunto = AltokkeMapa.puntoValido(punto?.lat, punto?.lng);
         if (!nuevoPunto || !marcadorConductor) return;
 
-        if (esReal) {
-            ubicacionRealActiva = true;
-            AltokkeMapa.detenerSimulacion(`pasajero-${viajeId}`);
-            if (estadoRuta) estadoRuta.textContent = 'GPS activo';
-        }
-
         conductorActual = nuevoPunto;
         AltokkeMapa.moverMarcadorSuave(marcadorConductor, nuevoPunto, 900);
-    }
-
-    function iniciarSimulacionSiHaceFalta(rutaLlegada) {
-        if (ubicacionRealActiva || !rutaLlegada?.coordenadas?.length || !marcadorConductor) return;
-        if (['completado', 'cancelado', 'expirado'].includes(estadoActual)) return;
-
-        if (estadoRuta) {
-            estadoRuta.textContent = estadoActual === 'en_curso' ? 'Modo simulacion' : 'Simulando llegada';
+        // 3J_MOVIMIENTO_SYNC_CONDUCTOR_PASAJERO -> luego ir a refresh persistente
+        const ahora = Date.now();
+        if (!repintandoRuta && ahora - ultimaRutaActivaMs >= 2500) {
+            ultimaRutaActivaMs = ahora;
+            repintandoRuta = true;
+            pintarRutas().finally(() => {
+                repintandoRuta = false;
+            });
         }
-        if (detalleRuta) {
-            detalleRuta.textContent = estadoActual === 'en_curso'
-                ? 'Conductor avanzando hacia el destino'
-                : 'Conductor acercandose al origen';
-        }
-
-        AltokkeMapa.iniciarSimulacion(`pasajero-${viajeId}`, {
-            marcador: marcadorConductor,
-            coordenadas: rutaLlegada.coordenadas,
-            intervaloMs: 1800,
-            minimoPasos: 60,
-            debeDetener: () => ubicacionRealActiva
-                || ['completado', 'cancelado', 'expirado'].includes(estadoActual),
-            alMover: (punto) => {
-                conductorActual = punto;
-            },
-        });
     }
 
     async function consultarEstado() {
@@ -230,8 +268,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 conductor?.lng
             );
             if (puntoConductor) {
-                moverConductorEnMapa(puntoConductor, true);
-                pintarRutas();
+                // 4J_REFRESH_CONTINUA_DESDE_ULTIMA_UBICACION -> luego ir a llegada destino
+                moverConductorEnMapa(puntoConductor);
+                if (pasajeroLlegoADestino()) {
+                    actualizarVistaLlegada();
+                }
             }
         } catch (error) {
             detenerConsultaEstado('No se pudo consultar el viaje. Actualiza la pagina para intentar nuevamente.');
@@ -242,15 +283,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     pintarRutas();
     consultarEstado();
-    pollingEstado = window.setInterval(consultarEstado, 8000);
+    pollingEstado = window.setInterval(consultarEstado, 1500);
 
     if (window.Echo) {
         window.Echo.private(`viaje.${viajeId}`)
             .listen('.UbicacionConductorActualizada', (data) => {
                 const nuevaPosicion = AltokkeMapa.puntoValido(data.lat, data.lng);
                 if (!nuevaPosicion) return;
-                moverConductorEnMapa(nuevaPosicion, true);
-                pintarRutas();
+                moverConductorEnMapa(nuevaPosicion);
+                if (pasajeroLlegoADestino()) {
+                    actualizarVistaLlegada();
+                }
             });
 
         if (pasajeroId) {

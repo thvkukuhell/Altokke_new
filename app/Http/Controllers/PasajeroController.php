@@ -127,6 +127,11 @@ class PasajeroController extends Controller
 
     public function cancelarViaje(Request $request)
     {
+        $request->validate([
+            'viaje_id' => 'required|integer|min:1',
+        ]);
+
+        // 9J_CANCELAR_VIAJE_PASAJERO -> cierre de flujo
         $this->viajeService->cancelarViaje(
             (int) $request->viaje_id,
             Auth::id()
@@ -439,6 +444,7 @@ class PasajeroController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    // BOLA/IDOR
     private function validarViajePasajero(int $viajeId): Viaje
     {
         $viaje = Viaje::find($viajeId);

@@ -75,17 +75,49 @@ class ViajeService
     //  Cancelación 
     public function cancelarViaje(int $viajeId, int $pasajeroId): bool
     {
-        $viaje = Viaje::where('id_viaje', $viajeId)
-            ->where('id_pasajero', $pasajeroId)
-            ->first();
+        $viaje = Viaje::find($viajeId);
 
-        if (!$viaje || !in_array($viaje->estado_viaje, ['buscando', 'aceptado'])) {
-            return false;
+        if (! $viaje) {
+            abort(404, 'Viaje no encontrado.');
+        }
+
+        if ((int) $viaje->id_pasajero !== $pasajeroId) {
+            abort(403, 'No tienes permiso para cancelar este viaje.');
+        }
+
+        if (! in_array($viaje->estado_viaje, ['buscando', 'aceptado', 'recogiendo'], true)) {
+            abort(409, 'El estado actual del viaje no permite cancelarlo.');
         }
 
         // Eliminación lógica: cambio de estado
         $viaje->update(['estado_viaje' => 'cancelado']);
         return true;
+    }
+
+    public function inicializarUbicacionConductor(Viaje $viaje, Conductor $conductor): void
+    {
+        $latOrigen = $viaje->lat_origen !== null ? (float) $viaje->lat_origen : null;
+        $lngOrigen = $viaje->lng_origen !== null ? (float) $viaje->lng_origen : null;
+
+        if (
+            $latOrigen === null || $lngOrigen === null
+            || $latOrigen < -90 || $latOrigen > 90
+            || $lngOrigen < -180 || $lngOrigen > 180
+            || ($latOrigen === 0.0 && $lngOrigen === 0.0)
+        ) {
+            $latOrigen = -5.63889;
+            $lngOrigen = -78.5311;
+        }
+
+        $distanciaKm = 0.3;
+        $angulo = fmod(((int) $viaje->id_viaje * 137.508), 360) * pi() / 180;
+        $latRadianes = $latOrigen * pi() / 180;
+
+        $conductor->update([
+            'lat_actual' => $latOrigen + (($distanciaKm / 111.32) * cos($angulo)),
+            'lng_actual' => $lngOrigen + (($distanciaKm / (111.32 * cos($latRadianes))) * sin($angulo)),
+            'ubicacion_actualizada_en' => now(),
+        ]);
     }
 
     public function expirarViaje(int $viajeId, int $pasajeroId): bool

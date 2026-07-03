@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Events\ConductorMovido;
 use App\Events\ViajeAceptado;
 use App\Events\ViajeActualizado;
-use App\Jobs\SimularLlegadaConductor;
 use App\Models\Comision;
 use App\Models\Conductor;
 use App\Models\Notificacion;
 use App\Models\Viaje;
 use App\Services\ViajeNotificacionService;
+use App\Services\ViajeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -112,6 +112,7 @@ class InternalViajeController extends BaseApiController
         }
 
         $viaje->refresh();
+        app(ViajeService::class)->inicializarUbicacionConductor($viaje, $conductor);
         $viaje->load('conductor.user', 'conductor.vehiculo', 'pasajero.user');
         event(new ViajeAceptado($viaje));
         event(new ViajeActualizado((int) $viaje->id_pasajero, 'aceptado', (int) $viaje->id_viaje));
@@ -121,8 +122,6 @@ class InternalViajeController extends BaseApiController
             'titulo' => 'Viaje aceptado',
             'mensaje' => 'Un conductor acepto tu solicitud de viaje',
         ]);
-
-        dispatch(new SimularLlegadaConductor($viaje));
 
         return $this->exitoJson('Viaje aceptado', $this->formatearViaje($viaje));
     }
@@ -183,7 +182,7 @@ class InternalViajeController extends BaseApiController
             return $this->errorJson('No tienes permiso para completar este viaje', 403);
         }
 
-        if (! in_array($viaje->estado_viaje, ['aceptado', 'recogiendo', 'en_curso'], true)) {
+        if ($viaje->estado_viaje !== 'en_curso') {
             return $this->errorJson('El viaje no se puede completar en su estado actual', 409);
         }
 
