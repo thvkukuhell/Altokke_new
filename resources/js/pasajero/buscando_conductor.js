@@ -4,6 +4,7 @@ let mapa;
 let lineaRuta;
 let pollingEstado = null;
 let consultandoEstado = false;
+let estadoAbortController = null;
 
 document.addEventListener('DOMContentLoaded', function () {
     const datos = document.getElementById('datos-buscando-conductor');
@@ -38,6 +39,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!pollingEstado) return;
         window.clearInterval(pollingEstado);
         pollingEstado = null;
+        estadoAbortController?.abort();
+    }
+
+    function esEstadoFinal(estado) {
+        return ['completado', 'cancelado', 'expirado', 'finalizado', 'llegado_destino', 'pago_confirmado'].includes(estado);
     }
 
     function mostrarErrorViaje(mensaje) {
@@ -105,15 +111,23 @@ document.addEventListener('DOMContentLoaded', function () {
     async function consultarEstadoViaje() {
         if (!estadoViajeUrl || consultandoEstado) return;
         consultandoEstado = true;
+        estadoAbortController = new AbortController();
         pintarEstadoAjax('Consultando estado...', 'cargando');
 
         try {
             const respuesta = await fetch(estadoViajeUrl, {
+                signal: estadoAbortController.signal,
                 headers: {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             });
+
+            if (respuesta.status === 429) {
+                console.warn('[Altokke] demasiadas consultas de estado; se esperara al siguiente intervalo.');
+                pintarEstadoAjax('Demasiadas consultas. Esperando para volver a intentar...', 'cargando');
+                return;
+            }
 
             if (!respuesta.ok) {
                 mostrarErrorViaje('El viaje no existe o no tienes permiso para consultarlo.');
@@ -138,11 +152,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            if (['completado', 'cancelado', 'expirado'].includes(viaje.estado)) {
+            if (esEstadoFinal(viaje.estado)) {
                 detenerPollingEstado();
                 pintarEstadoAjax('Consulta detenida: viaje finalizado', 'ok');
             }
         } catch (error) {
+            if (error.name === 'AbortError') return;
             mostrarErrorViaje('No se pudo consultar el viaje. Actualiza la pagina para intentar nuevamente.');
         } finally {
             consultandoEstado = false;

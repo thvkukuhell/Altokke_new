@@ -6,6 +6,10 @@ document.addEventListener('DOMContentLoaded', function () {
     let marcadorDestino = null;
     let lineaRuta = null;
     let campoActivo = 'destino';
+    let ultimaRutaClave = '';
+    let secuenciaRuta = 0;
+    const direccionesCache = new Map();
+    const busquedasCache = new Map();
 
     const ubicacionInicial = {
         lat: -5.63889,
@@ -18,6 +22,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function obtenerDireccion(lat, lng) {
+        const clave = `${Number(lat).toFixed(5)},${Number(lng).toFixed(5)}`;
+        if (direccionesCache.has(clave)) {
+            return direccionesCache.get(clave);
+        }
+
         try {
             const response = await fetch(
                 `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1`,
@@ -43,8 +52,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 || direccion.city
                 || '';
 
-            if (calle && distrito) return `${calle}, ${distrito}`;
-            return calle || distrito || 'Ubicacion actual';
+            const resultado = calle && distrito ? `${calle}, ${distrito}` : calle || distrito || 'Ubicacion actual';
+            direccionesCache.set(clave, resultado);
+            return resultado;
         } catch (error) {
             return 'Ubicacion actual';
         }
@@ -64,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (tarifaDetalle) tarifaDetalle.textContent = '~0 km | 0 min';
     }
 
-    async function actualizarRuta() {
+    async function actualizarRuta(forzar = false) {
         if (!marcadorOrigen || !marcadorDestino) {
             limpiarResumenRuta();
             return;
@@ -74,6 +84,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const destinoLeaflet = marcadorDestino.getLatLng();
         const origen = AltokkeMapa.puntoValido(origenLeaflet.lat, origenLeaflet.lng);
         const destino = AltokkeMapa.puntoValido(destinoLeaflet.lat, destinoLeaflet.lng);
+        const claveRuta = origen && destino
+            ? `${origen.lat.toFixed(5)},${origen.lng.toFixed(5)}|${destino.lat.toFixed(5)},${destino.lng.toFixed(5)}`
+            : '';
         const estadoRuta = document.getElementById('estado-ruta-solicitud');
         const detalleRuta = document.getElementById('detalle-ruta-solicitud');
 
@@ -88,8 +101,16 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        if (!forzar && claveRuta && claveRuta === ultimaRutaClave) {
+            return;
+        }
+
+        ultimaRutaClave = claveRuta;
+        const solicitudActual = ++secuenciaRuta;
+
         if (estadoRuta) estadoRuta.textContent = 'Calculando ruta';
         const ruta = await AltokkeMapa.consultarRuta(origen, destino);
+        if (solicitudActual !== secuenciaRuta) return;
         lineaRuta = AltokkeMapa.dibujarRuta(mapa, lineaRuta, ruta, {
             color: '#2d6a2d',
             weight: 6,
@@ -251,6 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
             lineaRuta = null;
         }
 
+        ultimaRutaClave = '';
         limpiarResumenRuta();
     }
 
@@ -263,6 +285,7 @@ document.addEventListener('DOMContentLoaded', function () {
         input.parentNode.style.position = 'relative';
         input.parentNode.appendChild(lista);
         let tiempoBusqueda;
+        let busquedaAbortController = null;
 
         input.addEventListener('input', function () {
             limpiarCoordenadas(tipo);
@@ -275,13 +298,22 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             tiempoBusqueda = setTimeout(async function () {
+                const claveBusqueda = texto.trim().toLowerCase();
                 try {
-                    const response = await fetch(
-                        `https://photon.komoot.io/api/?q=${encodeURIComponent(texto)}&limit=5`
-                    );
-                    if (!response.ok) throw new Error('No se pudo buscar');
+                    busquedaAbortController?.abort();
 
-                    const data = await response.json();
+                    let data = busquedasCache.get(claveBusqueda);
+                    if (!data) {
+                        busquedaAbortController = new AbortController();
+                        const response = await fetch(
+                            `https://photon.komoot.io/api/?q=${encodeURIComponent(texto)}&limit=5`,
+                            { signal: busquedaAbortController.signal }
+                        );
+                        if (!response.ok) throw new Error('No se pudo buscar');
+
+                        data = await response.json();
+                        busquedasCache.set(claveBusqueda, data);
+                    }
                     lista.replaceChildren();
 
                     if (!data.features || data.features.length === 0) {
@@ -324,9 +356,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     lista.style.display = 'block';
                 } catch (error) {
+                    if (error.name === 'AbortError') return;
                     lista.style.display = 'none';
                 }
-            }, 300);
+            }, 600);
         });
 
         document.addEventListener('click', function (evento) {
@@ -362,7 +395,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (radio) radio.checked = true;
 
             if (marcadorOrigen && marcadorDestino) {
-                actualizarRuta();
+                actualizarRuta(true);
             } else {
                 const tarifa = radio && radio.value === 'express' ? 'S/ 5.00' : 'S/ 3.00';
                 document.getElementById('tarifa-numero').textContent = tarifa;

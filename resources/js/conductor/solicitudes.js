@@ -6,6 +6,12 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
+    if (lista.dataset.pollingSolicitudesActivo === '1') {
+        return;
+    }
+    lista.dataset.pollingSolicitudesActivo = '1';
+
+    const INTERVALO_SOLICITUDES_MS = 7000;
     const endpoint = lista.dataset.endpoint;
     const aceptarUrl = lista.dataset.aceptarUrl;
     const csrfToken = lista.dataset.csrfToken;
@@ -88,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function cargarSolicitudes() {
-        if (cargando) return;
+        if (cargando || document.hidden) return;
         cargando = true;
         pintarEstado('Consultando solicitudes...', 'cargando');
 
@@ -101,6 +107,11 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             if (!respuesta.ok) {
+                if (respuesta.status === 429) {
+                    pintarEstado('Demasiadas consultas. Se esperara antes de volver a actualizar.', 'cargando');
+                    return;
+                }
+
                 if ([401, 403].includes(respuesta.status) && pollingSolicitudes) {
                     window.clearInterval(pollingSolicitudes);
                     pollingSolicitudes = null;
@@ -113,8 +124,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 throw new Error(data.message || 'Respuesta no valida');
             }
 
-            const solicitudes = Array.isArray(data.data?.solicitudes) ? data.data.solicitudes : [];
-            const puedeTomar = data.data?.puede_tomar_viajes ?? puedeTomarInicial;
+            const solicitudes = Array.isArray(data.data?.solicitudes)
+                ? data.data.solicitudes
+                : Array.isArray(data.solicitudes)
+                    ? data.solicitudes
+                    : [];
+            const puedeTomar = data.data?.puede_tomar_viajes ?? data.puede_tomar_viajes ?? puedeTomarInicial;
 
             if (!solicitudes.length) {
                 pintarVacio('No hay solicitudes pendientes en este momento.');
@@ -133,6 +148,28 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    cargarSolicitudes();
-    pollingSolicitudes = window.setInterval(cargarSolicitudes, 8000);
+    function detenerPollingSolicitudes() {
+        if (!pollingSolicitudes) return;
+        window.clearInterval(pollingSolicitudes);
+        pollingSolicitudes = null;
+    }
+
+    function iniciarPollingSolicitudes() {
+        if (!endpoint || pollingSolicitudes || document.hidden) return;
+        cargarSolicitudes();
+        pollingSolicitudes = window.setInterval(cargarSolicitudes, INTERVALO_SOLICITUDES_MS);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            detenerPollingSolicitudes();
+            pintarEstado('Actualizacion pausada mientras la pestana esta oculta.', 'normal');
+            return;
+        }
+
+        iniciarPollingSolicitudes();
+    });
+
+    window.addEventListener('beforeunload', detenerPollingSolicitudes);
+    iniciarPollingSolicitudes();
 });

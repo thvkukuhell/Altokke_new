@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const datos = document.getElementById('datos-viaje-en-curso');
     if (!datos) return;
 
+    const INTERVALO_POLLING_ESTADO_MS = 5000;
+    const DISTANCIA_MIN_MOVER_CONDUCTOR_KM = 0.003;
     const viajeId = datos.dataset.viajeId;
     const estadoUrl = datos.dataset.estadoUrl;
     const calificarUrl = datos.dataset.calificarUrl;
@@ -58,8 +60,10 @@ document.addEventListener('DOMContentLoaded', function () {
     let estadoActual = datos.dataset.estadoInicial || 'aceptado';
     let pollingEstado = null;
     let consultandoEstado = false;
+    let estadoAbortController = null;
     let ultimaRutaActivaMs = 0;
     let repintandoRuta = false;
+    let ultimaUbicacionRecibida = conductorInicial;
 
     const eta = document.getElementById('eta-pasajero');
     const distancia = document.getElementById('distancia-pasajero');
@@ -78,6 +82,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function pasajeroLlegoADestino() {
         return estadoActual === 'en_curso'
             && AltokkeMapa.distanciaSimple(conductorActual, destinoInicial) <= 0.05;
+    }
+
+    function esEstadoFinal(estado) {
+        return ['completado', 'cancelado', 'expirado', 'finalizado', 'llegado_destino', 'pago_confirmado'].includes(estado);
     }
 
     function actualizarVistaLlegada() {
@@ -99,6 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         AltokkeMapa.detenerSimulacion(`pasajero-${viajeId}`);
+        estadoAbortController?.abort();
         if (estadoRuta) estadoRuta.textContent = 'Viaje no disponible';
         if (detalleRuta) detalleRuta.textContent = mensaje;
     }
@@ -208,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (cancelar) cancelar.style.display = 'none';
         }
 
-        if (['completado', 'cancelado', 'expirado'].includes(nuevoEstado)) {
+        if (esEstadoFinal(nuevoEstado)) {
             AltokkeMapa.detenerSimulacion(`pasajero-${viajeId}`);
             if (pollingEstado) window.clearInterval(pollingEstado);
             window.location.href = nuevoEstado === 'completado' ? calificarUrl : historialUrl;
@@ -221,12 +230,24 @@ document.addEventListener('DOMContentLoaded', function () {
     function moverConductorEnMapa(punto) {
         const nuevoPunto = AltokkeMapa.puntoValido(punto?.lat, punto?.lng);
         if (!nuevoPunto || !marcadorConductor) return;
+        if (
+            ultimaUbicacionRecibida
+            && AltokkeMapa.distanciaSimple(ultimaUbicacionRecibida, nuevoPunto) < DISTANCIA_MIN_MOVER_CONDUCTOR_KM
+        ) {
+            return;
+        }
 
         conductorActual = nuevoPunto;
+        ultimaUbicacionRecibida = nuevoPunto;
         AltokkeMapa.moverMarcadorSuave(marcadorConductor, nuevoPunto, 900);
+        if (pasajeroLlegoADestino()) {
+            actualizarVistaLlegada();
+            return;
+        }
+
         // 3J_MOVIMIENTO_SYNC_CONDUCTOR_PASAJERO -> luego ir a refresh persistente
         const ahora = Date.now();
-        if (!repintandoRuta && ahora - ultimaRutaActivaMs >= 2500) {
+        if (!repintandoRuta && ahora - ultimaRutaActivaMs >= INTERVALO_POLLING_ESTADO_MS) {
             ultimaRutaActivaMs = ahora;
             repintandoRuta = true;
             pintarRutas().finally(() => {
@@ -238,14 +259,20 @@ document.addEventListener('DOMContentLoaded', function () {
     async function consultarEstado() {
         if (!estadoUrl || consultandoEstado) return;
         consultandoEstado = true;
+        estadoAbortController = new AbortController();
 
         try {
             const respuesta = await fetch(estadoUrl, {
+                signal: estadoAbortController.signal,
                 headers: {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             });
+            if (respuesta.status === 429) {
+                console.warn('[Altokke] demasiadas consultas de estado; se esperara al siguiente intervalo.');
+                return;
+            }
             if (!respuesta.ok) {
                 detenerConsultaEstado('El viaje no existe o no tienes permiso para consultarlo.');
                 return;
@@ -270,11 +297,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (puntoConductor) {
                 // 4J_REFRESH_CONTINUA_DESDE_ULTIMA_UBICACION -> luego ir a llegada destino
                 moverConductorEnMapa(puntoConductor);
-                if (pasajeroLlegoADestino()) {
-                    actualizarVistaLlegada();
-                }
             }
         } catch (error) {
+            if (error.name === 'AbortError') return;
             detenerConsultaEstado('No se pudo consultar el viaje. Actualiza la pagina para intentar nuevamente.');
         } finally {
             consultandoEstado = false;
@@ -283,7 +308,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     pintarRutas();
     consultarEstado();
-    pollingEstado = window.setInterval(consultarEstado, 1500);
+    if (!pollingEstado) {
+        pollingEstado = window.setInterval(consultarEstado, INTERVALO_POLLING_ESTADO_MS);
+    }
 
     if (window.Echo) {
         window.Echo.private(`viaje.${viajeId}`)
@@ -315,5 +342,6 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('beforeunload', () => {
         AltokkeMapa.detenerSimulacion(`pasajero-${viajeId}`);
         if (pollingEstado) window.clearInterval(pollingEstado);
+        estadoAbortController?.abort();
     });
 });

@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const datos = document.getElementById('datos-viaje-activo-conductor');
     if (!datos) return;
 
+    const INTERVALO_POLLING_ESTADO_MS = 5000;
+    const INTERVALO_UBICACION_MS = 5000;
+    const DISTANCIA_MIN_UBICACION_KM = 0.03;
     const viajeId = datos.dataset.viajeId;
     const recogerUrl = datos.dataset.recogerUrl;
     const iniciarUrl = datos.dataset.iniciarUrl;
@@ -65,6 +68,15 @@ document.addEventListener('DOMContentLoaded', function () {
     let procesandoTransicion = false;
     let viajeTerminado = false;
     let pollingEstado = null;
+    let consultandoEstado = false;
+    let estadoAbortController = null;
+    let ubicacionRequestEnCurso = false;
+    let ubicacionAbortController = null;
+    let ultimaUbicacionEnviada = null;
+    let ultimoEnvioUbicacionMs = 0;
+    let ubicacionFinalEmitida = false;
+    let destinoAlcanzado = false;
+    let tramoFinalizado = false;
     let simulacionDestinoActiva = false;
     let ultimaRutaActivaMs = 0;
     let llegoDestino = estadoViaje === 'en_curso'
@@ -81,6 +93,38 @@ document.addEventListener('DOMContentLoaded', function () {
         boton.disabled = estadoViaje !== 'en_curso' && !llegoDestino;
     });
 
+    function esEstadoFinal(estado) {
+        return ['completado', 'cancelado', 'expirado', 'finalizado', 'llegado_destino', 'pago_confirmado'].includes(estado);
+    }
+
+    function detenerRecursosMapa() {
+        viajeTerminado = true;
+        ubicacionBloqueada = true;
+        detenerAutomatismosMapa(true);
+    }
+
+    function detenerAutomatismosMapa(abortarUbicacion = false) {
+        simulacionDestinoActiva = false;
+        AltokkeMapa.detenerSimulacion(`conductor-${viajeId}`);
+        if (pollingEstado) {
+            window.clearInterval(pollingEstado);
+            pollingEstado = null;
+        }
+        if (watchId !== null && navigator.geolocation) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+        }
+        estadoAbortController?.abort();
+        if (abortarUbicacion) {
+            ubicacionAbortController?.abort();
+        }
+    }
+
+    function detenerDespuesDeLlegarDestino() {
+        destinoAlcanzado = true;
+        detenerAutomatismosMapa(false);
+    }
+
     function conductorLlegoADestino() {
         return estadoViaje === 'en_curso'
             && AltokkeMapa.distanciaSimple(conductor, destino) <= 0.05;
@@ -88,6 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function actualizarVistaLlegada() {
         llegoDestino = true;
+        destinoAlcanzado = true;
         conductor = destino;
         if (marcadorConductor) {
             marcadorConductor.setLatLng([destino.lat, destino.lng]);
@@ -101,6 +146,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (panelTiempo) panelTiempo.textContent = '0 min';
         if (estado) estado.textContent = 'Llegaste';
         if (detalle) detalle.textContent = 'Esperando confirmacion de pago para completar el viaje';
+        detenerDespuesDeLlegarDestino();
     }
 
     async function actualizarRutas(forzar = false) {
@@ -172,13 +218,33 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    async function emitirUbicacion(latitud, longitud) {
+    async function emitirUbicacion(latitud, longitud, opciones = false) {
+        const forzar = opciones === true || opciones?.forzar === true || opciones?.final === true;
+        const esFinal = opciones?.final === true;
         const punto = AltokkeMapa.puntoValido(latitud, longitud);
-        if (!punto || !viajeId || ubicacionBloqueada) return false;
+        if (!punto || !viajeId || ubicacionBloqueada || viajeTerminado) return false;
+        if (esFinal && ubicacionFinalEmitida) return true;
+        if (!esFinal && destinoAlcanzado) return false;
+
+        const ahora = Date.now();
+        const ubicacionSinCambio = ultimaUbicacionEnviada
+            && AltokkeMapa.distanciaSimple(ultimaUbicacionEnviada, punto) < DISTANCIA_MIN_UBICACION_KM;
+
+        if (!forzar && (ubicacionRequestEnCurso || ahora - ultimoEnvioUbicacionMs < INTERVALO_UBICACION_MS || ubicacionSinCambio)) {
+            return true;
+        }
+
+        if (forzar && ubicacionAbortController) {
+            ubicacionAbortController.abort();
+        }
+
+        ubicacionRequestEnCurso = true;
+        ubicacionAbortController = new AbortController();
 
         try {
             const respuesta = await fetch(datos.dataset.ubicacionUrl, {
                 method: 'POST',
+                signal: ubicacionAbortController.signal,
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -193,22 +259,29 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             if (!respuesta.ok) {
-                if ([401, 403, 404, 409].includes(respuesta.status)) {
-                    ubicacionBloqueada = true;
-                    AltokkeMapa.detenerSimulacion(`conductor-${viajeId}`);
+                if (respuesta.status === 429) {
+                    console.warn('[Altokke] demasiadas solicitudes de ubicacion; se esperara antes de reenviar.');
+                    return false;
+                }
 
-                    if (watchId !== null && navigator.geolocation) {
-                        navigator.geolocation.clearWatch(watchId);
-                        watchId = null;
-                    }
+                if ([401, 403, 404, 409].includes(respuesta.status)) {
+                    detenerRecursosMapa();
                 }
 
                 throw new Error('No se pudo enviar la ubicacion');
             }
+            ultimaUbicacionEnviada = punto;
+            ultimoEnvioUbicacionMs = Date.now();
+            if (esFinal) {
+                ubicacionFinalEmitida = true;
+            }
             return true;
         } catch (error) {
+            if (error.name === 'AbortError') return false;
             if (detalle) detalle.textContent = 'No se pudo enviar la ubicacion';
             return false;
+        } finally {
+            ubicacionRequestEnCurso = false;
         }
     }
 
@@ -225,6 +298,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         if (!respuesta.ok) {
+            if (respuesta.status === 429) {
+                throw new Error('Demasiadas solicitudes. Espera unos segundos antes de reintentar.');
+            }
+
             throw new Error(`No se pudo cambiar el viaje a ${nuevoEstado}`);
         }
 
@@ -234,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function finalizarTramo() {
-        if (procesandoTransicion || ubicacionBloqueada) return;
+        if (procesandoTransicion || ubicacionBloqueada || tramoFinalizado) return;
         procesandoTransicion = true;
 
         try {
@@ -248,7 +325,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     detalle.textContent = 'Pasajero abordando. Esperando inicio del trayecto.';
                 }
 
-                const origenGuardado = await emitirUbicacion(origen.lat, origen.lng);
+                const origenGuardado = await emitirUbicacion(origen.lat, origen.lng, true);
                 if (!origenGuardado) {
                     throw new Error('No se pudo guardar la llegada al origen');
                 }
@@ -274,18 +351,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (estadoViaje === 'en_curso') {
                 // 5J_LLEGADA_DESTINO_SIN_COMPLETAR -> luego ir a confirmar pago
+                tramoFinalizado = true;
                 conductor = destino;
                 marcadorConductor.setLatLng([destino.lat, destino.lng]);
-                const ubicacionGuardada = await emitirUbicacion(destino.lat, destino.lng);
+                const ubicacionGuardada = await emitirUbicacion(destino.lat, destino.lng, { final: true });
                 if (!ubicacionGuardada) {
                     throw new Error('No se pudo guardar la ubicacion final');
                 }
-                llegoDestino = true;
                 botonesCompletar.forEach((boton) => {
                     boton.disabled = false;
                 });
                 if (estado) estado.textContent = 'Llegaste al destino';
                 if (detalle) detalle.textContent = 'Confirma el pago y completa el viaje';
+                actualizarVistaLlegada();
             }
         } catch (error) {
             if (detalle) detalle.textContent = error.message;
@@ -296,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function moverConductor(latitud, longitud, esReal = false) {
         const punto = AltokkeMapa.puntoValido(latitud, longitud);
-        if (!punto || !marcadorConductor) return;
+        if (!punto || !marcadorConductor || destinoAlcanzado || viajeTerminado) return;
 
         if (esReal) {
             if (estado) estado.textContent = 'GPS activo';
@@ -314,7 +392,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function iniciarSimulacionSiHaceFalta(rutaAlPasajero) {
-        if (gpsRealActivo || llegoDestino || !marcadorConductor) return;
+        if (gpsRealActivo || llegoDestino || destinoAlcanzado || viajeTerminado || !marcadorConductor) return;
 
         const objetivo = estadoViaje === 'en_curso' ? destino : origen;
         if (AltokkeMapa.distanciaSimple(conductor, objetivo) <= 0.05) {
@@ -336,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function () {
             intervaloMs: estadoViaje === 'en_curso' ? 360 : 90,
             minimoPasos: estadoViaje === 'en_curso' ? 64 : 28,
             avancePorTick: estadoViaje === 'en_curso' ? 2 : 4,
-            debeDetener: () => gpsRealActivo,
+            debeDetener: () => gpsRealActivo || destinoAlcanzado || viajeTerminado,
             alMover: (punto) => {
                 conductor = punto;
                 emitirUbicacion(punto.lat, punto.lng);
@@ -346,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function iniciarSimulacionDestinoSiCorresponde(rutaAlPasajero) {
-        if (!rutaAlPasajero?.coordenadas?.length || llegoDestino || !marcadorConductor) return;
+        if (!rutaAlPasajero?.coordenadas?.length || llegoDestino || destinoAlcanzado || viajeTerminado || !marcadorConductor) return;
         if (estadoViaje !== 'en_curso') return;
         if (conductorLlegoADestino()) {
             actualizarVistaLlegada();
@@ -362,33 +440,41 @@ document.addEventListener('DOMContentLoaded', function () {
             intervaloMs: 360,
             minimoPasos: 64,
             avancePorTick: 2,
-            debeDetener: () => ubicacionBloqueada || estadoViaje !== 'en_curso',
+            debeDetener: () => ubicacionBloqueada || estadoViaje !== 'en_curso' || destinoAlcanzado || viajeTerminado,
             alMover: (punto) => {
                 conductor = punto;
                 // 3J_MOVIMIENTO_SYNC_CONDUCTOR_PASAJERO -> luego ir a refresh persistente
                 emitirUbicacion(punto.lat, punto.lng);
             },
             alFinalizar: () => {
+                if (tramoFinalizado) return;
                 simulacionDestinoActiva = false;
-                llegoDestino = true;
+                tramoFinalizado = true;
                 conductor = destino;
                 marcadorConductor.setLatLng([destino.lat, destino.lng]);
-                emitirUbicacion(destino.lat, destino.lng);
+                emitirUbicacion(destino.lat, destino.lng, { final: true });
                 actualizarVistaLlegada();
             },
         });
     }
 
     async function consultarEstadoViaje() {
-        if (!estadoUrl) return;
+        if (!estadoUrl || consultandoEstado || viajeTerminado) return;
+        consultandoEstado = true;
+        estadoAbortController = new AbortController();
 
         try {
             const respuesta = await fetch(estadoUrl, {
+                signal: estadoAbortController.signal,
                 headers: {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             });
+            if (respuesta.status === 429) {
+                console.warn('[Altokke] demasiadas consultas de estado; se esperara al siguiente intervalo.');
+                return;
+            }
             if (!respuesta.ok) return;
 
             const data = await respuesta.json();
@@ -410,23 +496,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
                 if (conductorLlegoADestino()) {
                     actualizarVistaLlegada();
-                    AltokkeMapa.detenerSimulacion(`conductor-${viajeId}`);
                 }
             }
-            if (!['cancelado', 'completado', 'expirado'].includes(viaje.estado)) return;
+            if (!esEstadoFinal(viaje.estado)) return;
 
-            viajeTerminado = true;
-            ubicacionBloqueada = true;
-            AltokkeMapa.detenerSimulacion(`conductor-${viajeId}`);
-            if (pollingEstado) window.clearInterval(pollingEstado);
+            detenerRecursosMapa();
             window.location.href = solicitudesUrl;
         } catch (error) {
+        } finally {
+            consultandoEstado = false;
         }
     }
 
     emitirUbicacion(conductor.lat, conductor.lng)
         .finally(() => actualizarRutas(true));
-    pollingEstado = window.setInterval(consultarEstadoViaje, 1500);
+    if (!pollingEstado) {
+        pollingEstado = window.setInterval(consultarEstadoViaje, INTERVALO_POLLING_ESTADO_MS);
+    }
 
     if (navigator.geolocation) {
         watchId = navigator.geolocation.watchPosition((posicion) => {
@@ -454,10 +540,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     window.addEventListener('beforeunload', () => {
-        AltokkeMapa.detenerSimulacion(`conductor-${viajeId}`);
-        if (watchId !== null && navigator.geolocation) {
-            navigator.geolocation.clearWatch(watchId);
-        }
-        if (pollingEstado) window.clearInterval(pollingEstado);
+        detenerRecursosMapa();
     });
 });

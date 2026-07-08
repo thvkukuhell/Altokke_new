@@ -6,6 +6,8 @@ window.AltokkeMapa = window.AltokkeMapa || (() => {
     const BAGUA = { lat: -5.63889, lng: -78.5311 };
     const CAJARURO = { lat: -5.6763, lng: -78.5311 };
     const simulaciones = new Map();
+    const rutasCache = new Map();
+    const rutasPendientes = new Map();
 
     function numeroSeguro(value, fallback = null) {
         const n = Number(value);
@@ -65,6 +67,11 @@ window.AltokkeMapa = window.AltokkeMapa || (() => {
 
         try {
             const response = await fetch(url, options);
+            if (response.status === 429) {
+                console.warn('AltokkeMapa: demasiadas solicitudes. Se esperara antes de volver a consultar.', url);
+                return null;
+            }
+
             if (!response.ok) {
                 console.warn('AltokkeMapa: fetchJson HTTP error', response.status, response.statusText, url);
                 return null;
@@ -198,7 +205,22 @@ window.AltokkeMapa = window.AltokkeMapa || (() => {
             return fallback;
         }
 
-        const data = await fetchJson(rutaUrl, {
+        const claveRuta = [
+            origenSeguro.lat.toFixed(5),
+            origenSeguro.lng.toFixed(5),
+            destinoSeguro.lat.toFixed(5),
+            destinoSeguro.lng.toFixed(5),
+        ].join('|');
+
+        if (rutasCache.has(claveRuta)) {
+            return rutasCache.get(claveRuta);
+        }
+
+        if (rutasPendientes.has(claveRuta)) {
+            return rutasPendientes.get(claveRuta);
+        }
+
+        const peticion = fetchJson(rutaUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -207,19 +229,28 @@ window.AltokkeMapa = window.AltokkeMapa || (() => {
                 'X-Requested-With': 'XMLHttpRequest',
             },
             body: JSON.stringify({ origen: origenSeguro, destino: destinoSeguro }),
+        }).finally(() => {
+            rutasPendientes.delete(claveRuta);
         });
+
+        rutasPendientes.set(claveRuta, peticion);
+
+        const data = await peticion;
 
         if (!data || typeof data !== 'object') {
             return fallback;
         }
 
-        return {
+        const ruta = {
             ...fallback,
             ...data,
             coordenadas: Array.isArray(data.coordenadas) && data.coordenadas.length
                 ? data.coordenadas
                 : fallback.coordenadas,
         };
+
+        rutasCache.set(claveRuta, ruta);
+        return ruta;
     }
 
     function dibujarRuta(mapa, capaActual, data, opciones = {}) {
