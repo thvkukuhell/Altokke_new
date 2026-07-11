@@ -29,6 +29,8 @@ class BaseApiController extends Controller
 
     protected function respuestaJson(mixed $datos, int $estado = 200): JsonResponse
     {
+        $this->limpiarBuffersSalida();
+
         return response()->json($datos, $estado);
     }
 
