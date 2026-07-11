@@ -310,30 +310,38 @@ window.AltokkeMapa = window.AltokkeMapa || (() => {
             .filter(Boolean);
 
         if (validas.length < 2) return validas;
-        if (validas.length >= minimoPasos) return validas;
 
         let distanciaTotal = 0;
         for (let i = 0; i < validas.length - 1; i += 1) {
             distanciaTotal += Math.max(0.001, distanciaSimple(validas[i], validas[i + 1]));
         }
 
-        const puntos = [];
         // 1J_RUTA_REAL_NO_LINEA_RECTA -> luego ir a mover moto por puntos OSRM
-        for (let i = 0; i < validas.length - 1; i += 1) {
-            const actual = validas[i];
-            const siguiente = validas[i + 1];
-            const distanciaSegmento = Math.max(0.001, distanciaSimple(actual, siguiente));
-            const pasosSegmento = Math.max(
-                1,
-                Math.ceil((distanciaSegmento / distanciaTotal) * Math.max(minimoPasos, validas.length))
-            );
+        // Se re-muestrea por distancia acumulada real, no por cantidad de puntos
+        // crudos de la ruta, para que la simulacion se comporte igual sin importar
+        // si el conductor esta cerca o lejos del punto de recojo.
+        const pasos = Math.max(minimoPasos, 2);
+        const incremento = distanciaTotal / pasos;
+        const puntos = [validas[0]];
+        let segmentoIndice = 0;
+        let distanciaAcumulada = 0;
+        let distanciaObjetivo = incremento;
 
-            for (let paso = 0; paso < pasosSegmento; paso += 1) {
-                const avance = paso / pasosSegmento;
+        while (puntos.length < pasos && segmentoIndice < validas.length - 1) {
+            const actual = validas[segmentoIndice];
+            const siguiente = validas[segmentoIndice + 1];
+            const distanciaSegmento = Math.max(0.001, distanciaSimple(actual, siguiente));
+
+            if (distanciaAcumulada + distanciaSegmento >= distanciaObjetivo) {
+                const avance = (distanciaObjetivo - distanciaAcumulada) / distanciaSegmento;
                 puntos.push({
                     lat: actual.lat + ((siguiente.lat - actual.lat) * avance),
                     lng: actual.lng + ((siguiente.lng - actual.lng) * avance),
                 });
+                distanciaObjetivo += incremento;
+            } else {
+                distanciaAcumulada += distanciaSegmento;
+                segmentoIndice += 1;
             }
         }
 
