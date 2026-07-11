@@ -107,7 +107,7 @@ class ReporteController extends Controller
         $handle = fopen('php://temp', 'r+');
 
         foreach ($filas as $fila) {
-            fputcsv($handle, $fila);
+            fputcsv($handle, array_map([$this, 'sanitizarCeldaCsv'], $fila));
         }
 
         rewind($handle);
@@ -118,5 +118,18 @@ class ReporteController extends Controller
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $nombre . '"',
         ]);
+    }
+
+    private function sanitizarCeldaCsv(mixed $valor): mixed
+    {
+        if (!is_string($valor) || $valor === '') {
+            return $valor;
+        }
+
+        if (in_array($valor[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+            return "'" . $valor;
+        }
+
+        return $valor;
     }
 }
