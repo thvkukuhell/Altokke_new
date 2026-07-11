@@ -512,6 +512,10 @@ class ConductorController extends Controller
                           ->through(function ($v) {
                               return [
                                   ...$v->toArray(),
+                                  'calificacion' => $v->calificacion?->puntuacion !== null
+                                      ? (int) $v->calificacion->puntuacion
+                                      : null,
+                                  'fecha_fin' => $v->fecha_fin?->toDateTimeString(),
                                   'borde_clase'  => match($v->estado_viaje) {
                                       'completado' => 'borde-verde',
                                       'cancelado'  => 'borde-rojo',
