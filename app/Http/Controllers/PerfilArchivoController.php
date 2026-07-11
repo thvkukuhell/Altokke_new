@@ -14,8 +14,15 @@ class PerfilArchivoController extends Controller
             'foto_perfil' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $user = Auth::user();
         $archivo = $request->file('foto_perfil');
+
+        if (!$this->tieneFirmaDeImagenValida($archivo->getRealPath())) {
+            return back()->withErrors([
+                'foto_perfil' => 'El archivo no es una imagen valida.',
+            ]);
+        }
+
+        $user = Auth::user();
         $ruta = $archivo->store('perfiles', 'public');
 
         if ($user->foto_perfil && Storage::disk('public')->exists($user->foto_perfil)) {
@@ -27,5 +34,26 @@ class PerfilArchivoController extends Controller
         ]);
 
         return back()->with('mensaje', 'Foto de perfil actualizada correctamente.');
+    }
+
+    private function tieneFirmaDeImagenValida(string $rutaTemporal): bool
+    {
+        $handle = fopen($rutaTemporal, 'rb');
+
+        if (!$handle) {
+            return false;
+        }
+
+        $cabecera = fread($handle, 8);
+        fclose($handle);
+
+        if ($cabecera === false) {
+            return false;
+        }
+
+        $esJpg = str_starts_with($cabecera, "\xFF\xD8\xFF");
+        $esPng = str_starts_with($cabecera, "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A");
+
+        return $esJpg || $esPng;
     }
 }
