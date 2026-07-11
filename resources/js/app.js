@@ -106,6 +106,19 @@ function initAppDrawerNavigation() {
     });
 }
 
+function initLogoutConfirm() {
+    document.querySelectorAll('form[action$="/auth/logout"]').forEach((form) => {
+        if (form.dataset.logoutConfirmReady === 'true') return;
+        form.dataset.logoutConfirmReady = 'true';
+
+        form.addEventListener('submit', (evento) => {
+            if (!window.confirm('¿Cerrar sesión?')) {
+                evento.preventDefault();
+            }
+        });
+    });
+}
+
 let navigationReady = false;
 
 function bootNavigation() {
@@ -116,6 +129,7 @@ function bootNavigation() {
     navigationReady = true;
     initAuthNavigation();
     initAppDrawerNavigation();
+    initLogoutConfirm();
 }
 
 if (document.readyState === 'loading') {
