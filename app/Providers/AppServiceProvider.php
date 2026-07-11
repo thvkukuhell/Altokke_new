@@ -25,7 +25,8 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('tieneViajeActivo', $tieneViajeActivo);
         });
-
+        
+        //
         if (config('app.env') !== 'local' || str_contains(config('app.url'), 'ngrok')) {
             URL::forceScheme('https');
         }

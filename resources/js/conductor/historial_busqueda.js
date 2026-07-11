@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const listaResultados = document.getElementById('historialConductorLista');
 
     if (!contenedor || !inputBuscar || !estado || !contenidoInicial || !listaResultados) {
-        console.error('[historial] Faltan elementos del DOM.')
         return;
     }
 
