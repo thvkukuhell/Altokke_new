@@ -35,6 +35,12 @@
             </ul>
         </div>
 
+        <div class="columna-footer">
+            <h3 class="subtitulo-footer">Soporte</h3>
+            <p class="texto-footer">Email: <a href="mailto:{{ config('app.support_email') }}" class="enlace-footer" target="_blank" rel="noopener">{{ config('app.support_email') }}</a></p>
+            <p class="texto-footer">Teléfono: <a href="tel:{{ config('app.support_phone') }}" class="enlace-footer">{{ config('app.support_phone') }}</a></p>
+        </div>
+
     </div>
 
     <!-- Línea inferior -->

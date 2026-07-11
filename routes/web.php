@@ -17,6 +17,7 @@ Route::get('/inicio/sobre_nosotros', [InicioController::class, 'sobre_nosotros']
 Route::get('/inicio/servicios', [InicioController::class, 'servicios'])->name('servicios');
 Route::get('/inicio/contacto', [InicioController::class, 'contacto'])->name('contacto');
 Route::get('/inicio/ayuda', [InicioController::class, 'ayuda'])->name('ayuda');
+Route::post('/inicio/ayuda', [InicioController::class, 'enviarConsulta'])->name('ayuda.enviar');
 
 // Autenticacion publica
 Route::middleware('redirect.auth.role')->group(function () {

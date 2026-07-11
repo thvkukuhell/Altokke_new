@@ -4,9 +4,9 @@
 <section class="seccion servicios-seccion">
     <div class="seccion-inner">
         <div class="seccion-cabecera">
-            <span class="seccion-chip">Servidores</span>
+            <span class="seccion-chip">Servicios</span>
             <h1 class="seccion-titulo">Preguntas frecuentes sobre Altokke</h1>
-            <p class="seccion-sub">Respuestas claras sobre cómo funciona el sistema, los viajes y la experiencia para pasajeros y conductores.</p>
+            <p class="seccion-sub">Respuestas claras sobre cómo funciona el servicio, cómo pedir un viaje y qué esperar como pasajero.</p>
         </div>
 
         <div class="faq-grid">
@@ -27,7 +27,7 @@
 
             <article class="faq-card">
                 <h2>¿Dónde veo el historial de viajes?</h2>
-                <p>En el panel de pasajero, usa la opción "Mis viajes" para ver los viajes anteriores, detalles de tarifa y comprobantes disponibles.</p>
+                <p>En la página de pasajero, usa la opción "Mis viajes" para ver tus viajes anteriores, los detalles de tarifa y los comprobantes disponibles.</p>
             </article>
 
             <article class="faq-card">

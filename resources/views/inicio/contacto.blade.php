@@ -5,26 +5,26 @@
     <div class="seccion-inner">
         <div class="seccion-cabecera">
             <span class="seccion-chip">Contacto</span>
-            <h1 class="seccion-titulo">¿Necesitas asistencia?</h1>
-            <p class="seccion-sub">Estamos aquí para ayudarte con tu cuenta, tu viaje o cualquier duda sobre el uso de Altokke.</p>
+            <h1 class="seccion-titulo">Contáctanos</h1>
+            <p class="seccion-sub">Si quieres enviar una consulta, reclamo o sugerencia, usa los datos oficiales de soporte.</p>
         </div>
 
         <div class="contacto-panel">
             <div class="contacto-card">
-                <h2>Correo de soporte</h2>
-                <p><a href="mailto:soporte@altokke.com">soporte@altokke.com</a></p>
+                <h2>Correo oficial</h2>
+                <p><a href="mailto:{{ config('app.support_email') }}" target="_blank" rel="noopener">{{ config('app.support_email') }}</a></p>
             </div>
             <div class="contacto-card">
                 <h2>Teléfono</h2>
-                <p><a href="tel:+51999999999">+51 999 999 999</a></p>
+                <p><a href="tel:{{ config('app.support_phone') }}">{{ config('app.support_phone') }}</a></p>
             </div>
             <div class="contacto-card">
-                <h2>Horario de atención</h2>
-                <p>Lun - Dom: 08:00 - 21:00</p>
+                <h2>Atención</h2>
+                <p>Lunes a domingo, de 08:00 a 21:00.</p>
             </div>
         </div>
 
-        <p class="contacto-texto">Si tienes una incidencia con un viaje, por favor indícanos tu nombre, número de teléfono y detalles del viaje.</p>
+        <p class="contacto-texto">Si prefieres, también puedes enviar tu mensaje directamente desde la página de Ayuda.</p>
     </div>
 </section>
 @endsection

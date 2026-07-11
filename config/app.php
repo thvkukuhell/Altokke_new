@@ -84,6 +84,9 @@ return [
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
+    'support_email' => env('SUPPORT_EMAIL', 'soportealtokke@gmail.com'),
+    'support_phone' => env('SUPPORT_PHONE', '+51999999999'),
+
     /*
     |--------------------------------------------------------------------------
     | Encryption Key
