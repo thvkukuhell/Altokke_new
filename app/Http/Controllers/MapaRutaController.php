@@ -29,52 +29,9 @@ class MapaRutaController extends Controller
         $fallback = $this->crearFallback($origen, $destino);
         $coordenadas = "{$origen['lng']},{$origen['lat']};{$destino['lng']},{$destino['lat']}";
 
-        try {
-            $response = Http::timeout(8)
-                ->acceptJson()
-                ->get("https://router.project-osrm.org/route/v1/driving/{$coordenadas}", [
-                    'overview' => 'full',
-                    'geometries' => 'geojson',
-                    'steps' => 'false',
-                ]);
+        $ruta = $this->consultarOsrmConReintento($coordenadas);
 
-            if (! $response->successful()) {
-                return response()->json([
-                    ...$fallback,
-                    'ok' => false,
-                    'estado' => 'fallback',
-                    'mensaje' => 'No se pudo consultar OSRM',
-                ]);
-            }
-
-            $ruta = $response->json('routes.0');
-            $coordinates = $ruta['geometry']['coordinates'] ?? [];
-
-            if (
-                $response->json('code') !== 'Ok'
-                || ! $coordinates
-                || ! isset($ruta['distance'], $ruta['duration'])
-            ) {
-                return response()->json([
-                    ...$fallback,
-                    'ok' => false,
-                    'estado' => 'fallback',
-                    'mensaje' => 'Ruta externa sin datos suficientes',
-                ]);
-            }
-
-            return response()->json([
-                'ok' => true,
-                'estado' => 'ruta_real',
-                'mensaje' => 'Ruta calculada',
-                'coordenadas' => array_map(
-                    fn (array $coord) => [(float) $coord[1], (float) $coord[0]],
-                    $coordinates
-                ),
-                'distancia_km' => round(((float) $ruta['distance']) / 1000, 2),
-                'duracion_min' => (int) ceil(((float) $ruta['duration']) / 60),
-            ]);
-        } catch (\Throwable) {
+        if ($ruta === null) {
             return response()->json([
                 ...$fallback,
                 'ok' => false,
@@ -82,6 +39,56 @@ class MapaRutaController extends Controller
                 'mensaje' => 'Ruta externa no disponible',
             ]);
         }
+
+        return response()->json([
+            'ok' => true,
+            'estado' => 'ruta_real',
+            'mensaje' => 'Ruta calculada',
+            ...$ruta,
+        ]);
+    }
+
+    private function consultarOsrmConReintento(string $coordenadas, int $intentos = 2): ?array
+    {
+        for ($intento = 1; $intento <= $intentos; $intento++) {
+            try {
+                $response = Http::timeout(6)
+                    ->acceptJson()
+                    ->get("https://router.project-osrm.org/route/v1/driving/{$coordenadas}", [
+                        'overview' => 'full',
+                        'geometries' => 'geojson',
+                        'steps' => 'false',
+                    ]);
+
+                if (! $response->successful()) {
+                    continue;
+                }
+
+                $ruta = $response->json('routes.0');
+                $coordinates = $ruta['geometry']['coordinates'] ?? [];
+
+                if (
+                    $response->json('code') !== 'Ok'
+                    || ! $coordinates
+                    || ! isset($ruta['distance'], $ruta['duration'])
+                ) {
+                    continue;
+                }
+
+                return [
+                    'coordenadas' => array_map(
+                        fn (array $coord) => [(float) $coord[1], (float) $coord[0]],
+                        $coordinates
+                    ),
+                    'distancia_km' => round(((float) $ruta['distance']) / 1000, 2),
+                    'duracion_min' => (int) ceil(((float) $ruta['duration']) / 60),
+                ];
+            } catch (\Throwable) {
+                continue;
+            }
+        }
+
+        return null;
     }
 
     private function crearFallback(array $origen, array $destino): array
