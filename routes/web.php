@@ -30,7 +30,7 @@ Route::middleware('redirect.auth.role')->group(function () {
 
 Route::post('/auth/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 Route::post('/mapa/ruta-estimada', [MapaRutaController::class, 'rutaEstimada'])->middleware(['auth', 'throttle:30,1'])->name('mapa.rutaEstimada');
-Route::post('/perfil/foto', [PerfilArchivoController::class, 'actualizarFoto'])->middleware('auth')->name('perfil.foto');
+Route::post('/perfil/foto', [PerfilArchivoController::class, 'actualizarFoto'])->middleware(['auth', 'throttle:10,1'])->name('perfil.foto');
 Route::get('/reportes/viajes/{viajeId}/comprobante', [ReporteController::class, 'comprobanteViajePdf'])->whereNumber('viajeId')->middleware('auth')->name('reportes.viajes.comprobante');
 
 // Pasajero
