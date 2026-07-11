@@ -14,18 +14,25 @@
         <div class="columna-footer">
             <h3 class="subtitulo-footer">Enlaces</h3>
             <ul class="lista-footer">
-                <li><a href="#" class="enlace-footer">Inicio</a></li>
-                <li><a href="#" class="enlace-footer">Servicios</a></li>
-                <li><a href="#" class="enlace-footer">Contacto</a></li>
-                <li><a href="#" class="enlace-footer">Ayuda</a></li>
-            </ul>
-        </div>
+                {{-- Inicio: redirige según tipo de usuario autenticado --}}
+                <li>
+                    @if(auth()->check())
+                        @if(auth()->user()->tipo_usuario === 'conductor')
+                            <a href="{{ route('conductor.dashboard') }}" class="enlace-footer">Inicio</a>
+                        @elseif(auth()->user()->tipo_usuario === 'pasajero')
+                            <a href="{{ route('pasajero.solicitarViaje') }}" class="enlace-footer">Inicio</a>
+                        @else
+                            <a href="{{ route('inicio') }}" class="enlace-footer">Inicio</a>
+                        @endif
+                    @else
+                        <a href="{{ route('inicio') }}" class="enlace-footer">Inicio</a>
+                    @endif
+                </li>
 
-        <!-- Contacto -->
-        <div class="columna-footer">
-            <h3 class="subtitulo-footer">Contacto</h3>
-            <p class="texto-footer">Email: soporte@altokke.com</p>
-            <p class="texto-footer">Teléfono: +51 999 999 999</p>
+                <li><a href="{{ route('servicios') }}" class="enlace-footer">Servicios</a></li>
+                <li><a href="{{ route('contacto') }}" class="enlace-footer">Contacto</a></li>
+                <li><a href="{{ route('ayuda') }}" class="enlace-footer">Ayuda</a></li>
+            </ul>
         </div>
 
     </div>
