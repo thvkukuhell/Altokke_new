@@ -256,6 +256,14 @@
     .app-drawer-nav .perfil-contenedor-app,
     .app-drawer-nav .perfil-link-header {
         min-height: 54px;
+        display: flex !important;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .app-drawer-nav .perfil-contenedor-app__texto,
+    .app-drawer-nav .perfil-link-header__texto {
+        display: inline;
     }
 
     .app-drawer-nav .avatar-circular-app {
@@ -265,6 +273,7 @@
     .app-drawer-nav .conductor-avatar--header {
         width: 34px;
         height: 34px;
+        margin: 0;
     }
 
     .pagina-pasajero,

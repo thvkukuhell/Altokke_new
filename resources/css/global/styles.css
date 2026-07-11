@@ -272,6 +272,10 @@ header.encabezado-app {
     padding: 4px !important;
 }
 
+.perfil-link-header__texto {
+    display: none;
+}
+
 .conductor-avatar--header {
     width: 34px;
     height: 34px;

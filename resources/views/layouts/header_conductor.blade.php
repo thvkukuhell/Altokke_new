@@ -56,6 +56,7 @@
                     'initials' => $iniciales ?? null,
                     'size' => 'header',
                 ])
+                <span class="perfil-link-header__texto">Perfil</span>
             </a>
 
             <a href="{{ route('logout') }}" class="btn-cerrar js-cerrar-sesion"

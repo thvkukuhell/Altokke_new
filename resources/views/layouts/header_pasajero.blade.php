@@ -61,6 +61,7 @@
                     @endif
                     <span class="avatar-circular-app__fallback" style="display: {{ $fotoPerfilPasajero ? 'none' : 'grid' }};">Perfil</span>
                 </div>
+                <span class="perfil-contenedor-app__texto">Perfil</span>
             </a>
 
             <a href="{{ route('logout') }}" class="btn-cerrar-sesion-app js-cerrar-sesion"
