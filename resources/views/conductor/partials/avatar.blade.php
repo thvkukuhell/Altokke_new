@@ -8,8 +8,7 @@
 
 <div class="conductor-avatar conductor-avatar--{{ $avatarTamano }}" aria-label="{{ $avatarNombre }}">
     @if($avatarFoto)
-        <img src="{{ $avatarFoto }}" alt="{{ $avatarNombre }}" class="conductor-avatar__image">
-    @else
-        <span class="conductor-avatar__fallback">{{ $avatarIniciales }}</span>
+        <img src="{{ $avatarFoto }}" alt="{{ $avatarNombre }}" class="conductor-avatar__image" onerror="this.style.display='none'; this.parentElement.querySelector('.conductor-avatar__fallback').style.display='grid';">
     @endif
+    <span class="conductor-avatar__fallback" style="display: {{ $avatarFoto ? 'none' : 'grid' }};">Perfil</span>
 </div>

@@ -19,12 +19,12 @@
                 <p><a href="tel:{{ config('app.support_phone') }}">{{ config('app.support_phone') }}</a></p>
             </div>
             <div class="contacto-card">
-                <h2>Atención</h2>
+                <h2>Horario</h2>
                 <p>Lunes a domingo, de 08:00 a 21:00.</p>
             </div>
         </div>
 
-        <p class="contacto-texto">Si prefieres, también puedes enviar tu mensaje directamente desde la página de Ayuda.</p>
+        <p class="contacto-texto">Si necesitas enviar una consulta, reclamo o sugerencia, usa el formulario en la página de Ayuda.</p>
     </div>
 </section>
 @endsection
