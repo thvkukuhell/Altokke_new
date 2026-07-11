@@ -566,6 +566,48 @@
     color: rgba(255, 255, 255, 0.5);
 }
 
+.faq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 20px;
+}
+
+.faq-card,
+.contacto-card {
+    background: #ffffff;
+    border: 1px solid rgba(16, 25, 20, 0.1);
+    border-radius: 22px;
+    padding: 28px 26px;
+    box-shadow: 0 20px 42px rgba(16, 25, 20, 0.06);
+}
+
+.faq-card h2,
+.contacto-card h2 {
+    font-size: 1.1rem;
+    margin-bottom: 14px;
+    color: #0f271f;
+}
+
+.faq-card p,
+.contacto-card p,
+.contacto-texto {
+    color: #576c68;
+    font-size: 0.98rem;
+    line-height: 1.75;
+}
+
+.contacto-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    gap: 20px;
+    margin-top: 32px;
+}
+
+.contacto-texto {
+    margin-top: 26px;
+    max-width: 720px;
+}
+
 /* COMO FUNCIONA */
 .como-funciona {
     background:
