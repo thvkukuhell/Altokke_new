@@ -79,6 +79,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let tramoFinalizado = false;
     let simulacionDestinoActiva = false;
     let ultimaRutaActivaMs = 0;
+    let ultimoIntentoTransicionMs = 0;
+    const COOLDOWN_TRANSICION_MS = 15000;
     let llegoDestino = estadoViaje === 'en_curso'
         && AltokkeMapa.distanciaSimple(conductor, destino) <= 0.05;
 
@@ -90,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const panelTiempo = document.getElementById('panel-tiempo-conductor');
     const botonesCompletar = document.querySelectorAll(`form[action="${completarUrl}"] button`);
     botonesCompletar.forEach((boton) => {
-        boton.disabled = estadoViaje !== 'en_curso' && !llegoDestino;
+        boton.disabled = !llegoDestino;
     });
 
     function esEstadoFinal(estado) {
@@ -312,6 +314,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function finalizarTramo() {
         if (procesandoTransicion || ubicacionBloqueada || tramoFinalizado) return;
+
+        const ahora = Date.now();
+        if (ahora - ultimoIntentoTransicionMs < COOLDOWN_TRANSICION_MS) return;
+        ultimoIntentoTransicionMs = ahora;
+
         procesandoTransicion = true;
 
         try {
@@ -342,9 +349,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 await actualizarEstado(iniciarUrl, 'en_curso');
 
-                botonesCompletar.forEach((boton) => {
-                    boton.disabled = false;
-                });
+                // El boton de finalizar sigue deshabilitado: solo se habilita
+                // cuando actualizarVistaLlegada() detecta la llegada real al destino.
                 await actualizarRutas(true);
                 return;
             }
@@ -490,13 +496,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (estadoViaje !== 'en_curso') {
                 simulacionDestinoActiva = false;
             }
-            if (estadoViaje === 'en_curso') {
-                botonesCompletar.forEach((boton) => {
-                    boton.disabled = false;
-                });
-                if (conductorLlegoADestino()) {
-                    actualizarVistaLlegada();
-                }
+            if (estadoViaje === 'en_curso' && conductorLlegoADestino()) {
+                actualizarVistaLlegada();
             }
             if (!esEstadoFinal(viaje.estado)) return;
 
