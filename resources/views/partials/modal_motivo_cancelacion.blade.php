@@ -21,7 +21,7 @@
                             'demora_conductor' => 'El conductor está demorando demasiado.',
                             'pasajero_no_en_punto' => 'El pasajero no se encuentra en el punto de recojo.',
                             'ubicacion_incorrecta' => 'Se ingresó una ubicación incorrecta.',
-                            'cambio_opinion' => 'El pasajero cambió de opinión.',
+                            'cambio_opinion' => 'Se equivocó al marcar el destino de viaje.',
                             'problemas_vehiculo' => 'Problemas con el vehículo.',
                             'otro' => 'Otro motivo.',
                         ];
@@ -30,7 +30,7 @@
                             $motivos = [
                                 'demora_conductor' => 'El conductor está demorando demasiado.',
                                 'ubicacion_incorrecta' => 'Se ingresó una ubicación incorrecta.',
-                                'cambio_opinion' => 'El pasajero cambió de opinión.',
+                                'cambio_opinion' => 'Se equivocó al marcar el destino de viaje.',
                                 'otro' => 'Otro motivo.',
                             ];
                         } elseif (($userType ?? null) === 'conductor') {

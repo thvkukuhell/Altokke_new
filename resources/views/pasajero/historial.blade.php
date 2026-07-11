@@ -98,7 +98,7 @@
                                             @case('demora_conductor') El conductor está demorando demasiado. @break
                                             @case('pasajero_no_en_punto') El pasajero no se encuentra en el punto de recojo. @break
                                             @case('ubicacion_incorrecta') Se ingresó una ubicación incorrecta. @break
-                                            @case('cambio_opinion') El pasajero cambió de opinión. @break
+                                            @case('cambio_opinion') Se equivocó al marcar el destino de viaje. @break
                                             @case('problemas_vehiculo') Problemas con el vehículo. @break
                                             @case('otro') {{ $v['motivo_cancelacion_otro'] ?? 'Otro motivo.' }} @break
                                             @default {{ $v['motivo_cancelacion'] }}
