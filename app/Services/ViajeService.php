@@ -73,8 +73,12 @@ class ViajeService
     }
 
     //  Cancelación 
-    public function cancelarViaje(int $viajeId, int $pasajeroId): bool
-    {
+    public function cancelarViaje(
+        int $viajeId,
+        int $pasajeroId,
+        string $motivoCancelacion,
+        ?string $motivoCancelacionOtro = null
+    ): bool {
         $viaje = Viaje::find($viajeId);
 
         if (! $viaje) {
@@ -89,8 +93,13 @@ class ViajeService
             abort(409, 'El viaje solo puede cancelarse antes de que el conductor inicie el recorrido.');
         }
 
-        // Eliminación lógica: cambio de estado
-        $viaje->update(['estado_viaje' => 'cancelado']);
+        $datosActualizacion = [
+            'estado_viaje' => 'cancelado',
+            'motivo_cancelacion' => $motivoCancelacion,
+            'motivo_cancelacion_otro' => $motivoCancelacionOtro,
+        ];
+
+        $viaje->update($datosActualizacion);
         return true;
     }
 

@@ -91,6 +91,20 @@
                                 @if($v['metodo_pago'])
                                     <span class="viaje-meta-item">Pago: {{ $v['metodo_pago'] }}</span>
                                 @endif
+                                @if(($v['estado_viaje'] ?? '') === 'cancelado' && !empty($v['motivo_cancelacion']))
+                                    <span class="viaje-meta-item viaje-meta-item-error">
+                                        Motivo: 
+                                        @switch($v['motivo_cancelacion'])
+                                            @case('demora_conductor') El conductor está demorando demasiado. @break
+                                            @case('pasajero_no_en_punto') El pasajero no se encuentra en el punto de recojo. @break
+                                            @case('ubicacion_incorrecta') Se ingresó una ubicación incorrecta. @break
+                                            @case('cambio_opinion') El pasajero cambió de opinión. @break
+                                            @case('problemas_vehiculo') Problemas con el vehículo. @break
+                                            @case('otro') {{ $v['motivo_cancelacion_otro'] ?? 'Otro motivo.' }} @break
+                                            @default {{ $v['motivo_cancelacion'] }}
+                                        @endswitch
+                                    </span>
+                                @endif
                                 @if($v['calificacion'] > 0)
                                     <span class="viaje-meta-item viaje-meta-item-rating">
                                         Calificacion {{ (int) $v['calificacion'] }}/5

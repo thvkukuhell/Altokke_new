@@ -129,12 +129,19 @@ class PasajeroController extends Controller
     {
         $request->validate([
             'viaje_id' => 'required|integer|min:1',
+            'motivo_cancelacion' => 'required|in:demora_conductor,pasajero_no_en_punto,ubicacion_incorrecta,cambio_opinion,problemas_vehiculo,otro',
+            'motivo_cancelacion_otro' => 'nullable|string|min:10|max:1000',
         ]);
 
-        // 9J_CANCELAR_VIAJE_PASAJERO -> cierre de flujo
+        if ($request->input('motivo_cancelacion') === 'otro' && empty(trim($request->input('motivo_cancelacion_otro')))) {
+            return back()->withErrors(['motivo_cancelacion_otro' => 'Describe brevemente el motivo de la cancelación.'])->withInput();
+        }
+
         $this->viajeService->cancelarViaje(
             (int) $request->viaje_id,
-            Auth::id()
+            Auth::id(),
+            (string) $request->motivo_cancelacion,
+            $request->input('motivo_cancelacion_otro') ? trim((string) $request->motivo_cancelacion_otro) : null
         );
  
         return redirect()->route('pasajero.solicitarViaje');
@@ -527,33 +534,17 @@ class PasajeroController extends Controller
             'id'           => $v->id_viaje,
             'origen'       => $v->origen_texto,
             'destino'      => $v->destino_texto,
-            'precio'       => $precio,
-            'precio_label' => $v->tarifa_final !== null ? 'Tarifa final' : 'Tarifa estimada',
-            'distancia'    => $v->distancia_km !== null ? number_format((float) $v->distancia_km, 1) . ' km' : 'â€”',
-            'tiempo'       => $v->tiempo_estimado_min !== null ? (int) $v->tiempo_estimado_min . ' min' : 'â€”',
-            'conductor'    => $v->conductor->user->nombre_completo ?? 'Sin conductor asignado',
-            'metodo_pago'  => $metodoPago,
-            'fecha'        => $v->fecha_solicitud?->format('d/m/Y') ?? '—',
-            'distancia'    => $v->distancia_km ? $v->distancia_km . ' km' : '—',
-            'tiempo'       => $v->tiempo_estimado_min ? $v->tiempo_estimado_min . ' min' : '—',
-            'conductor'    => $v->conductor->user->nombre_completo ?? '—',
-            'calificacion' => $v->calificacion->puntuacion ?? 0,
-            'distancia'    => $v->distancia_km !== null ? number_format((float) $v->distancia_km, 1) . ' km' : 'â€”',
-            'tiempo'       => $v->tiempo_estimado_min !== null ? (int) $v->tiempo_estimado_min . ' min' : 'â€”',
-            'conductor'    => $v->conductor->user->nombre_completo ?? 'Sin conductor asignado',
-            'metodo_pago'  => $metodoPago,
-            'estado_viaje' => $v->estado_viaje,
-            'borde_clase'  => match($v->estado_viaje) {
-                'completado' => 'borde-verde',
-                'cancelado'  => 'borde-rojo',
-                default      => 'borde-dorado',
-            },
-            'badge_estado' => match($v->estado_viaje) {
-                'completado' => '<span class="badge badge-verde">Completado</span>',
-                'cancelado'  => '<span class="badge badge-rojo">Cancelado</span>',
-                default      => '<span class="badge badge-gris">' . ucfirst($v->estado_viaje) . '</span>',
-            },
-            'estado_viaje' => $estado,
+            'precio'                  => $precio,
+            'precio_label'            => $v->tarifa_final !== null ? 'Tarifa final' : 'Tarifa estimada',
+            'fecha'                   => $v->fecha_solicitud?->format('d/m/Y') ?? '—',
+            'distancia'               => $v->distancia_km !== null ? number_format((float) $v->distancia_km, 1) . ' km' : '—',
+            'tiempo'                  => $v->tiempo_estimado_min !== null ? (int) $v->tiempo_estimado_min . ' min' : '—',
+            'conductor'               => $v->conductor->user->nombre_completo ?? 'Sin conductor asignado',
+            'metodo_pago'             => $metodoPago,
+            'calificacion'            => $v->calificacion->puntuacion ?? 0,
+            'motivo_cancelacion'      => $v->motivo_cancelacion ?? null,
+            'motivo_cancelacion_otro' => $v->motivo_cancelacion_otro ?? null,
+            'estado_viaje'            => $estado,
             'borde_clase'  => match($estado) {
                 'completado' => 'borde-verde',
                 'cancelado'  => 'borde-rojo',

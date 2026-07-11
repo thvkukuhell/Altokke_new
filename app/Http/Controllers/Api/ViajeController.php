@@ -140,6 +140,16 @@ class ViajeController extends BaseApiController
             return $this->errorJson('No tienes permiso para cancelar este viaje', 403);
         }
 
+        $request = request();
+        $request->validate([
+            'motivo_cancelacion' => 'required|in:demora_conductor,pasajero_no_en_punto,ubicacion_incorrecta,cambio_opinion,problemas_vehiculo,otro',
+            'motivo_cancelacion_otro' => 'nullable|string|min:10|max:1000',
+        ]);
+
+        if ($request->input('motivo_cancelacion') === 'otro' && empty(trim($request->input('motivo_cancelacion_otro')))) {
+            return $this->errorJson('Describe brevemente el motivo de la cancelación.', 422);
+        }
+
         $estadosPermitidos = Auth::user()->tipo_usuario === 'pasajero'
             ? ['buscando', 'aceptado', 'recogiendo']
             : ['aceptado', 'recogiendo'];
@@ -148,7 +158,11 @@ class ViajeController extends BaseApiController
             return $this->errorJson('El viaje solo puede cancelarse antes de que el conductor inicie el recorrido.', 409);
         }
 
-        $viaje->update(['estado_viaje' => 'cancelado']);
+        $viaje->update([
+            'estado_viaje' => 'cancelado',
+            'motivo_cancelacion' => $request->input('motivo_cancelacion'),
+            'motivo_cancelacion_otro' => $request->input('motivo_cancelacion_otro'),
+        ]);
 
         return $this->respuestaJson(['mensaje' => 'Viaje cancelado correctamente']);
     }

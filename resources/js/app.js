@@ -1,4 +1,5 @@
 import './bootstrap';
+import './cancelacion_motivo';
 
 function initAuthNavigation(attempt = 0) {
     const authLayout = document.querySelector('.auth-layout');

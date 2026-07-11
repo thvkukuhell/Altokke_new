@@ -73,18 +73,19 @@
 
             <p class="nota-cancelar">Si cancelas ahora no se te cobrará nada.</p>
 
-            {{-- 8J_BOTON_CANCELAR_PASAJERO -> luego ir a controlador cancelar --}}
-            <form id="form-cancelar" method="POST" action="{{ route('pasajero.cancelarViaje') }}">
-                @csrf
-                <input type="hidden" name="viaje_id" value="{{ $viaje['id'] ?? 0 }}">
-                <button type="submit" class="btn btn-outline">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2.5">
-                        <path d="M18 6 6 18M6 6l12 12" />
-                    </svg>
-                    Cancelar viaje
-                </button>
-            </form>
+            <button type="button" class="btn btn-outline" data-open-cancel-modal data-viaje-id="{{ $viaje['id'] ?? 0 }}">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5">
+                    <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+                Cancelar viaje
+            </button>
+
+            @include('partials.modal_motivo_cancelacion', [
+                'cancelRoute' => route('pasajero.cancelarViaje'),
+                'viajeId' => $viaje['id'] ?? 0,
+                'userType' => 'pasajero',
+            ])
         </div>
     </div>
 </div>

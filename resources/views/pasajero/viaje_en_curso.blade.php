@@ -111,11 +111,15 @@
 
             @if(in_array($viaje['estado'] ?? '', ['aceptado', 'recogiendo'], true))
             {{-- 8J_BOTON_CANCELAR_PASAJERO -> luego ir a controlador cancelar --}}
-            <form method="POST" action="{{ route('pasajero.cancelarViaje') }}" id="form-cancelar">
-                @csrf
-                <input type="hidden" name="viaje_id" value="{{ $viaje['id'] ?? 0 }}">
-                <button type="submit" class="btn btn-outline btn-ancho">✕ Cancelar viaje</button>
-            </form>
+            <button type="button" class="btn btn-outline btn-ancho" data-open-cancel-modal data-viaje-id="{{ $viaje['id'] ?? 0 }}">
+                ✕ Cancelar viaje
+            </button>
+
+            @include('partials.modal_motivo_cancelacion', [
+                'cancelRoute' => route('pasajero.cancelarViaje'),
+                'viajeId' => $viaje['id'] ?? 0,
+                'userType' => 'pasajero',
+            ])
             @endif
         </div>
     </div>

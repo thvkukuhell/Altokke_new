@@ -454,16 +454,32 @@ class ConductorController extends Controller
     public function cancelarViaje(Request $request)
     {
         $request->validate([
-            'id_viaje' => 'required|integer',
+            'viaje_id' => 'required|integer',
+            'motivo_cancelacion' => 'required|in:demora_conductor,pasajero_no_en_punto,ubicacion_incorrecta,cambio_opinion,problemas_vehiculo,otro',
+            'motivo_cancelacion_otro' => 'nullable|string|min:10|max:1000',
         ]);
 
-        $viaje = $this->validarViajeConductor(
-            (int) $request->id_viaje,
-            ['aceptado', 'recogiendo']
-        );
+        if ($request->input('motivo_cancelacion') === 'otro' && empty(trim($request->input('motivo_cancelacion_otro')))) {
+            return back()->withErrors(['motivo_cancelacion_otro' => 'Describe brevemente el motivo de la cancelación.'])->withInput();
+        }
+
+        $viaje = Viaje::find((int) $request->viaje_id);
+        if (! $viaje || (int) $viaje->id_conductor !== (int) Auth::id()) {
+            return redirect()
+                ->route('conductor.dashboard')
+                ->with('error', 'No se encontró el viaje o no tienes permiso para cancelarlo.');
+        }
+
+        if (! in_array($viaje->estado_viaje, ['aceptado', 'recogiendo'], true)) {
+            return redirect()
+                ->route('conductor.dashboard')
+                ->with('error', 'El viaje ya no se encuentra en un estado cancelable.');
+        }
 
         $viaje->update([
             'estado_viaje' => 'cancelado',
+            'motivo_cancelacion' => $request->motivo_cancelacion,
+            'motivo_cancelacion_otro' => $request->input('motivo_cancelacion_otro') ? trim((string) $request->motivo_cancelacion_otro) : null,
         ]);
 
         Notificacion::create([

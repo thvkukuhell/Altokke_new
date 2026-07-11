@@ -180,6 +180,17 @@
             </form>
             @endif
 
+            @if(in_array($viaje->estado_viaje, ['aceptado', 'recogiendo'], true))
+                <button type="button" class="btn btn-outline btn-ancho" data-open-cancel-modal data-viaje-id="{{ $viaje->id_viaje }}" style="margin-top:16px;">
+                    ✕ Cancelar viaje
+                </button>
+                @include('partials.modal_motivo_cancelacion', [
+                    'cancelRoute' => route('conductor.cancelarViaje'),
+                    'viajeId' => $viaje->id_viaje,
+                    'userType' => 'conductor',
+                ])
+            @endif
+
             @else
             <div class="tarjeta" style="text-align:center; padding:48px 24px;">
                 <div style="font-size:48px; margin-bottom:16px;">⏳</div>

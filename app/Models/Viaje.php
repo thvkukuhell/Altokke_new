@@ -30,6 +30,8 @@ class Viaje extends Model
         'fecha_inicio',
         'fecha_fin',
         'compartido',
+        'motivo_cancelacion',
+        'motivo_cancelacion_otro',
     ];
 
     protected function casts(): array
