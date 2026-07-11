@@ -1479,6 +1479,38 @@
     box-shadow: 0 6px 18px rgba(58, 140, 58, 0.35);
 }
 
+.alerto-exito {
+    background: #ecfdf5;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+}
+
+.field-error {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    color: #b91c1c;
+}
+
+.formulario-contacto {
+    max-width: 680px;
+    margin-top: 18px;
+}
+
+.ayuda-info {
+    margin-top: 24px;
+    font-size: 0.98rem;
+    color: #526061;
+}
+
+.ayuda-info a {
+    color: var(--verde-mid);
+    text-decoration: underline;
+}
+
 /* Outline button */
 .btn-auth-outline {
     display: flex;

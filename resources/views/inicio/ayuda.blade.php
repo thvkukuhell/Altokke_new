@@ -5,8 +5,8 @@
     <div class="seccion-inner">
         <div class="seccion-cabecera">
             <span class="seccion-chip">Ayuda</span>
-            <h1 class="seccion-titulo">Envía tu consulta o reclamo</h1>
-            <p class="seccion-sub">Completa el formulario y nos pondremos en contacto para resolver tu solicitud.</p>
+            <h1 class="seccion-titulo">Formulario de ayuda y reclamos</h1>
+            <p class="seccion-sub">Escribe tu consulta, reclamo, sugerencia o reporte. Te responderemos lo antes posible.</p>
         </div>
 
         <div class="formulario-contacto">
@@ -18,7 +18,7 @@
                 @csrf
 
                 <div class="auth-campo">
-                    <label for="nombre">Nombre</label>
+                    <label for="nombre">Nombre completo</label>
                     <input id="nombre" type="text" name="nombre" value="{{ old('nombre') }}" placeholder="Tu nombre completo" required>
                     @error('nombre')<span class="field-error">{{ $message }}</span>@enderror
                 </div>
@@ -38,7 +38,7 @@
                 <div class="auth-campo">
                     <label for="tipo_solicitud">Tipo de solicitud</label>
                     <select id="tipo_solicitud" name="tipo_solicitud" required>
-                        <option value="" disabled selected>Selecciona un tipo</option>
+                        <option value="" disabled {{ old('tipo_solicitud') ? '' : 'selected' }}>Selecciona un tipo</option>
                         <option value="consulta" {{ old('tipo_solicitud') === 'consulta' ? 'selected' : '' }}>Consulta</option>
                         <option value="reclamo" {{ old('tipo_solicitud') === 'reclamo' ? 'selected' : '' }}>Reclamo</option>
                         <option value="sugerencia" {{ old('tipo_solicitud') === 'sugerencia' ? 'selected' : '' }}>Sugerencia</option>
@@ -48,13 +48,17 @@
                 </div>
 
                 <div class="auth-campo">
-                    <label for="descripcion">Descripción</label>
-                    <textarea id="descripcion" name="descripcion" rows="6" placeholder="Explica tu consulta o reclamo" required>{{ old('descripcion') }}</textarea>
+                    <label for="descripcion">Describe tu consulta o reclamo</label>
+                    <textarea id="descripcion" name="descripcion" rows="6" placeholder="Escribe aquí tu mensaje" required>{{ old('descripcion') }}</textarea>
                     @error('descripcion')<span class="field-error">{{ $message }}</span>@enderror
                 </div>
 
                 <button type="submit" class="btn-auth">Enviar solicitud</button>
             </form>
+        </div>
+
+        <div class="ayuda-info">
+            <p>También puedes escribirnos directamente al correo oficial: <a href="mailto:{{ config('app.support_email') }}">{{ config('app.support_email') }}</a>.</p>
         </div>
     </div>
 </section>

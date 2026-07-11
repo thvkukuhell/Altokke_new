@@ -54,13 +54,12 @@
                 @endif
             @endif
 
-            <a href="{{ route('pasajero.perfil') }}" class="perfil-contenedor-app">
+            <a href="{{ route('pasajero.perfil') }}" class="perfil-contenedor-app" aria-label="Perfil">
                 <div class="avatar-circular-app">
                     @if($fotoPerfilPasajero)
-                        <img src="{{ $fotoPerfilPasajero }}" alt="Perfil">
-                    @else
-                        <span class="avatar-circular-app__fallback">{{ $inicialesPasajero }}</span>
+                        <img src="{{ $fotoPerfilPasajero }}" alt="Perfil" onerror="this.style.display='none'; this.parentElement.querySelector('.avatar-circular-app__fallback').style.display='grid';">
                     @endif
+                    <span class="avatar-circular-app__fallback" style="display: {{ $fotoPerfilPasajero ? 'none' : 'grid' }};">Perfil</span>
                 </div>
             </a>
 
