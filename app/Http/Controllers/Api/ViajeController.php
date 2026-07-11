@@ -142,10 +142,10 @@ class ViajeController extends BaseApiController
 
         $estadosPermitidos = Auth::user()->tipo_usuario === 'pasajero'
             ? ['buscando', 'aceptado', 'recogiendo']
-            : ['aceptado', 'recogiendo', 'en_curso'];
+            : ['aceptado', 'recogiendo'];
 
         if (! in_array($viaje->estado_viaje, $estadosPermitidos, true)) {
-            return $this->errorJson('El estado actual no permite cancelar el viaje', 409);
+            return $this->errorJson('El viaje solo puede cancelarse antes de que el conductor inicie el recorrido.', 409);
         }
 
         $viaje->update(['estado_viaje' => 'cancelado']);

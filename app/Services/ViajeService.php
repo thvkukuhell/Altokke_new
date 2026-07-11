@@ -86,7 +86,7 @@ class ViajeService
         }
 
         if (! in_array($viaje->estado_viaje, ['buscando', 'aceptado', 'recogiendo'], true)) {
-            abort(409, 'El estado actual del viaje no permite cancelarlo.');
+            abort(409, 'El viaje solo puede cancelarse antes de que el conductor inicie el recorrido.');
         }
 
         // Eliminación lógica: cambio de estado

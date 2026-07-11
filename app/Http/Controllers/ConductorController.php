@@ -459,7 +459,7 @@ class ConductorController extends Controller
 
         $viaje = $this->validarViajeConductor(
             (int) $request->id_viaje,
-            ['aceptado', 'recogiendo', 'en_curso']
+            ['aceptado', 'recogiendo']
         );
 
         $viaje->update([
