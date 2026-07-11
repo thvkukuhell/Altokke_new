@@ -560,6 +560,10 @@
     letter-spacing: 0;
 }
 
+.perfil-contenedor-app__texto {
+    display: none;
+}
+
 /* Mobile base layout */
 .pagina-pasajero { padding: 16px 14px 40px; }
 .perfil-grid     { grid-template-columns: 1fr; gap: 16px; }
