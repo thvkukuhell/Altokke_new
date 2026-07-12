@@ -34,7 +34,7 @@
  
                 <form method="POST" action="{{ route('conductor.actualizarPerfil') }}">
                     @csrf
-                    @method('PUT')
+                    @method('PATCH')
  
                     <div class="perfil-grid">
                         <div>
@@ -54,10 +54,12 @@
                         </div>
                         <div>
                             <p class="perfil-campo-label">Teléfono</p>
-                            <input type="text"
+                            <input type="tel"
                                    name="telefono"
                                    class="campo-input"
                                    value="{{ old('telefono', $conductor->user->telefono) }}"
+                                   inputmode="numeric"
+                                   autocomplete="tel"
                                    required>
                         </div>
                         <div>
@@ -66,6 +68,7 @@
                                    name="email"
                                    class="campo-input"
                                    value="{{ old('email', $conductor->user->email) }}"
+                                   autocomplete="email"
                                    required>
                         </div>
                     </div>

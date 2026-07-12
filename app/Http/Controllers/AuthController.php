@@ -10,11 +10,15 @@ use Illuminate\Http\Request;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password as PasswordBroker;
 use Illuminate\Validation\Rules\Password as PasswordRule;
+use Throwable;
 
 class AuthController extends Controller
 {
+    private const PASSWORD_RESET_GENERIC_MESSAGE = 'Si el correo se encuentra registrado, recibirás las instrucciones para restablecer tu contraseña.';
+
     // Vistas 
     public function login()
     {
@@ -223,7 +227,30 @@ class AuthController extends Controller
             'email' => 'required|email',
         ]);
 
-        PasswordBroker::sendResetLink($request->only('email'));
+        $email = strtolower((string) $request->input('email'));
+        $emailHash = hash('sha256', $email);
+
+        Log::info('Password reset link requested.', [
+            'email_hash' => $emailHash,
+            'provider' => 'brevo',
+        ]);
+
+        try {
+            $status = PasswordBroker::sendResetLink($request->only('email'));
+
+            Log::info('Password reset broker finished.', [
+                'email_hash' => $emailHash,
+                'status' => $status,
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            Log::error('Password reset mail transport failed.', [
+                'email_hash' => $emailHash,
+                'exception' => $exception::class,
+                'code' => $exception->getCode(),
+            ]);
+        }
 
         return back()
             ->withInput($request->only('email'))

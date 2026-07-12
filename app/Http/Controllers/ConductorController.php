@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ActualizarPerfilConductorRequest;
 use App\Http\Requests\ActualizarUbicacionRequest;
 use App\Http\Requests\CancelarViajeRequest;
 use App\Http\Requests\CompletarViajeRequest;
@@ -12,6 +13,7 @@ use App\Models\Notificacion;
 use App\Models\RecargaSaldo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Services\ViajeNotificacionService;
 use App\Services\ViajeService;
 
@@ -131,24 +133,19 @@ class ConductorController extends Controller
         ]);
     }
 
-    public function actualizarPerfil(Request $request)
+    public function actualizarPerfil(ActualizarPerfilConductorRequest $request)
     {
-        $request->validate([
-            'nombre_completo' => 'required|string|max:150',
-            'apellidos'       => 'nullable|string|max:150',
-            'telefono'        => 'nullable|regex:/^\+?[0-9\s\-]{7,15}$/',
-            'email'           => 'nullable|email|unique:usuarios,email,' . Auth::id() . ',id_usuario',
-        ], [
-            'nombre_completo.required' => 'El nombre es obligatorio.',
-            'email.unique'             => 'El email ya está en uso.',
-        ]);
+        $user = Auth::user();
+        $data = $request->validated();
 
-        Auth::user()->update([
-            'nombre_completo' => $request->nombre_completo,
-            'apellidos'       => $request->apellidos,
-            'telefono'        => $request->telefono,
-            'email'           => $request->email,
-        ]);
+        DB::transaction(function () use ($user, $data): void {
+            $user->update([
+                'nombre_completo' => $data['nombre_completo'],
+                'apellidos' => $data['apellidos'] ?? null,
+                'telefono' => $data['telefono'],
+                'email' => $data['email'],
+            ]);
+        });
 
         return redirect()
             ->route('conductor.perfil')

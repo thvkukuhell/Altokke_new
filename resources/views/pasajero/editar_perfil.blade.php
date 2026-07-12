@@ -52,6 +52,7 @@
  
                 <form action="{{ route('pasajero.guardarPerfil') }}" method="POST">
                     @csrf
+                    @method('PATCH')
  
                     <div class="perfil-grid">
                         <div>
@@ -66,12 +67,12 @@
 
                         <div>
                             <label class="campo-label" for="dni">DNI</label>
-                            <input type="text" id="dni" name="dni" value="{{ old('dni', $user->dni) }}" class="campo-input" placeholder="Número de documento" maxlength="8">
+                            <input type="text" id="dni" name="dni" value="{{ old('dni', $user->dni) }}" class="campo-input" placeholder="Número de documento" maxlength="8" inputmode="numeric">
                         </div>
  
                         <div>
                             <label class="campo-label" for="telefono">Teléfono / Celular</label>
-                            <input type="text" id="telefono" name="telefono" value="{{ old('telefono', $user->telefono) }}" class="campo-input" placeholder="9XX XXX XXX">
+                            <input type="tel" id="telefono" name="telefono" value="{{ old('telefono', $user->telefono) }}" class="campo-input" placeholder="9XX XXX XXX" inputmode="numeric" autocomplete="tel" required>
                         </div>
  
                         <div>

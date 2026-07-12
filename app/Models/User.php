@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 
+use App\Notifications\BrevoResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -34,6 +35,11 @@ class User extends Authenticatable
     public function getAuthPassword()
     {
         return $this->contrasena_hash;
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new BrevoResetPasswordNotification($token));
     }
 
     protected function casts(): array

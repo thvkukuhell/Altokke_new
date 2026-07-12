@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ActualizarPasajeroPerfilRequest;
 use App\Http\Requests\CancelarViajeRequest;
 use App\Http\Requests\CrearViajeRequest;
 use App\Http\Requests\EnviarCalificacionRequest;
@@ -10,6 +11,7 @@ use App\Models\Viaje;
 use App\Models\Pasajero;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PasajeroController extends Controller
 {
@@ -377,31 +379,33 @@ class PasajeroController extends Controller
         ]);
     }
 
-    public function guardarPerfil(Request $request)
+    public function guardarPerfil(ActualizarPasajeroPerfilRequest $request)
     {
-        $request->validate([
-            'nombre_completo'       => 'required|string|max:150',
-            'apellidos'             => 'nullable|string|max:150',
-            'telefono'              => 'nullable|regex:/^\+?[0-9\s\-]{7,15}$/',
-            'metodo_pago_preferido' => 'required|in:efectivo,yape,plin',
-        ]);
-
         $user = Auth::user();
-        $user->update([
-            'nombre_completo' => $request->nombre_completo,
-            'apellidos'       => $request->apellidos,
-            'telefono'        => $request->telefono,
-        ]);
+        $data = $request->validated();
 
-        $pasajero = Pasajero::firstOrCreate(
-            ['id_pasajero' => $user->id_usuario],
-            ['metodo_pago_preferido' => 'efectivo']
-        );
-        $pasajero->update([
-            'metodo_pago_preferido' => $request->metodo_pago_preferido,
-        ]);
+        DB::transaction(function () use ($user, $data): void {
+            $user->update([
+                'nombre_completo' => $data['nombre_completo'],
+                'apellidos' => $data['apellidos'] ?? null,
+                'dni' => $data['dni'] ?? null,
+                'telefono' => $data['telefono'],
+            ]);
 
-        return redirect()->route('pasajero.perfil');
+            $pasajero = $user->pasajero()->firstOrCreate([
+                'id_pasajero' => $user->id_usuario,
+            ], [
+                'metodo_pago_preferido' => 'efectivo',
+            ]);
+
+            $pasajero->update([
+                'metodo_pago_preferido' => $data['metodo_pago_preferido'],
+            ]);
+        });
+
+        return redirect()
+            ->route('pasajero.perfil')
+            ->with('mensaje', 'Perfil actualizado correctamente.');
     }
 
     public function actualizarUbicacion(Request $request)

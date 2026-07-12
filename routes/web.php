@@ -30,6 +30,8 @@ Route::middleware('redirect.auth.role')->group(function () {
     Route::post('/auth/registro_conductor', [AuthController::class, 'proc_regist_conductor'])->name('proc_regist_conductor');
     Route::get('/auth/recuperar_password', [AuthController::class, 'recuperarPassword'])->name('recuperar_password');
     Route::post('/auth/recuperar_password', [AuthController::class, 'recuperarPasswordProceso'])->middleware('throttle:5,1')->name('recuperar_password.proceso');
+    Route::get('/forgot-password', [AuthController::class, 'recuperarPassword'])->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'recuperarPasswordProceso'])->middleware('throttle:5,1')->name('password.email');
     Route::get('/auth/restablecer_password/{token}', [AuthController::class, 'mostrarRestablecerPassword'])->name('password.reset');
     Route::post('/auth/restablecer_password', [AuthController::class, 'restablecerPassword'])->name('password.update');
 });
@@ -56,7 +58,7 @@ Route::prefix('pasajero')->name('pasajero.')->middleware(['auth', 'role:pasajero
     Route::get('/historial/csv', [ReporteController::class, 'pasajeroHistorialCsv'])->name('historial.csv');
     Route::get('/perfil', [PasajeroController::class, 'perfil'])->name('perfil');
     Route::get('/editarPerfil', [PasajeroController::class, 'editarPerfil'])->name('editarPerfil');
-    Route::post('/guardarPerfil', [PasajeroController::class, 'guardarPerfil'])->name('guardarPerfil');
+    Route::match(['post', 'patch'], '/guardarPerfil', [PasajeroController::class, 'guardarPerfil'])->name('guardarPerfil');
     Route::post('/actualizarUbicacion', [PasajeroController::class, 'actualizarUbicacion'])->name('actualizarUbicacion');
 });
 
@@ -70,7 +72,7 @@ Route::redirect('/pasajero/calificar', '/pasajero/solicitarViaje');
 Route::prefix('conductor')->name('conductor.')->middleware(['auth', 'role:conductor'])->group(function () {
     Route::get('/', [ConductorController::class, 'index'])->name('dashboard');
     Route::get('/perfil', [ConductorController::class, 'perfil'])->name('perfil');
-    Route::put('/perfil', [ConductorController::class, 'actualizarPerfil'])->name('actualizarPerfil');
+    Route::match(['put', 'patch'], '/perfil', [ConductorController::class, 'actualizarPerfil'])->name('actualizarPerfil');
     Route::get('/solicitudes', [ConductorController::class, 'solicitudes'])->name('solicitudes');
     Route::get('/solicitudes/json', [ConductorController::class, 'solicitudesJson'])->middleware('throttle:20,1,conductor-solicitudes')->name('solicitudes.json');
     Route::post('/aceptarViaje', [ConductorController::class, 'aceptarViaje'])->middleware('throttle:10,1,conductor-aceptar')->name('aceptarViaje');
