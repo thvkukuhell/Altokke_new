@@ -36,6 +36,7 @@ class PublicPagesAuthenticatedLayoutTest extends TestCase
 
         $this->assertSame(1, substr_count($response->getContent(), '<footer'));
         $this->assertSame(1, substr_count($response->getContent(), '<h1'));
+        $response->assertDontSee('href="' . route('ayuda') . '" class="enlace-footer" target="_blank"', false);
         if ($routeName === 'contacto') {
             $response->assertSee('name="_token"', false);
         }
@@ -60,6 +61,7 @@ class PublicPagesAuthenticatedLayoutTest extends TestCase
 
         $this->assertSame(1, substr_count($response->getContent(), '<footer'));
         $this->assertSame(1, substr_count($response->getContent(), '<h1'));
+        $response->assertDontSee('href="' . route('ayuda') . '" class="enlace-footer" target="_blank"', false);
         if ($routeName === 'contacto') {
             $response->assertSee('name="_token"', false);
         }
@@ -89,6 +91,7 @@ class PublicPagesAuthenticatedLayoutTest extends TestCase
 
         $this->assertSame(1, substr_count($response->getContent(), '<footer'));
         $this->assertSame(1, substr_count($response->getContent(), '<h1'));
+        $response->assertDontSee('href="' . route('ayuda') . '" class="enlace-footer" target="_blank"', false);
         if ($routeName === 'contacto') {
             $response->assertSee('name="_token"', false);
         }

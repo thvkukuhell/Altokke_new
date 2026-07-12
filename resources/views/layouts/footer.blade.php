@@ -31,7 +31,7 @@
 
                 <li><a href="{{ route('servicios') }}" class="enlace-footer">Servicios</a></li>
                 <li><a href="{{ route('contacto') }}" class="enlace-footer">Contacto</a></li>
-                <li><a href="{{ route('ayuda') }}" class="enlace-footer" target="_blank" rel="noopener">Ayuda</a></li>
+                <li><a href="{{ route('ayuda') }}" class="enlace-footer">Ayuda</a></li>
             </ul>
         </div>
 
