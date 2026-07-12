@@ -17,13 +17,25 @@
 @section('content')
 <section class="services-page">
     <div class="services-page__inner">
-        <header class="services-hero">
-            <span class="info-page__eyebrow">Servicios</span>
-            <h1>Todo lo que necesitas para realizar y gestionar tu viaje</h1>
-            <p>
-                Solicita un mototaxi, sigue el recorrido y conserva la información de tus viajes desde una sola plataforma.
-            </p>
-            <a href="{{ $actionRoute }}" class="info-action">{{ $actionText }}</a>
+        <header class="info-hero services-hero">
+            <div class="info-hero__main">
+                <div class="info-hero__content">
+                    <span class="info-page__eyebrow">Servicios</span>
+                    <h1>Todo lo que necesitas para realizar y gestionar tu viaje</h1>
+                    <p>
+                        Solicita un mototaxi, sigue el recorrido y conserva la información de tus viajes desde una sola plataforma.
+                    </p>
+                </div>
+
+                <aside class="info-hero__action" aria-label="Acción recomendada">
+                    <p>{{ $userType === 'conductor'
+                        ? 'Revisa las solicitudes que puedes atender desde tu cuenta.'
+                        : ($userType === 'pasajero'
+                            ? 'Continúa desde tu cuenta de pasajero.'
+                            : 'Accede a tu cuenta para usar las funciones de viaje.') }}</p>
+                    <a href="{{ $actionRoute }}" class="info-action">{{ $actionText }}</a>
+                </aside>
+            </div>
         </header>
 
         <article class="services-primary" aria-labelledby="servicio-principal">

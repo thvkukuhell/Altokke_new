@@ -3,22 +3,35 @@
 @section('content')
 <section class="help-page">
     <div class="help-page__inner">
-        <header class="help-hero">
-            <span class="info-page__eyebrow">Centro de ayuda</span>
-            <h1>Encuentra respuestas rápidas sobre tu cuenta y tus viajes</h1>
-            <p>
-                Revisa dudas frecuentes sobre acceso, solicitudes, conductores, saldo simulado y soporte. Si tu caso necesita más detalle, puedes enviarlo desde Contacto.
-            </p>
-            <a href="{{ route('contacto') }}" class="info-action">Ir a contacto</a>
-        </header>
+        <header class="info-hero help-hero">
+            <div class="info-hero__main">
+                <div class="info-hero__content">
+                    <span class="info-page__eyebrow">Centro de ayuda</span>
+                    <h1>Encuentra respuestas rápidas para tus viajes</h1>
+                    <p>
+                        Revisa dudas frecuentes sobre acceso, solicitudes, conductores, saldo simulado y soporte.
+                    </p>
+                </div>
 
-        <nav class="help-categories" aria-label="Categorías de ayuda">
-            <a href="#cuenta">Cuenta</a>
-            <a href="#viajes">Viajes</a>
-            <a href="#conductores">Conductores</a>
-            <a href="#saldo">Saldo</a>
-            <a href="#soporte">Soporte</a>
-        </nav>
+                <div class="help-hero__tools">
+                    <aside class="info-hero__action help-hero__contact" aria-label="Contacto de ayuda">
+                        <p>¿No encontraste la respuesta que buscabas?</p>
+                        <a href="{{ route('contacto') }}" class="info-action">Ir a contacto</a>
+                    </aside>
+
+                    <nav class="info-hero__topics help-categories" aria-label="Categorías de ayuda">
+                        <span>Explorar por tema</span>
+                        <div class="help-hero__topic-list">
+                            <a href="#cuenta">Cuenta</a>
+                            <a href="#viajes">Viajes</a>
+                            <a href="#conductores">Conductores</a>
+                            <a href="#saldo">Saldo</a>
+                            <a href="#soporte">Soporte</a>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </header>
 
         <section class="help-quick" aria-labelledby="ayuda-rapida">
             <div class="help-quick__header">
