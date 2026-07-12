@@ -2,7 +2,7 @@
  
 Aplicación web de mototaxi bajo demanda, desarrollada con Laravel. Conecta pasajeros y conductores en tiempo real: solicitud de viajes, seguimiento en mapa, historial, calificaciones y comprobantes.
  
-## ✨ Características
+## Características
  
 - **Roles de usuario**: Pasajero y Conductor, con paneles y flujos independientes.
 - **Viajes en tiempo real**: creación, aceptación y seguimiento de viajes mediante WebSockets (Laravel Reverb + Echo).
@@ -11,7 +11,7 @@ Aplicación web de mototaxi bajo demanda, desarrollada con Laravel. Conecta pasa
 - **Perfil de usuario**: edición de datos y foto de perfil con almacenamiento persistente.
 - **Notificaciones por correo**: resumen de viaje completado (Brevo / SMTP).
 - **Calificaciones**: sistema de calificación post-viaje.
-## 🧱 Stack
+## Stack
  
 - **Backend:** Laravel 12 (PHP 8.2)
 - **Tiempo real:** Laravel Reverb + Laravel Echo
@@ -20,7 +20,7 @@ Aplicación web de mototaxi bajo demanda, desarrollada con Laravel. Conecta pasa
 - **Mapas:** Leaflet / OpenStreetMap
 - **Colas:** Laravel Queue (`queue:work`)
 - **Despliegue:** Docker + Railway
-## 🚀 Instalación local
+## Instalación local
  
 ```bash
 git clone https://github.com/thvkukuhell/Altokke_new.git
@@ -84,7 +84,7 @@ El proyecto corre en **Railway** con 3 servicios independientes a partir del mis
  
 Las fotos de perfil y archivos subidos se almacenan en un **volumen persistente** montado en `storage/app/public`.
  
-## 📁 Estructura principal
+## Estructura principal
  
 ```
 app/
@@ -99,9 +99,14 @@ routes/             # web.php, api.php, channels.php
 database/migrations/
 ```
  
-## 👥 Equipo
+## Equipo
  
 Proyecto desarrollado como parte del curso de Desarrollo de Aplicaciones Web II — UNTRM.
+Estudiantes:
+    - Cullampe Mendoza Alexander
+    - Garro Gómez Elvita Donina
+    - Mas Tuesta Hellen Shanela
+    - Sandoval Nuñez Juan Carlos
  
 ## 📄 Licencia
  
