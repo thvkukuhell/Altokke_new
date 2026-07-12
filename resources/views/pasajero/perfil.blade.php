@@ -2,7 +2,9 @@
 @section('content')
 
 @php
-    $fotoPerfilUrl = $user->foto_perfil ? \Illuminate\Support\Facades\Storage::url($user->foto_perfil) : null;
+    $fotoPerfilUrl = $user->foto_perfil
+        ? '/storage/' . ltrim($user->foto_perfil, '/')
+        : null;
 @endphp
 
 <div class="pagina-pasajero-perfil">
@@ -12,11 +14,25 @@
         <aside class="perfil-sidebar">
             <div class="sidebar-cabecera">
                 <div class="avatar-wrapper">
-                    @if($fotoPerfilUrl)
-                        <img src="{{ $fotoPerfilUrl }}" alt="Foto de perfil" class="sidebar-avatar-img">
-                    @else
-                        <div class="sidebar-avatar">{{ $user->iniciales() }}</div>
-                    @endif
+                    <img
+                        src="{{ $fotoPerfilUrl ?? '' }}"
+                        alt="Foto de perfil"
+                        class="sidebar-avatar-img"
+                        data-profile-photo-image
+                        @if(!$fotoPerfilUrl)
+                            style="display: none;"
+                        @endif
+                    >
+
+                    <div
+                        class="sidebar-avatar"
+                        data-profile-photo-placeholder
+                        @if($fotoPerfilUrl)
+                            style="display: none;"
+                        @endif
+                    >
+                        {{ $user->iniciales() }}
+                    </div>
                 </div>
                 <div class="sidebar-nombre">
                     {{ $user->nombre_completo ?? 'Usuario' }}
@@ -76,12 +92,55 @@
                     <h2>Foto de perfil</h2>
                 </div>
 
-                <form method="POST" action="{{ route('perfil.foto') }}" enctype="multipart/form-data" class="perfil-upload-form">
-                    @csrf
-                    <input type="file" name="foto_perfil" accept="image/png,image/jpeg" required>
-                    <button type="submit" class="btn-editar-perfil-accion">Subir foto</button>
-                </form>
-                <p class="perfil-ayuda">Formatos permitidos: JPG o PNG. Maximo 2 MB.</p>
+            <form
+                method="POST"
+                action="{{ route('perfil.foto') }}"
+                enctype="multipart/form-data"
+                class="perfil-upload-form"
+                data-profile-photo-form
+            >
+                @csrf
+
+                <input
+                    type="file"
+                    name="foto_perfil"
+                    accept="image/png,image/jpeg"
+                    required
+                    data-profile-photo-input
+                >
+
+                <button
+                    type="submit"
+                    class="btn-editar-perfil-accion"
+                    data-profile-photo-button
+                >
+                    Subir foto
+                </button>
+            </form>
+
+            <p
+                class="perfil-ayuda"
+                data-profile-photo-status
+                aria-live="polite"
+            >
+                Formatos permitidos: JPG o PNG. Máximo 2 MB.
+            </p>
+
+            @error('foto_perfil')
+                <p class="form-errors">
+                    {{ $message }}
+                </p>
+            @enderror
+
+                <p class="perfil-ayuda" data-profile-photo-status aria-live="polite">
+                    Formatos permitidos: JPG o PNG. Máximo 2 MB.
+                </p>
+
+                @error('foto_perfil')
+                    <p class="form-errors">
+                        {{ $message }}
+                    </p>
+                @enderror
             </div>
  
             <div class="tarjeta-perfil-bloque">

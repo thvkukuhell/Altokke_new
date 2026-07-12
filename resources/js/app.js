@@ -1,5 +1,6 @@
 import './bootstrap';
 import './cancelacion_motivo';
+import './foto_perfil';
 
 function initAuthNavigation(attempt = 0) {
     const header = document.querySelector('.site-header');

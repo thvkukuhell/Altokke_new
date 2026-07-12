@@ -17,12 +17,45 @@
                     <h2>Foto de perfil</h2>
                 </div>
                 <div class="perfil-foto-bloque">
-                    <form method="POST" action="{{ route('perfil.foto') }}" enctype="multipart/form-data" class="perfil-upload-form">
+                    <form
+                        method="POST"
+                        action="{{ route('perfil.foto') }}"
+                        enctype="multipart/form-data"
+                        class="perfil-upload-form"
+                        data-profile-photo-form
+                    >
                         @csrf
-                        <input type="file" name="foto_perfil" accept="image/png,image/jpeg" required>
-                        <button type="submit" class="btn btn-verde">Subir foto</button>
-                        <p class="perfil-ayuda">JPG o PNG. Maximo 2 MB.</p>
+
+                        <input
+                            type="file"
+                            name="foto_perfil"
+                            accept="image/png,image/jpeg"
+                            required
+                            data-profile-photo-input
+                        >
+
+                        <button
+                            type="submit"
+                            class="btn btn-verde"
+                            data-profile-photo-button
+                        >
+                            Subir foto
+                        </button>
                     </form>
+
+                    <p
+                        class="perfil-ayuda"
+                        data-profile-photo-status
+                        aria-live="polite"
+                    >
+                        JPG o PNG. Máximo 2 MB.
+                    </p>
+
+                    @error('foto_perfil')
+                        <div class="form-errors">
+                            {{ $message }}
+                        </div>
+                    @enderror
                 </div>
             </div>
  

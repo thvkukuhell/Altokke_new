@@ -11,29 +11,72 @@ class PerfilArchivoController extends Controller
     public function actualizarFoto(Request $request)
     {
         $request->validate([
-            'foto_perfil' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'foto_perfil' => [
+                'required',
+                'image',
+                'mimes:jpg,jpeg,png',
+                'max:2048',
+            ],
+        ], [
+            'foto_perfil.required' => 'Debe seleccionar una fotografía.',
+            'foto_perfil.image' => 'El archivo debe ser una imagen válida.',
+            'foto_perfil.mimes' => 'Solo se permiten imágenes JPG o PNG.',
+            'foto_perfil.max' => 'La imagen no debe superar los 2 MB.',
         ]);
 
         $archivo = $request->file('foto_perfil');
 
         if (!$this->tieneFirmaDeImagenValida($archivo->getRealPath())) {
-            return back()->withErrors([
-                'foto_perfil' => 'El archivo no es una imagen valida.',
-            ]);
+            $errores = [
+                'foto_perfil' => [
+                    'La firma del archivo no corresponde a una imagen JPG o PNG.',
+                ],
+            ];
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'El archivo seleccionado no es válido.',
+                    'errors' => $errores,
+                ], 422);
+            }
+
+            return back()->withErrors($errores);
         }
 
         $user = Auth::user();
-        $ruta = $archivo->store('perfiles', 'public');
+        $rutaAnterior = $user->foto_perfil;
 
-        if ($user->foto_perfil && Storage::disk('public')->exists($user->foto_perfil)) {
-            Storage::disk('public')->delete($user->foto_perfil);
-        }
+        $rutaNueva = $archivo->store('perfiles', 'public');
 
         $user->update([
-            'foto_perfil' => $ruta,
+            'foto_perfil' => $rutaNueva,
         ]);
 
-        return back()->with('mensaje', 'Foto de perfil actualizada correctamente.');
+        if (
+            $rutaAnterior &&
+            $rutaAnterior !== $rutaNueva &&
+            Storage::disk('public')->exists($rutaAnterior)
+        ) {
+            Storage::disk('public')->delete($rutaAnterior);
+        }
+
+        $fotoUrl = '/storage/' . ltrim($rutaNueva, '/');
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Foto de perfil actualizada correctamente.',
+                'data' => [
+                    'foto_url' => $fotoUrl,
+                ],
+            ], 200);
+        }
+
+        return back()->with(
+            'mensaje',
+            'Foto de perfil actualizada correctamente.'
+        );
     }
 
     private function tieneFirmaDeImagenValida(string $rutaTemporal): bool
