@@ -1,4 +1,4 @@
-<header class="site-header">
+<header class="site-header" data-header-role="guest">
     <div class="barra-navegacion">
         <a href="{{ url('/#inicio') }}" class="logo">
             <img src="{{ asset('img/logo_moto.png') }}" alt="Altokke">

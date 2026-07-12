@@ -1,4 +1,4 @@
-<header class="encabezado app-shell-header" data-app-header>
+<header class="encabezado app-shell-header" data-app-header data-header-role="conductor">
     <div class="barra-navegacion">
 
         <div class="logo">

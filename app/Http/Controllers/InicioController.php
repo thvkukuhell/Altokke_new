@@ -11,13 +11,25 @@ use Illuminate\Support\Facades\Mail;
 
 class InicioController extends Controller
 {
+    private function layoutPublico(array $extra = [], string $footer = 'footer'): array
+    {
+        $user = auth()->user();
+        $header = match ($user?->tipo_usuario) {
+            'pasajero' => 'header_pasajero',
+            'conductor' => 'header_conductor',
+            default => 'header_inicio',
+        };
+
+        return array_merge([
+            'css' => ['inicio/inicio.css'],
+            'header' => $header,
+            'footer' => $user ? 'footer' : $footer,
+        ], $extra);
+    }
+
     public function index()
     {
-        return view('inicio.inicio', [
-            'css' => ['inicio/inicio.css'],
-            'header' => 'header_inicio',
-            'footer' => 'footer_inicio',
-        ]);
+        return view('inicio.inicio', $this->layoutPublico(footer: 'footer_inicio'));
     }
 
     public function como_funciona()
@@ -32,29 +44,17 @@ class InicioController extends Controller
 
     public function servicios()
     {
-        return view('inicio.servicios', [
-            'css' => ['inicio/inicio.css'],
-            'header' => 'header_inicio',
-            'footer' => 'footer_inicio',
-        ]);
+        return view('inicio.servicios', $this->layoutPublico());
     }
 
     public function contacto()
     {
-        return view('inicio.contacto', [
-            'css' => ['inicio/inicio.css'],
-            'header' => 'header_inicio',
-            'footer' => 'footer_inicio',
-        ]);
+        return view('inicio.contacto', $this->layoutPublico());
     }
 
     public function ayuda()
     {
-        return view('inicio.ayuda', [
-            'css' => ['inicio/inicio.css'],
-            'header' => 'header_inicio',
-            'footer' => 'footer_inicio',
-        ]);
+        return view('inicio.ayuda', $this->layoutPublico());
     }
 
     public function enviarConsulta(EnviarConsultaRequest $request)

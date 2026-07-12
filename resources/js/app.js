@@ -2,12 +2,11 @@ import './bootstrap';
 import './cancelacion_motivo';
 
 function initAuthNavigation(attempt = 0) {
-    const authLayout = document.querySelector('.auth-layout');
     const header = document.querySelector('.site-header');
     const navToggle = document.querySelector('.nav-toggle');
     const navMenu = document.querySelector('#menu-principal');
 
-    if (!authLayout || !header || !navToggle || !navMenu) {
+    if (!header || !navToggle || !navMenu) {
         if (attempt < 20) {
             window.setTimeout(() => initAuthNavigation(attempt + 1), 50);
         }

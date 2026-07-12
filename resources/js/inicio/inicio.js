@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    if (navToggle) {
+    if (navToggle && header?.dataset.authNavReady !== 'true') {
         navToggle.addEventListener('click', () => {
             const isOpen = navToggle.getAttribute('aria-expanded') === 'true';
             navToggle.setAttribute('aria-expanded', String(!isOpen));
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    if (navMenu) {
+    if (navMenu && header?.dataset.authNavReady !== 'true') {
         navMenu.querySelectorAll('a').forEach((link) => {
             link.addEventListener('click', () => {
                 if (navToggle) {

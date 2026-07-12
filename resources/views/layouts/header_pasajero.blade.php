@@ -4,7 +4,7 @@
     $inicialesPasajero = $usuarioPasajero?->iniciales() ?: '??';
 @endphp
 
-<header class="encabezado-app app-shell-header" id="header-pasajero" data-app-header>
+<header class="encabezado-app app-shell-header" id="header-pasajero" data-app-header data-header-role="pasajero">
     <div class="barra-navegacion-app">
         <a href="{{ route('pasajero.solicitarViaje') }}" class="logo">
             <img src="{{ asset('img/logo_moto.png') }}" alt="Altokke">

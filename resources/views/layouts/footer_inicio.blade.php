@@ -1,4 +1,4 @@
-<footer class="stats-bar">
+<section class="stats-bar" aria-label="Estadisticas de Altokke">
 
     <div class="stats-inner">
         <div class="stat-item">
@@ -19,6 +19,6 @@
         </div>
     </div>
 
-</footer>
+</section>
 
 @include('layouts.footer')
