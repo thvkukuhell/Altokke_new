@@ -35,6 +35,11 @@ class PublicPagesAuthenticatedLayoutTest extends TestCase
             ->assertSee('btn-iniciar-sesion', false);
 
         $this->assertSame(1, substr_count($response->getContent(), '<footer'));
+        $this->assertSame(1, substr_count($response->getContent(), '<h1'));
+        if ($routeName === 'contacto') {
+            $response->assertSee('name="_token"', false);
+        }
+
         $this->assertGuest();
     }
 
@@ -54,6 +59,11 @@ class PublicPagesAuthenticatedLayoutTest extends TestCase
             ->assertDontSee('btn-iniciar-sesion', false);
 
         $this->assertSame(1, substr_count($response->getContent(), '<footer'));
+        $this->assertSame(1, substr_count($response->getContent(), '<h1'));
+        if ($routeName === 'contacto') {
+            $response->assertSee('name="_token"', false);
+        }
+
         $this->assertAuthenticatedAs($user);
         $this->assertSame('pasajero', $user->fresh()->tipo_usuario);
     }
@@ -78,6 +88,11 @@ class PublicPagesAuthenticatedLayoutTest extends TestCase
             ->assertDontSee('btn-iniciar-sesion', false);
 
         $this->assertSame(1, substr_count($response->getContent(), '<footer'));
+        $this->assertSame(1, substr_count($response->getContent(), '<h1'));
+        if ($routeName === 'contacto') {
+            $response->assertSee('name="_token"', false);
+        }
+
         $this->assertAuthenticatedAs($user);
         $this->assertSame('conductor', $user->fresh()->tipo_usuario);
     }
