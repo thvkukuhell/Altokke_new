@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Requests\ActualizarConductorRequest;
 use App\Models\Conductor;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ConductorController extends BaseApiController
@@ -37,7 +37,7 @@ class ConductorController extends BaseApiController
         return $this->respuestaJson($conductor);
     }
 
-    public function update(Request $request, int $id)
+    public function update(ActualizarConductorRequest $request, int $id)
     {
         $conductor = Conductor::find($id);
 
@@ -52,13 +52,14 @@ class ConductorController extends BaseApiController
 
         // esto es de Refactorizar Api a ApiController
         $request->merge($this->leerJsonInput());
-        $request->validate([
-            'estado_conductor' => 'sometimes|in:activo,inactivo,en_verificacion',
-        ]);
 
-        $conductor->update($request->only([
-            'estado_conductor',
-        ]));
+        if ($request->has('estado_conductor')) {
+            return $this->errorJson('El estado del conductor no puede modificarse desde este endpoint', 422);
+        }
+
+        $datos = $request->validated();
+
+        $conductor->update($datos);
 
         return $this->respuestaJson($conductor);
     }

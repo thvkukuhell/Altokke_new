@@ -7,8 +7,11 @@ use App\Models\Conductor;
 use App\Models\DocumentoVerificacion;
 use App\Models\Vehiculo;
 use Illuminate\Http\Request;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password as PasswordBroker;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class AuthController extends Controller
 {
@@ -74,6 +77,7 @@ class AuthController extends Controller
 
         // Login nativo de Laravel
         Auth::login($user);
+        $request->session()->regenerate();
 
         // Redirigir según tipo
         return match($user->tipo_usuario) {
@@ -132,6 +136,7 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
+        $request->session()->regenerate();
         return redirect()->route('pasajero.solicitarViaje');
     }
 
@@ -198,34 +203,71 @@ class AuthController extends Controller
         }
 
         Auth::login($user);
+        $request->session()->regenerate();
         return redirect()->route('conductor.dashboard');
     }
 
-    //recuperar contraseña
-    public function recuperar_contrasena()
+    // Recuperar password
+    public function recuperarPassword()
     {
-        return view('auth.recuperar_contrasena', [
+        return view('auth.recuperar_password', [
             'header' => 'header_inicio',
             'footer' => 'footer_inicio',
             'css'    => ['auth/login.css'], 
         ]);
     }
 
-    public function recuperar_contrasena_proceso(Request $request)
+    public function recuperarPasswordProceso(Request $request)
     {
         $request->validate([
-            'email'    => 'required|email|exists:usuarios,email',
-            'password' => 'required|min:6|confirmed',
-        ], [
-            'email.exists'       => 'No encontramos una cuenta con ese correo.',
-            'password.min'       => 'La contraseña debe tener al menos 6 caracteres.',
-            'password.confirmed' => 'Las contraseñas no coinciden.',
+            'email' => 'required|email',
         ]);
 
-        $usuario = User::where('email', $request->email)->first();
-        $usuario->contrasena_hash = Hash::make($request->password);
-        $usuario->save();
+        PasswordBroker::sendResetLink($request->only('email'));
 
-        return back()->with('exito', '✓ Contraseña actualizada. Ya puedes iniciar sesión.');
+        return back()
+            ->withInput($request->only('email'))
+            ->with('exito', 'Si el correo se encuentra registrado, recibirás las instrucciones para restablecer tu contraseña.');
+    }
+
+    public function mostrarRestablecerPassword(Request $request, string $token)
+    {
+        return view('auth.recuperar_password', [
+            'header' => 'header_inicio',
+            'footer' => 'footer_inicio',
+            'css'    => ['auth/login.css'],
+            'token'  => $token,
+            'email'  => $request->query('email'),
+        ]);
+    }
+
+    public function restablecerPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => ['required', 'confirmed', PasswordRule::min(8)],
+        ]);
+
+        $status = PasswordBroker::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'contrasena_hash' => Hash::make($password),
+                ])->save();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        if ($status !== PasswordBroker::PASSWORD_RESET) {
+            return back()
+                ->withInput($request->only('email'))
+                ->withErrors(['email' => __($status)]);
+        }
+
+        return redirect()
+            ->route('login')
+            ->with('exito', 'Contraseña actualizada. Ya puedes iniciar sesión.');
     }
 }

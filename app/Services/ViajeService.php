@@ -129,6 +129,93 @@ class ViajeService
         ]);
     }
 
+    public function aceptarViaje(int $viajeId, int $conductorId): Viaje
+    {
+        return DB::transaction(function () use ($viajeId, $conductorId) {
+            $viaje = Viaje::where('id_viaje', $viajeId)->lockForUpdate()->first();
+
+            if (! $viaje) {
+                abort(404, 'Viaje no encontrado.');
+            }
+
+            if ($viaje->estado_viaje !== 'buscando' || $viaje->id_conductor !== null) {
+                abort(409, 'Este viaje ya no está disponible.');
+            }
+
+            $conductor = Conductor::where('id_conductor', $conductorId)->lockForUpdate()->first();
+
+            if (! $conductor || $conductor->estado_conductor !== 'activo') {
+                abort(403, 'Conductor no disponible para aceptar viajes.');
+            }
+
+            if ((float) $conductor->saldo_disponible <= 0) {
+                abort(403, 'Saldo insuficiente para aceptar viajes.');
+            }
+
+            if (Viaje::where('id_conductor', $conductorId)
+                ->whereIn('estado_viaje', ['aceptado', 'recogiendo', 'en_curso'])
+                ->exists()) {
+                abort(409, 'Ya tienes un viaje activo.');
+            }
+
+            $viaje->update([
+                'id_conductor' => $conductorId,
+                'estado_viaje' => 'aceptado',
+                'fecha_inicio' => now(),
+            ]);
+
+            $this->inicializarUbicacionConductor($viaje, $conductor);
+
+            return $viaje->fresh(['conductor.user', 'conductor.vehiculo', 'pasajero.user']);
+        });
+    }
+
+    public function cambiarEstadoConductor(int $viajeId, int $conductorId, string $estadoEsperado, string $estadoNuevo): Viaje
+    {
+        $viaje = Viaje::find($viajeId);
+
+        if (! $viaje) {
+            abort(404, 'Viaje no encontrado.');
+        }
+
+        if ((int) $viaje->id_conductor !== $conductorId) {
+            abort(403, 'No tienes permiso para modificar este viaje.');
+        }
+
+        if ($viaje->estado_viaje !== $estadoEsperado) {
+            abort(409, 'El estado actual del viaje no permite esta acción.');
+        }
+
+        $viaje->update(['estado_viaje' => $estadoNuevo]);
+
+        return $viaje->fresh(['pasajero.user', 'conductor.user']);
+    }
+
+    public function actualizarUbicacionConductor(int $viajeId, int $conductorId, float $lat, float $lng): Viaje
+    {
+        $viaje = Viaje::find($viajeId);
+
+        if (! $viaje) {
+            abort(404, 'Viaje no encontrado.');
+        }
+
+        if ((int) $viaje->id_conductor !== $conductorId) {
+            abort(403, 'No tienes permiso para actualizar este viaje.');
+        }
+
+        if (! in_array($viaje->estado_viaje, ['aceptado', 'recogiendo', 'en_curso'], true)) {
+            abort(409, 'El estado del viaje no permite actualizar ubicación.');
+        }
+
+        Conductor::where('id_conductor', $conductorId)->update([
+            'lat_actual' => $lat,
+            'lng_actual' => $lng,
+            'ubicacion_actualizada_en' => now(),
+        ]);
+
+        return $viaje;
+    }
+
     public function expirarViaje(int $viajeId, int $pasajeroId): bool
     {
         $viaje = Viaje::where('id_viaje', $viajeId)
@@ -144,45 +231,60 @@ class ViajeService
         return true;
     }
 
-    // Completar viaje y comisión 
-    public function completarViaje(Viaje $viaje): array
+    // Completar viaje y comisión
+    public function completarViaje(int $viajeId, int $conductorId): Viaje
     {
-        return DB::transaction(function () use ($viaje) {
+        return DB::transaction(function () use ($viajeId, $conductorId) {
+            $viaje = Viaje::where('id_viaje', $viajeId)
+                ->lockForUpdate()
+                ->first();
 
-            $tarifaFinal   = (float) $viaje->tarifa_estimada;
+            if (! $viaje) {
+                abort(404, 'Viaje no encontrado.');
+            }
+
+            if ((int) $viaje->id_conductor !== $conductorId) {
+                abort(403, 'No tienes permiso para completar este viaje.');
+            }
+
+            if ($viaje->estado_viaje !== 'en_curso') {
+                abort(409, 'El viaje no puede completarse desde su estado actual.');
+            }
+
+            $conductor = Conductor::where('id_conductor', $conductorId)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $conductor) {
+                abort(404, 'Conductor no encontrado.');
+            }
+
+            $tarifaFinal = (float) ($viaje->tarifa_final ?? $viaje->tarifa_estimada ?? 0);
             $montoComision = round($tarifaFinal * self::PORCENTAJE_COMISION, 2);
-            $gananciaNeta  = round($tarifaFinal - $montoComision, 2);
 
-            // 1. Cerrar viaje
+            if ((float) $conductor->saldo_disponible < $montoComision) {
+                abort(409, 'Tu saldo no alcanza para cubrir la comisión de este viaje.');
+            }
+
             $viaje->update([
                 'estado_viaje' => 'completado',
                 'tarifa_final' => $tarifaFinal,
-                'fecha_fin'    => now(),
+                'fecha_fin' => now(),
             ]);
 
-            // 2. Registrar comisión (si no existe ya)
-            Comision::firstOrCreate(
+            Comision::updateOrCreate(
                 ['id_viaje' => $viaje->id_viaje],
                 [
-                    'id_conductor'   => $viaje->id_conductor,
+                    'id_conductor' => $conductorId,
                     'monto_comision' => $montoComision,
-                    'fecha_descuento' => now(),
+                    'fecha_descuento' => now()->toDateString(),
                 ]
             );
 
-            // 3. Acreditar ganancia neta al conductor
-            Conductor::where('id_conductor', $viaje->id_conductor)
-                ->increment('saldo_disponible', $gananciaNeta);
+            $conductor->decrement('saldo_disponible', $montoComision);
+            $conductor->increment('total_viajes');
 
-            // 4. Incrementar contador de viajes
-            Conductor::where('id_conductor', $viaje->id_conductor)
-                ->increment('total_viajes');
-
-            return [
-                'tarifa_final'  => $tarifaFinal,
-                'comision'      => $montoComision,
-                'ganancia_neta' => $gananciaNeta,
-            ];
+            return $viaje->fresh(['pasajero.user', 'conductor.user']);
         });
     }
 

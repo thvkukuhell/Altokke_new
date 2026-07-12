@@ -1,4 +1,5 @@
 import '../mapa/leaflet_helpers';
+import { altokkeFetchJson } from '../http';
 
 const ordenPasos = { aceptado: 0, recogiendo: 1, en_curso: 2, completado: 3 };
 
@@ -262,23 +263,9 @@ document.addEventListener('DOMContentLoaded', function () {
         estadoAbortController = new AbortController();
 
         try {
-            const respuesta = await fetch(estadoUrl, {
-                signal: estadoAbortController.signal,
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+            const data = await altokkeFetchJson(estadoUrl, {
+                controller: estadoAbortController,
             });
-            if (respuesta.status === 429) {
-                console.warn('[Altokke] demasiadas consultas de estado; se esperara al siguiente intervalo.');
-                return;
-            }
-            if (!respuesta.ok) {
-                detenerConsultaEstado('El viaje no existe o no tienes permiso para consultarlo.');
-                return;
-            }
-
-            const data = await respuesta.json();
             const viaje = data.viaje || data.data || null;
             if (!data.ok || !viaje) {
                 detenerConsultaEstado(data.mensaje || data.message || 'La respuesta del viaje no es valida.');
@@ -300,6 +287,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } catch (error) {
             if (error.name === 'AbortError') return;
+            if (error.status === 429) return;
             detenerConsultaEstado('No se pudo consultar el viaje. Actualiza la pagina para intentar nuevamente.');
         } finally {
             consultandoEstado = false;

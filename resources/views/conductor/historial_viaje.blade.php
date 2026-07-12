@@ -102,7 +102,9 @@
                                     @endif
 
                                     <div style="margin-top:5px;">
-                                        {!! $v['badge_estado'] ?? '' !!}
+                                        <span class="badge {{ $v['badge_clase'] ?? 'badge-gris' }}">
+                                            {{ $v['estado_texto'] ?? 'Pendiente' }}
+                                        </span>
                                     </div>
                                 </div>
 

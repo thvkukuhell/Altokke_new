@@ -17,7 +17,7 @@ Route::get('/inicio/sobre_nosotros', [InicioController::class, 'sobre_nosotros']
 Route::get('/inicio/servicios', [InicioController::class, 'servicios'])->name('servicios');
 Route::get('/inicio/contacto', [InicioController::class, 'contacto'])->name('contacto');
 Route::get('/inicio/ayuda', [InicioController::class, 'ayuda'])->name('ayuda');
-Route::post('/inicio/ayuda', [InicioController::class, 'enviarConsulta'])->name('ayuda.enviar');
+Route::post('/inicio/ayuda', [InicioController::class, 'enviarConsulta'])->middleware('throttle:5,1')->name('ayuda.enviar');
 
 // Autenticacion publica
 Route::middleware('redirect.auth.role')->group(function () {
@@ -28,8 +28,10 @@ Route::middleware('redirect.auth.role')->group(function () {
     Route::post('/auth/registro_pasajero', [AuthController::class, 'proc_regist_pasajero'])->name('proc_regist_pasajero');
     Route::get('/auth/registro_conductor', [AuthController::class, 'registro_conductor'])->name('registro_conductor');
     Route::post('/auth/registro_conductor', [AuthController::class, 'proc_regist_conductor'])->name('proc_regist_conductor');
-    Route::get('/auth/recuperar_contrasena', [AuthController::class, 'recuperar_contrasena'])->name('recuperar_contrasena');
-    Route::post('/auth/recuperar_contrasena', [AuthController::class, 'recuperar_contrasena_proceso'])->name('recuperar_contrasena.proceso');
+    Route::get('/auth/recuperar_password', [AuthController::class, 'recuperarPassword'])->name('recuperar_password');
+    Route::post('/auth/recuperar_password', [AuthController::class, 'recuperarPasswordProceso'])->middleware('throttle:5,1')->name('recuperar_password.proceso');
+    Route::get('/auth/restablecer_password/{token}', [AuthController::class, 'mostrarRestablecerPassword'])->name('password.reset');
+    Route::post('/auth/restablecer_password', [AuthController::class, 'restablecerPassword'])->name('password.update');
 });
 
 Route::post('/auth/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');

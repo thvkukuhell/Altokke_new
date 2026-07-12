@@ -5,8 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Events\ConductorMovido;
 use App\Events\ViajeAceptado;
 use App\Events\ViajeActualizado;
-use App\Models\Comision;
-use App\Models\Conductor;
+use App\Http\Requests\ActualizarUbicacionRequest;
 use App\Models\Notificacion;
 use App\Models\Viaje;
 use App\Services\ViajeNotificacionService;
@@ -17,8 +16,6 @@ use Illuminate\Support\Facades\Auth;
 
 class InternalViajeController extends BaseApiController
 {
-    private const COMISION_ALTOKKE = 0.08;
-
     public function show(int $id): JsonResponse
     {
         $viaje = Viaje::with(['pasajero.user', 'conductor.user', 'conductor.vehiculo', 'calificacion'])->find($id);
@@ -78,84 +75,42 @@ class InternalViajeController extends BaseApiController
             return $this->errorJson('Solo conductores pueden aceptar viajes', 403);
         }
 
-        $viaje = Viaje::where('id_viaje', $id)->first();
-        if (! $viaje) {
-            return $this->errorJson('Viaje no encontrado', 404);
+        try {
+            $viaje = app(ViajeService::class)->aceptarViaje($id, (int) Auth::id());
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e) {
+            return $this->errorJson($e->getMessage(), $e->getStatusCode());
         }
 
-        $conductor = Conductor::with('user')->find(Auth::id());
-        if (! $conductor || $conductor->estado_conductor !== 'activo') {
-            return $this->errorJson('Conductor no disponible para aceptar viajes', 403);
-        }
-
-        if ((float) $conductor->saldo_disponible <= 0) {
-            return $this->errorJson('Saldo insuficiente para aceptar viajes', 403);
-        }
-
-        if (Viaje::where('id_conductor', Auth::id())
-            ->whereIn('estado_viaje', ['aceptado', 'recogiendo', 'en_curso'])
-            ->exists()) {
-            return $this->errorJson('Ya tienes un viaje activo', 409);
-        }
-
-        $actualizados = Viaje::where('id_viaje', $viaje->id_viaje)
-            ->where('estado_viaje', 'buscando')
-            ->whereNull('id_conductor')
-            ->update([
-                'id_conductor' => Auth::id(),
-                'estado_viaje' => 'aceptado',
-                'fecha_inicio' => now(),
-            ]);
-
-        if ($actualizados === 0) {
-            return $this->errorJson('Este viaje ya no esta disponible', 409);
-        }
-
-        $viaje->refresh();
-        app(ViajeService::class)->inicializarUbicacionConductor($viaje, $conductor);
-        $viaje->load('conductor.user', 'conductor.vehiculo', 'pasajero.user');
         event(new ViajeAceptado($viaje));
         event(new ViajeActualizado((int) $viaje->id_pasajero, 'aceptado', (int) $viaje->id_viaje));
 
         Notificacion::create([
             'id_usuario' => $viaje->id_pasajero,
             'titulo' => 'Viaje aceptado',
-            'mensaje' => 'Un conductor acepto tu solicitud de viaje',
+            'mensaje' => 'Un conductor aceptó tu solicitud de viaje',
         ]);
 
         return $this->exitoJson('Viaje aceptado', $this->formatearViaje($viaje));
     }
 
-    public function actualizarUbicacion(Request $request, int $id): JsonResponse
+    public function actualizarUbicacion(ActualizarUbicacionRequest $request, int $id): JsonResponse
     {
         if (! $this->esConductor()) {
             return $this->errorJson('Solo conductores pueden actualizar ubicacion', 403);
         }
 
-        $datos = $request->validate([
-            'lat' => 'required|numeric|between:-90,90',
-            'lng' => 'required|numeric|between:-180,180',
-        ]);
+        $datos = $request->validated();
 
-        $viaje = Viaje::find($id);
-
-        if (! $viaje) {
-            return $this->errorJson('Viaje no encontrado', 404);
+        try {
+            $viaje = app(ViajeService::class)->actualizarUbicacionConductor(
+                $id,
+                (int) Auth::id(),
+                (float) $datos['lat'],
+                (float) $datos['lng']
+            );
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e) {
+            return $this->errorJson($e->getMessage(), $e->getStatusCode());
         }
-
-        if ((int) $viaje->id_conductor !== (int) Auth::id()) {
-            return $this->errorJson('No tienes permiso para actualizar este viaje', 403);
-        }
-
-        if (! in_array($viaje->estado_viaje, ['aceptado', 'recogiendo', 'en_curso'], true)) {
-            return $this->errorJson('El viaje no permite actualizar ubicacion', 409);
-        }
-
-        Conductor::where('id_conductor', Auth::id())->update([
-            'lat_actual' => (float) $datos['lat'],
-            'lng_actual' => (float) $datos['lng'],
-            'ubicacion_actualizada_en' => now(),
-        ]);
 
         event(new ConductorMovido($viaje->id_viaje, (float) $datos['lat'], (float) $datos['lng']));
 
@@ -172,52 +127,16 @@ class InternalViajeController extends BaseApiController
             return $this->errorJson('Solo conductores pueden completar viajes', 403);
         }
 
-        $viaje = Viaje::find($id);
-
-        if (! $viaje) {
-            return $this->errorJson('Viaje no encontrado', 404);
+        try {
+            $viaje = app(ViajeService::class)->completarViaje($id, (int) Auth::id());
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e) {
+            return $this->errorJson($e->getMessage(), $e->getStatusCode());
         }
-
-        if ((int) $viaje->id_conductor !== (int) Auth::id()) {
-            return $this->errorJson('No tienes permiso para completar este viaje', 403);
-        }
-
-        if ($viaje->estado_viaje !== 'en_curso') {
-            return $this->errorJson('El viaje no se puede completar en su estado actual', 409);
-        }
-
-        $conductor = Conductor::find(Auth::id());
-        $tarifaFinal = (float) ($viaje->tarifa_final ?? $viaje->tarifa_estimada ?? 0);
-        $montoComision = round($tarifaFinal * self::COMISION_ALTOKKE, 2);
-
-        if (! $conductor || (float) $conductor->saldo_disponible < $montoComision) {
-            return $this->errorJson('Saldo insuficiente para cubrir la comision', 403);
-        }
-
-        $viaje->update([
-            'estado_viaje' => 'completado',
-            'tarifa_final' => $tarifaFinal,
-            'fecha_fin' => now(),
-        ]);
-
-        Comision::updateOrCreate(
-            ['id_viaje' => $viaje->id_viaje],
-            [
-                'id_conductor' => $viaje->id_conductor,
-                'monto_comision' => $montoComision,
-                'fecha_descuento' => now()->toDateString(),
-            ]
-        );
-
-        $conductor->decrement('saldo_disponible', $montoComision);
-        $conductor->increment('total_viajes');
 
         event(new ViajeActualizado((int) $viaje->id_pasajero, 'completado', (int) $viaje->id_viaje));
-        app(ViajeNotificacionService::class)->enviarResumenCompletado(
-            $viaje->fresh(['pasajero.user', 'conductor.user'])
-        );
+        app(ViajeNotificacionService::class)->enviarResumenCompletado($viaje);
 
-        return $this->exitoJson('Viaje completado', $this->formatearViaje($viaje->fresh(['pasajero.user', 'conductor.user'])));
+        return $this->exitoJson('Viaje completado', $this->formatearViaje($viaje));
     }
 
     public function historialConductor(Request $request): JsonResponse {

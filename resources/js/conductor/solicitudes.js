@@ -1,3 +1,5 @@
+import { altokkeFetchJson } from '../http';
+
 document.addEventListener('DOMContentLoaded', function () {
     const lista = document.getElementById('solicitudes-lista');
     const estadoTexto = document.getElementById('solicitudes-ajax-texto');
@@ -99,27 +101,7 @@ document.addEventListener('DOMContentLoaded', function () {
         pintarEstado('Consultando solicitudes...', 'cargando');
 
         try {
-            const respuesta = await fetch(endpoint, {
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-
-            if (!respuesta.ok) {
-                if (respuesta.status === 429) {
-                    pintarEstado('Demasiadas consultas. Se esperara antes de volver a actualizar.', 'cargando');
-                    return;
-                }
-
-                if ([401, 403].includes(respuesta.status) && pollingSolicitudes) {
-                    window.clearInterval(pollingSolicitudes);
-                    pollingSolicitudes = null;
-                }
-                throw new Error('No se pudo consultar el servidor');
-            }
-
-            const data = await respuesta.json();
+            const data = await altokkeFetchJson(endpoint);
             if (!data.ok) {
                 throw new Error(data.message || 'Respuesta no valida');
             }
@@ -142,6 +124,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
             pintarEstado(`Solicitudes actualizadas: ${solicitudes.length}`, 'ok');
         } catch (error) {
+            if (error.status === 429) {
+                pintarEstado('Demasiadas consultas. Se esperará antes de volver a actualizar.', 'cargando');
+                return;
+            }
+
+            if ([401, 403, 419].includes(error.status) && pollingSolicitudes) {
+                window.clearInterval(pollingSolicitudes);
+                pollingSolicitudes = null;
+            }
+
             pintarEstado('No se pudo actualizar. Se mostrara la ultima lista disponible.', 'error');
         } finally {
             cargando = false;

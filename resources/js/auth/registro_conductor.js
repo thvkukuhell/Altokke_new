@@ -40,8 +40,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!dni) errores.push('El DNI es obligatorio.');
         if (!telefono) errores.push('El telefono es obligatorio.');
         if (!correo) errores.push('El correo es obligatorio.');
-        if (password.length < 8) errores.push('La contrasena debe tener al menos 8 caracteres.');
-        if (password !== confirmar) errores.push('Las contrasenas no coinciden.');
+        if (password.length < 8) errores.push('La contraseña debe tener al menos 8 caracteres.');
+        if (password !== confirmar) errores.push('Las contraseñas no coinciden.');
         if (!licencia) errores.push('El numero de licencia es obligatorio.');
 
         if (errores.length > 0) {

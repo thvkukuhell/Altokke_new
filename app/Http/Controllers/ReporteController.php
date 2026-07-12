@@ -35,15 +35,7 @@ class ReporteController extends Controller
             ->where('id_viaje', $viajeId)
             ->firstOrFail();
 
-        $user = Auth::user();
-        $puedeVer = match ($user->tipo_usuario) {
-            'pasajero' => (int) $viaje->id_pasajero === (int) Auth::id(),
-            'conductor' => (int) $viaje->id_conductor === (int) Auth::id(),
-            default => false,
-        };
-
-        abort_unless($puedeVer, 403);
-        abort_unless($viaje->estado_viaje === 'completado', 404);
+        abort_unless(Auth::user()?->can('downloadReport', $viaje), 403);
 
         $pdf = $pdfService->generar('Comprobante de viaje Altokke', [
             'Codigo de viaje: #' . $viaje->id_viaje,

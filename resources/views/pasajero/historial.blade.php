@@ -79,7 +79,9 @@
                                 </div>
 
                                 <div class="viaje-state-pill">
-                                    {!! $v['badge_estado'] !!}
+                                    <span class="badge {{ $v['badge_clase'] ?? 'badge-gris' }}">
+                                        {{ $v['estado_texto'] ?? 'Pendiente' }}
+                                    </span>
                                 </div>
                             </div>
 

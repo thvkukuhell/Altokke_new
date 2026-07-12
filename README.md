@@ -679,7 +679,7 @@ Altokke_new
 │     ├─ auth
 │     │  ├─ eleccion_registro.blade.php
 │     │  ├─ login.blade.php
-│     │  ├─ recuperar_contrasena.blade.php
+│     │  ├─ recuperar_password.blade.php
 │     │  ├─ registro_conductor.blade.php
 │     │  └─ registro_pasajero.blade.php
 │     ├─ conductor

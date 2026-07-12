@@ -65,9 +65,11 @@ COPY --from=frontend /app/public/build ./public/build
 COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
 COPY docker/entrypoint.sh /usr/local/bin/altokke-entrypoint
 COPY docker/predeploy.sh /usr/local/bin/altokke-predeploy
+COPY docker/queue-worker.sh /usr/local/bin/altokke-queue-worker
+COPY docker/reverb.sh /usr/local/bin/altokke-reverb
 
 RUN rm -f .env public/hot \
-    && chmod +x /usr/local/bin/altokke-entrypoint /usr/local/bin/altokke-predeploy \
+    && chmod +x /usr/local/bin/altokke-entrypoint /usr/local/bin/altokke-predeploy /usr/local/bin/altokke-queue-worker /usr/local/bin/altokke-reverb \
     && mkdir -p storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R ug+rwX storage bootstrap/cache \

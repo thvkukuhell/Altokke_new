@@ -1,9 +1,12 @@
 <?php
+
 namespace App\Http\Controllers;
 
+use App\Http\Requests\EnviarConsultaRequest;
 use App\Mail\SolicitudContactoMail;
 use App\Models\SolicitudContacto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class InicioController extends Controller
@@ -54,30 +57,22 @@ class InicioController extends Controller
         ]);
     }
 
-    public function enviarConsulta(Request $request)
+    public function enviarConsulta(EnviarConsultaRequest $request)
     {
-        $request->validate([
-            'nombre' => 'required|string|max:150',
-            'correo' => 'required|email|max:150',
-            'asunto' => 'required|string|max:150',
-            'tipo_solicitud' => 'required|in:consulta,reclamo,sugerencia,reporte',
-            'descripcion' => 'required|string|max:1200',
-        ], [
-            'nombre.required' => 'El nombre es obligatorio.',
-            'correo.required' => 'El correo es obligatorio.',
-            'correo.email' => 'El correo debe ser válido.',
-            'asunto.required' => 'El asunto es obligatorio.',
-            'tipo_solicitud.required' => 'Selecciona el tipo de solicitud.',
-            'descripcion.required' => 'Ingresa una descripción del problema o reclamo.',
-        ]);
-
-        $data = $request->only(['nombre', 'correo', 'asunto', 'tipo_solicitud', 'descripcion']);
+        $data = $request->validated();
 
         $userId = auth()->check() ? auth()->id() : null;
         SolicitudContacto::create(array_merge($data, ['id_usuario' => $userId]));
 
-        Mail::to(config('app.support_email'))
-            ->send(new SolicitudContactoMail($data));
+        try {
+            Mail::to(config('app.support_email'))->send(new SolicitudContactoMail($data));
+        } catch (\Throwable $e) {
+            Log::warning('No se pudo enviar el correo de contacto.', [
+                'correo' => $data['correo'],
+                'tipo_solicitud' => $data['tipo_solicitud'],
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return back()->with('success', 'Gracias. Tu solicitud ha sido enviada. Nos comunicaremos contigo pronto.');
     }

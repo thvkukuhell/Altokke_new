@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CancelarViajeRequest;
+use App\Http\Requests\CrearViajeRequest;
+use App\Http\Requests\EnviarCalificacionRequest;
 use App\Services\ViajeService;
 use App\Models\Viaje;
 use App\Models\Pasajero;
@@ -31,40 +34,14 @@ class PasajeroController extends Controller
         ]);
     }
 
-    public function crearViaje(Request $request)
+    public function crearViaje(CrearViajeRequest $request)
     {
-        // esto es de Evitar solicitudes duplicadas
         $redireccion = $this->redirigirSiTieneViajeActivo($request);
         if ($redireccion) {
             return $redireccion;
         }
 
-        $request->merge([
-            'origen' => trim((string) $request->input('origen', '')),
-            'destino' => trim((string) $request->input('destino', '')),
-        ]);
-
-        // Validación de entrada (saneamiento contra datos maliciosos)
-        $datos = $request->validate([
-            'origen'        => ['required', 'string', 'min:2', 'max:300', 'not_regex:/^(nan|null|undefined)$/i'],
-            'destino'       => ['required', 'string', 'different:origen', 'min:2', 'max:300', 'not_regex:/^(nan|null|undefined)$/i'],
-            'tipo_servicio' => 'required|in:normal,express',
-            'metodo_pago'   => 'required|in:efectivo,yape,plin',
-            'origen_lat'    => 'required|numeric|between:-90,90',
-            'origen_lng'    => 'required|numeric|between:-180,180',
-            'destino_lat'   => 'required|numeric|between:-90,90',
-            'destino_lng'   => 'required|numeric|between:-180,180',
-            'distancia_km'  => 'nullable|numeric|min:0|max:500',
-            'tiempo_min'    => 'nullable|integer|min:0',
-        ], [
-            'destino.different' => 'El origen y destino no pueden ser iguales.',
-            'origen_lat.required' => 'Marca tu origen en el mapa.',
-            'origen_lng.required' => 'Marca tu origen en el mapa.',
-            'destino_lat.required' => 'Marca tu destino en el mapa.',
-            'destino_lng.required' => 'Marca tu destino en el mapa.',
-            'origen.not_regex' => 'El origen no es valido.',
-            'destino.not_regex' => 'El destino no es valido.',
-        ]);
+        $datos = $request->validated();
 
         $datos['origen_lat'] = (float) $datos['origen_lat'];
         $datos['origen_lng'] = (float) $datos['origen_lng'];
@@ -83,10 +60,9 @@ class PasajeroController extends Controller
                 ->withInput()
                 ->withErrors(['destino' => 'El origen y destino deben estar en puntos diferentes del mapa.']);
         }
- 
-        // Toda la lógica de negocio queda en el Service
+
         $viaje = $this->viajeService->crearViaje(Auth::id(), $datos);
- 
+
         return redirect()->route('pasajero.buscando', $viaje->id_viaje);
     }
 
@@ -125,25 +101,15 @@ class PasajeroController extends Controller
         ]);
     }
 
-    public function cancelarViaje(Request $request)
+    public function cancelarViaje(CancelarViajeRequest $request)
     {
-        $request->validate([
-            'viaje_id' => 'required|integer|min:1',
-            'motivo_cancelacion' => 'required|in:demora_conductor,pasajero_no_en_punto,ubicacion_incorrecta,cambio_opinion,problemas_vehiculo,otro',
-            'motivo_cancelacion_otro' => 'nullable|string|min:10|max:1000',
-        ]);
-
-        if ($request->input('motivo_cancelacion') === 'otro' && empty(trim($request->input('motivo_cancelacion_otro')))) {
-            return back()->withErrors(['motivo_cancelacion_otro' => 'Describe brevemente el motivo de la cancelación.'])->withInput();
-        }
-
         $this->viajeService->cancelarViaje(
             (int) $request->viaje_id,
             Auth::id(),
             (string) $request->motivo_cancelacion,
             $request->input('motivo_cancelacion_otro') ? trim((string) $request->motivo_cancelacion_otro) : null
         );
- 
+
         return redirect()->route('pasajero.solicitarViaje');
     }
 
@@ -179,7 +145,7 @@ class PasajeroController extends Controller
             ], 404);
         }
 
-        if ((int) $viaje->id_pasajero !== (int) Auth::id()) {
+        if (! Auth::user()?->can('view', $viaje)) {
             return response()->json([
                 'ok' => false,
                 'mensaje' => 'No tienes permiso para ver este viaje.',
@@ -314,15 +280,8 @@ class PasajeroController extends Controller
         ]);
     }
 
-    public function enviarCalificacion(Request $request)
+    public function enviarCalificacion(EnviarCalificacionRequest $request)
     {
-        $request->validate([
-            'viaje_id'     => 'required|integer',
-            'conductor_id' => 'required|integer',
-            'estrellas'    => 'required|integer|min:1|max:5',
-            'comentario'   => 'nullable|string|max:500',
-        ]);
-
         $viaje = Viaje::where('id_viaje', $request->viaje_id)
             ->where('id_pasajero', Auth::id())
             ->where('id_conductor', $request->conductor_id)
@@ -460,7 +419,7 @@ class PasajeroController extends Controller
             abort(404, 'Viaje no encontrado.');
         }
 
-        if ((int) $viaje->id_pasajero !== (int) Auth::id()) {
+        if (! Auth::user()?->can('view', $viaje)) {
             abort(403, 'No tienes permiso para ver este viaje.');
         }
 
@@ -531,29 +490,34 @@ class PasajeroController extends Controller
         };
 
         return [
-            'id'           => $v->id_viaje,
-            'origen'       => $v->origen_texto,
-            'destino'      => $v->destino_texto,
-            'precio'                  => $precio,
-            'precio_label'            => $v->tarifa_final !== null ? 'Tarifa final' : 'Tarifa estimada',
-            'fecha'                   => $v->fecha_solicitud?->format('d/m/Y') ?? '—',
-            'distancia'               => $v->distancia_km !== null ? number_format((float) $v->distancia_km, 1) . ' km' : '—',
-            'tiempo'                  => $v->tiempo_estimado_min !== null ? (int) $v->tiempo_estimado_min . ' min' : '—',
-            'conductor'               => $v->conductor->user->nombre_completo ?? 'Sin conductor asignado',
-            'metodo_pago'             => $metodoPago,
-            'calificacion'            => $v->calificacion->puntuacion ?? 0,
-            'motivo_cancelacion'      => $v->motivo_cancelacion ?? null,
+            'id' => $v->id_viaje,
+            'origen' => $v->origen_texto,
+            'destino' => $v->destino_texto,
+            'precio' => $precio,
+            'precio_label' => $v->tarifa_final !== null ? 'Tarifa final' : 'Tarifa estimada',
+            'fecha' => $v->fecha_solicitud?->format('d/m/Y') ?? '�',
+            'distancia' => $v->distancia_km !== null ? number_format((float) $v->distancia_km, 1) . ' km' : '�',
+            'tiempo' => $v->tiempo_estimado_min !== null ? (int) $v->tiempo_estimado_min . ' min' : '�',
+            'conductor' => $v->conductor->user->nombre_completo ?? 'Sin conductor asignado',
+            'metodo_pago' => $metodoPago,
+            'calificacion' => $v->calificacion->puntuacion ?? 0,
+            'motivo_cancelacion' => $v->motivo_cancelacion ?? null,
             'motivo_cancelacion_otro' => $v->motivo_cancelacion_otro ?? null,
-            'estado_viaje'            => $estado,
-            'borde_clase'  => match($estado) {
+            'estado_viaje' => $estado,
+            'borde_clase' => match ($estado) {
                 'completado' => 'borde-verde',
-                'cancelado'  => 'borde-rojo',
-                default      => 'borde-dorado',
+                'cancelado' => 'borde-rojo',
+                default => 'borde-dorado',
             },
-            'badge_estado' => match($estado) {
-                'completado' => '<span class="badge badge-verde">Completado</span>',
-                'cancelado'  => '<span class="badge badge-rojo">Cancelado</span>',
-                default      => '<span class="badge badge-gris">' . ucfirst(str_replace('_', ' ', $estado)) . '</span>',
+            'estado_texto' => match ($estado) {
+                'completado' => 'Completado',
+                'cancelado' => 'Cancelado',
+                default => ucfirst(str_replace('_', ' ', $estado)),
+            },
+            'badge_clase' => match ($estado) {
+                'completado' => 'badge-verde',
+                'cancelado' => 'badge-rojo',
+                default => 'badge-gris',
             },
         ];
     }

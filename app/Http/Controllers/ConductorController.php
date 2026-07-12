@@ -1,6 +1,10 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ActualizarUbicacionRequest;
+use App\Http\Requests\CancelarViajeRequest;
+use App\Http\Requests\CompletarViajeRequest;
+use App\Http\Requests\RecargarSaldoRequest;
 use App\Models\Viaje;
 use App\Models\Conductor;
 use App\Models\Comision;
@@ -231,60 +235,26 @@ class ConductorController extends Controller
         ];
     }
 
-    public function aceptarViaje(Request $request) 
+    public function aceptarViaje(CompletarViajeRequest $request)
     {
-        $request->validate([
-            'id_viaje' => 'required|integer',
-        ]);
+        try {
+            $viaje = app(ViajeService::class)->aceptarViaje((int) $request->id_viaje, (int) Auth::id());
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e) {
+            if ($e->getStatusCode() === 403 && str_contains($e->getMessage(), 'Saldo')) {
+                return redirect()->route('conductor.billetera')->with('mensaje', $e->getMessage());
+            }
 
-        $viaje = Viaje::find((int) $request->id_viaje);
+            if ($e->getStatusCode() === 403 && str_contains($e->getMessage(), 'disponible')) {
+                return redirect()->route('conductor.solicitudes')->with('mensaje', $e->getMessage());
+            }
 
-        if (! $viaje) {
-            abort(404, 'Viaje no encontrado.');
+            abort($e->getStatusCode(), $e->getMessage());
         }
 
-        $conductor = $this->getConductorActual();
-        
-        if ($conductor->estado_conductor !== 'activo') {
-            return redirect() 
-                ->route('conductor.solicitudes')
-                ->with('mensaje', 'Tu cuenta de conductor aún está en verificación. No puedes aceptar viajes todavía.');
-        }
-
-        if ((float) $conductor->saldo_disponible <= 0) {
-            return redirect()
-                ->route('conductor.billetera')
-                ->with('mensaje', 'Necesitas recargar saldo antes de aceptar viajes.');
-        }
-
-        // Evitar que dos conductores acepten el mismo viaje
-        if (Viaje::where('id_conductor', Auth::id())
-            ->whereIn('estado_viaje', ['aceptado', 'recogiendo', 'en_curso'])
-            ->exists()) {
-            abort(409, 'Ya tienes un viaje activo.');
-        }
-
-        $actualizados = Viaje::where('id_viaje', $viaje->id_viaje)
-            ->where('estado_viaje', 'buscando')
-            ->whereNull('id_conductor')
-            ->update([
-                'id_conductor' => Auth::id(),
-                'estado_viaje' => 'aceptado',
-                'fecha_inicio' => now(),
-            ]);
-
-        if ($actualizados === 0) {
-            abort(409, 'Este viaje ya fue tomado por otro conductor.');
-        }
-
-        $viaje->refresh();
-        app(ViajeService::class)->inicializarUbicacionConductor($viaje, $conductor);
-
-        // 2. Disparar eventos
-        event(new \App\Events\ViajeAceptado($viaje->load('conductor.user', 'conductor.vehiculo')));
+        event(new \App\Events\ViajeAceptado($viaje));
         Notificacion::create([
             'id_usuario' => $viaje->id_pasajero,
-            'titulo' => 'Viaje_aceptado',
+            'titulo' => 'Viaje aceptado',
             'mensaje' => 'Un conductor aceptó tu solicitud de viaje',
         ]);
 
@@ -299,17 +269,14 @@ class ConductorController extends Controller
             ->with('mensaje', '¡Viaje aceptado! Dirígete a recoger al pasajero.');
     }
 
-    public function recogerPasajero(Request $request)
+    public function recogerPasajero(CompletarViajeRequest $request)
     {
-        $request->validate([
-            'id_viaje' => 'required|integer',
-        ]);
-
-        $viaje = $this->validarViajeConductor(
+        $viaje = app(ViajeService::class)->cambiarEstadoConductor(
             (int) $request->id_viaje,
-            ['aceptado']
+            (int) Auth::id(),
+            'aceptado',
+            'recogiendo'
         );
-        $viaje->update(['estado_viaje' => 'recogiendo']);
 
         event(new \App\Events\ViajeActualizado(
             (int) $viaje->id_pasajero,
@@ -324,17 +291,14 @@ class ConductorController extends Controller
         return redirect()->route('conductor.viaje_activo');
     }
 
-    public function iniciarTrayecto(Request $request)
+    public function iniciarTrayecto(CompletarViajeRequest $request)
     {
-        $request->validate([
-            'id_viaje' => 'required|integer',
-        ]);
-
-        $viaje = $this->validarViajeConductor(
+        $viaje = app(ViajeService::class)->cambiarEstadoConductor(
             (int) $request->id_viaje,
-            ['recogiendo']
+            (int) Auth::id(),
+            'recogiendo',
+            'en_curso'
         );
-        $viaje->update(['estado_viaje' => 'en_curso']);
 
         event(new \App\Events\ViajeActualizado(
             (int) $viaje->id_pasajero,
@@ -381,61 +345,37 @@ class ConductorController extends Controller
         ]);
     }
 
-    public function completarViaje(Request $request)
+    public function completarViaje(CompletarViajeRequest $request)
     {
         $request->validate([
             'id_viaje' => 'required|integer',
         ]);
 
-        $viaje = $this->validarViajeConductor(
-            (int) $request->id_viaje,
-            ['en_curso']
-        );
-        $conductor = $this->getConductorActual();
-        $tarifaFinal = (float) ($viaje->tarifa_final ?? $viaje->tarifa_estimada ?? 0);
-        $montoComision = round($tarifaFinal * self::COMISION_ALTOKKE, 2);
+        try {
+            $viaje = app(ViajeService::class)->completarViaje((int) $request->id_viaje, (int) Auth::id());
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e) {
+            if ($e->getStatusCode() === 409 && str_contains($e->getMessage(), 'saldo')) {
+                return redirect()
+                    ->route('conductor.billetera')
+                    ->with('mensaje', $e->getMessage());
+            }
 
-        if ((float) $conductor->saldo_disponible < $montoComision) {
-            return redirect()
-                ->route('conductor.billetera')
-                ->with('mensaje', 'Tu saldo no alcanza para cubrir la comisión de este viaje.');
+            abort($e->getStatusCode(), $e->getMessage());
         }
-
-        // 7J_CONFIRMAR_PAGO_COMPLETA_VIAJE -> luego ir a mensaje solo pasajero
-        $viaje->update([
-            'estado_viaje' => 'completado',
-            'tarifa_final' => $tarifaFinal,
-            'fecha_fin'    => now()
-        ]);
-
-        Comision::updateOrCreate(
-            ['id_viaje' => $viaje->id_viaje],
-            [
-                'id_conductor' => $viaje->id_conductor,
-                'monto_comision' => $montoComision,
-                'fecha_descuento' => now()->toDateString(),
-            ]
-        );
-
-        $conductor->decrement('saldo_disponible', $montoComision);
-        $conductor->increment('total_viajes');
 
         Notificacion::create([
             'id_usuario' => $viaje->id_pasajero,
             'titulo' => 'Viaje completado',
-            'mensaje' => 'Tu viaje finalizó correctamente. Ya puedes calificar al conductor.',
+            'mensaje' => 'Tu viaje finalizo correctamente. Ya puedes calificar al conductor.',
         ]);
 
-        // 3.  Pasar los 3 parámetros individuales al constructor del evento
         event(new \App\Events\ViajeActualizado(
             (int) $viaje->id_pasajero,
             'completado',
             (int) $viaje->id_viaje
         ));
 
-        app(ViajeNotificacionService::class)->enviarResumenCompletado(
-            $viaje->fresh(['pasajero.user', 'conductor.user'])
-        );
+        app(ViajeNotificacionService::class)->enviarResumenCompletado($viaje);
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -445,35 +385,19 @@ class ConductorController extends Controller
             ]);
         }
 
-        // 4. Redirigir al conductor a su historial, dashboard o solicitudes con un mensaje de éxito
         return redirect()
-            ->route('conductor.solicitudes') 
-            ->with('mensaje', '¡Viaje terminado con éxito! Buen trabajo.');
+            ->route('conductor.solicitudes')
+            ->with('mensaje', 'Viaje terminado con exito. Buen trabajo.');
     }
 
-    public function cancelarViaje(Request $request)
+
+    public function cancelarViaje(CancelarViajeRequest $request)
     {
-        $request->validate([
-            'viaje_id' => 'required|integer',
-            'motivo_cancelacion' => 'required|in:demora_conductor,pasajero_no_en_punto,ubicacion_incorrecta,cambio_opinion,problemas_vehiculo,otro',
-            'motivo_cancelacion_otro' => 'nullable|string|min:10|max:1000',
-        ]);
-
-        if ($request->input('motivo_cancelacion') === 'otro' && empty(trim($request->input('motivo_cancelacion_otro')))) {
-            return back()->withErrors(['motivo_cancelacion_otro' => 'Describe brevemente el motivo de la cancelación.'])->withInput();
-        }
-
         $viaje = Viaje::find((int) $request->viaje_id);
-        if (! $viaje || (int) $viaje->id_conductor !== (int) Auth::id()) {
+        if (! $viaje || ! Auth::user()?->can('cancel', $viaje)) {
             return redirect()
                 ->route('conductor.dashboard')
                 ->with('error', 'No se encontró el viaje o no tienes permiso para cancelarlo.');
-        }
-
-        if (! in_array($viaje->estado_viaje, ['aceptado', 'recogiendo'], true)) {
-            return redirect()
-                ->route('conductor.dashboard')
-                ->with('error', 'El viaje ya no se encuentra en un estado cancelable.');
         }
 
         $viaje->update([
@@ -494,8 +418,7 @@ class ConductorController extends Controller
             (int) $viaje->id_viaje
         ));
 
-        return redirect()
-            ->route('conductor.solicitudes');
+        return redirect()->route('conductor.solicitudes');
     }
 
     // Historial 
@@ -521,10 +444,15 @@ class ConductorController extends Controller
                                       'cancelado'  => 'borde-rojo',
                                       default      => 'borde-dorado',
                                   },
-                                  'badge_estado' => match($v->estado_viaje) {
-                                      'completado' => '<span class="badge badge-verde">Completado</span>',
-                                      'cancelado'  => '<span class="badge badge-rojo">Cancelado</span>',
-                                      default      => '<span class="badge badge-gris">' . ucfirst($v->estado_viaje) . '</span>',
+                                  'estado_texto' => match($v->estado_viaje) {
+                                      'completado' => 'Completado',
+                                      'cancelado'  => 'Cancelado',
+                                      default      => ucfirst(str_replace('_', ' ', (string) $v->estado_viaje)),
+                                  },
+                                  'badge_clase' => match($v->estado_viaje) {
+                                      'completado' => 'badge-verde',
+                                      'cancelado'  => 'badge-rojo',
+                                      default      => 'badge-gris',
                                   },
                               ];
                           });
@@ -603,14 +531,8 @@ class ConductorController extends Controller
         ]);
     }
 
-    public function recargarSaldo(Request $request) 
+    public function recargarSaldo(RecargarSaldoRequest $request)
     {
-        $request->validate([
-            'monto' => 'required|numeric|min:5|max:500',
-            'metodo_recarga' => 'required|in:yape,plin,efectivo',
-            'referencia' => 'nullable|string|max:150',
-        ]);
-
         $conductor = $this->getConductorActual();
 
         RecargaSaldo::create([
@@ -635,53 +557,31 @@ class ConductorController extends Controller
             ->with('mensaje', 'Recarga simulada aprobada correctamente.');
     }
 
-    public function actualizarUbicacion(Request $request) 
+    public function actualizarUbicacion(ActualizarUbicacionRequest $request)
     {
-        $request->validate([
-            'viaje_id' => 'required|integer',
-            'lat' => 'required|numeric|between:-90,90',
-            'lng' => 'required|numeric|between:-180,180',
-        ]);
-
-        $viaje = Viaje::find((int) $request->viaje_id);
-
-        if (! $viaje) {
+        try {
+            $viaje = app(ViajeService::class)->actualizarUbicacionConductor(
+                (int) $request->viaje_id,
+                (int) Auth::id(),
+                (float) $request->lat,
+                (float) $request->lng
+            );
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e) {
             return response()->json([
                 'ok' => false,
-                'mensaje' => 'Viaje no encontrado',
-            ], 404);
+                'mensaje' => $e->getMessage(),
+            ], $e->getStatusCode());
         }
 
-        if ((int) $viaje->id_conductor !== (int) Auth::id()) {
-            return response()->json([
-                'ok' => false,
-                'mensaje' => 'No tienes permiso para actualizar este viaje',
-            ], 403);
-        }
-
-        if (! in_array($viaje->estado_viaje, ['aceptado', 'recogiendo', 'en_curso'], true)) {
-            return response()->json([
-                'ok' => false,
-                'mensaje' => 'El estado del viaje no permite actualizar ubicacion',
-            ], 409);
-        }
-
-        Conductor::where('id_conductor', Auth::id())->update([
-            'lat_actual' => (float) $request->lat,
-            'lng_actual' => (float) $request->lng,
-            'ubicacion_actualizada_en' => now(),
-        ]);
-        
-        // Dispara evento - Reverb lo manda al mapa del pasajero
         event(new \App\Events\ConductorMovido(
-            $request->viaje_id,
-            $request->lat,
-            $request->lng
+            $viaje->id_viaje,
+            (float) $request->lat,
+            (float) $request->lng
         ));
 
         return response()->json([
             'ok' => true,
-            'mensaje' => 'Ubicacion actualizada',
+            'mensaje' => 'Ubicación actualizada',
             'lat' => (float) $request->lat,
             'lng' => (float) $request->lng,
         ]);
