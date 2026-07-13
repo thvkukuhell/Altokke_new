@@ -132,6 +132,7 @@ class ViajeService
     public function aceptarViaje(int $viajeId, int $conductorId): Viaje
     {
         return DB::transaction(function () use ($viajeId, $conductorId) {
+            //agrupa la operación completa como una sola unidad
             $viaje = Viaje::where('id_viaje', $viajeId)->lockForUpdate()->first();
 
             if (! $viaje) {
